@@ -1,5 +1,6 @@
 package edu.mayo.pipes.bioinformatics;
 
+import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,20 +12,36 @@ import edu.mayo.pipes.util.GenomicObjectUtils;
 
 import java.util.NoSuchElementException;
 
-public class VCF2VariantPipe extends AbstractPipe<String[],Variant>{
+public class VCF2VariantPipe extends AbstractPipe<String,Variant>{
     
-    
+    ArrayList<String> header = new ArrayList<String>();
     public VCF2VariantPipe(){
         
     }
     private int count =0;
     
-    public Variant compute(String[] s) {
+    public void initializeHeader(){
         
+    }
+    
+    public Variant compute(String l) {
+        String line = l;
+        
+        while(line.startsWith("#")){
+            header.add(line);
+            line = this.starts.next();
+        }
+        
+        String s[] = line.split(line);
+        if(s.length < 8){
+            throw new NoSuchElementException();
+        }
+        
+        JsonObject payload = new JsonObject();
         
         //0CHROM	1POS	2ID 3REF	4ALT	5QUAL	6FILTER	7INFO
         Variant variant = new Variant();
- /*       
+        
         variant.setChr(GenomicObjectUtils.computechr(s[0]));
         //todo: shove to json
         
@@ -49,14 +66,15 @@ public class VCF2VariantPipe extends AbstractPipe<String[],Variant>{
             variant.setMinBP(0);
             variant.setMaxBP(0);
         }
-        variant.setQual(s[5]);
-        variant.setFilter(s[6]);
+        //variant.setQual(s[5]);
+        //variant.setFilter(s[6]);
         //variant.setOneLiner(s[7]);
         HashMap hash = populate(s[7].split(";"));
-        variant.setType(getTypeFromVCF(variant));
-        variant.setProperties(hash);
+        //variant.setType(getTypeFromVCF(variant));
+        //variant.setProperties(hash);
+        
         //System.out.println(variant.toString());
-        */
+        
         return variant;
     }
     
@@ -107,10 +125,8 @@ public class VCF2VariantPipe extends AbstractPipe<String[],Variant>{
 
     @Override
     protected Variant processNextStart() throws NoSuchElementException {
-        String[] s = this.starts.next();
-        if(s.length > 8){
-            throw new NoSuchElementException();
-        }
+        String s = this.starts.next();
+
         return compute(s);
     }
 }
