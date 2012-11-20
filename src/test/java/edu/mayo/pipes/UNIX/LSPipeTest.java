@@ -40,18 +40,17 @@ public class LSPipeTest {
      */
     @Test
     public void testProcessNextStart() {
-        System.out.println("lsPipeTest");
+        //System.out.println("lsPipeTest");
         String result = "";
         String expectedResult = "bar.txt\nbaz.txt\nfoo.txt\n";
         LSPipe ls = new LSPipe(false);
-	Pipe<String,String> pipeline = new Pipeline<String,String>(ls);
-	pipeline.setStarts(Arrays.asList("./src/test/resources/etl/testData/lsFolderDontADDSTUFFINHERE"));
-	while(pipeline.hasNext()) {
+        Pipe<String,String> pipeline = new Pipeline<String,String>(ls);
+        pipeline.setStarts(Arrays.asList("./src/test/resources/testData/lsFolderDontADDSTUFFINHERE"));
+        while(pipeline.hasNext()) {
 		  String s = pipeline.next();
 		  result += s + "\n";	  
-	}
-	//System.out.println(result + "*");
-	assertEquals(expectedResult, result);
-        
+        }
+        //System.out.println(result + "*");
+        assertEquals(expectedResult, result);        
     }
 }

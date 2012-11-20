@@ -46,17 +46,17 @@ public class GrepPipeTest {
      */
     @Test
     public void testProcessNextStart() {
-        System.out.println("processNextStart");
+        //System.out.println("processNextStart");
         LinkedList<String> result = new LinkedList<String>();
         GrepPipe grep_pipe = new GrepPipe(".*a.*");
         IdentityPipe idp = new IdentityPipe();
         Pipe<String,String> pipeline = new Pipeline<String,String>(grep_pipe);
-	pipeline.setStarts(Arrays.asList("Dan", "Vita", "Mike", "Pat"));
-	while(pipeline.hasNext()) {
+        pipeline.setStarts(Arrays.asList("Dan", "Vita", "Mike", "Pat"));
+        while(pipeline.hasNext()) {
             String name = pipeline.next();
             //System.out.println(name);
             result.add(name);	  
-	}
+        }
         List<String> expected = Arrays.asList("Dan", "Vita", "Pat");
         assertEquals(3, result.size());
         for( int i = 0; i< expected.size(); i++){

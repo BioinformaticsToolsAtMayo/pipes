@@ -33,9 +33,9 @@ public class CatPipeTest {
 	public void testProcessNextStart() {
 		String result = "";		
 		Pipe<String,String> file_pipe = new CatPipe();		
-		Pipe<String,String> pipeline = new Pipeline<String,String>( new CatPipe(),  new PrintPipe());
+		Pipe<String,String> pipeline = new Pipeline<String,String>( new CatPipe());
 		
-		pipeline.setStarts(Arrays.asList("src/test/resources/etl/testData/example.gff", "src/test/resources/etl/testData/example2.gff"));
+		pipeline.setStarts(Arrays.asList("src/test/resources/testData/example.gff", "src/test/resources/testData/example2.gff"));
 		
 		while(pipeline.hasNext()) {
 			String s = pipeline.next();
@@ -45,8 +45,7 @@ public class CatPipeTest {
 		//System.out.println("ExampleGFF=" + examplegff + "*");
 		
 		assertEquals(examplegff, result);		
-	}
-	
+	}	
 	
 	@Test
     public void catTest_NoInfiniteLoop() throws IOException {
@@ -55,8 +54,8 @@ public class CatPipeTest {
         String result = "";
         Pipe<String,String> cpipe = new CatPipe();        
         AggregatorPipe agg = new AggregatorPipe(5);
-        Pipe<String, Collection> pipeline = new Pipeline<String, Collection>(cpipe, new PrintPipe(), agg);
-        pipeline.setStarts(Arrays.asList("src/test/resources/etl/testData/genestest.tsv"));
+        Pipe<String, Collection> pipeline = new Pipeline<String, Collection>(cpipe, agg);
+        pipeline.setStarts(Arrays.asList("src/test/resources/testData/genestest.tsv"));
 
         while(pipeline.hasNext()) {
         	pipeline.next();

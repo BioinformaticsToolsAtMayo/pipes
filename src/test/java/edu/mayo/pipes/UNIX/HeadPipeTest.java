@@ -45,17 +45,17 @@ public class HeadPipeTest {
 		String result = "";System.err.println("test");
 		HeadPipe file_pipe = new HeadPipe(2);
 		Pipe<String,String> pipeline = new Pipeline<String,String>(file_pipe);
-		pipeline.setStarts(Arrays.asList("./src/test/resources/etl/testData/example.gff", "./src/test/resources/etl/testData/example2.gff"));
+		pipeline.setStarts(Arrays.asList("./src/test/resources/testData/example.gff", "./src/test/resources/testData/example2.gff"));
 		
-                while(pipeline.hasNext()) {
-			  String s = pipeline.next();
-                          System.err.println(s);
-			  result += s + "\n";	  
-		}//TODO: there is some sort of bug if we want to head multiple files
+		while(pipeline.hasNext()) {
+			String s = pipeline.next();
+            System.err.println(s);
+			result += s + "\n";	  
+		}
+		//TODO: there is some sort of bug if we want to head multiple files
 		//System.out.println(result + "*");
 		//System.out.println(examplegff + "*");
 		
-		assertEquals(examplegff, result);
-		
+		assertEquals(examplegff, result);		
 	}
 }

@@ -62,7 +62,7 @@ public class CatGZPipeTest {
 		Pipe<String,String> zip_pipe = new CatGZPipe("gzip");
 		Pipe<String,String> identity = new IdentityPipe();
 		Pipe<String,String> pipeline = new Pipeline<String,String>(identity, zip_pipe);
-		pipeline.setStarts(Arrays.asList("src/test/resources/etl/testData/example.gff.gz", "src/test/resources/etl/testData/example2.gff.gz"));
+		pipeline.setStarts(Arrays.asList("src/test/resources/testData/example.gff.gz", "src/test/resources/testData/example2.gff.gz"));
 		while(pipeline.hasNext()) {
 			  Object object = pipeline.next();
 			  result += object.toString() + "\n";	  
