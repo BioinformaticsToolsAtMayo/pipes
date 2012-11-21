@@ -9,6 +9,7 @@ import java.util.List;
 import com.tinkerpop.pipes.AbstractPipe;
 import edu.mayo.pipes.records.Variant;
 import edu.mayo.pipes.util.GenomicObjectUtils;
+import edu.mayo.pipes.util.JSONUtil;
 
 import java.util.NoSuchElementException;
 
@@ -43,35 +44,46 @@ public class VCF2VariantPipe extends AbstractPipe<String,Variant>{
         Variant variant = new Variant();
         
         variant.setChr(GenomicObjectUtils.computechr(s[0]));
-        //todo: shove to json
+        payload.addProperty("CHROM", s[0]);
         
         ++count;
-        variant.setId(s[2]+"_"+s[1]+"_"+s[0]);//guarenteed to be unique, if no then bug
-        if(!s[2].startsWith("rs")){
-            variant.setId(count+"_"+s[1]+"_"+s[0]);
-        }
-        variant.setId(s[2]);
-        //todo: shove to json
+//        if(!s[2].startsWith("rs")){
+//            variant.setId(count+"_"+s[1]+"_"+s[0]);
+//        }
+        variant.setId(s[2]);//guarenteed to be unique, if no then perhaps bug
+        payload.addProperty("ID", s[2]);
         
         variant.setRefAllele(s[3]); 
-        //todo: shove to json
+        payload.addProperty("REF", s[3]);
         
-        variant.setAltAllele(al(s[4])); 
+        String[] al = al(s[4]);
+        variant.setAltAllele(al); 
+        payload.add("ALT", JSONUtil.stringArr2JSON(al));
         
         if (s[1]!=null) {
             int start = new Integer(s[1]);        
             variant.setMinBP(start);
+            payload.addProperty("POS", start);
             variant.setMaxBP(new Integer(start + s[3].length()-1));        	
         } else {
             variant.setMinBP(0);
             variant.setMaxBP(0);
+            payload.addProperty("POS", 0);
         }
         //variant.setQual(s[5]);
+        payload.addProperty("QUAL", s[5]);
         //variant.setFilter(s[6]);
+        payload.addProperty("FILTER", s[6]);
         //variant.setOneLiner(s[7]);
         HashMap hash = populate(s[7].split(";"));
-        //variant.setType(getTypeFromVCF(variant));
+        JsonObject info = new JsonObject();
+        
+        variant.setType(getTypeFromVCF(variant));
+        payload.addProperty("variant_type", getTypeFromVCF(variant));
+        //payload.addProperty("type", "Variant");
+        
         //variant.setProperties(hash);
+        payload.add("INFO", info);
         
         //System.out.println(variant.toString());
         
@@ -79,21 +91,20 @@ public class VCF2VariantPipe extends AbstractPipe<String,Variant>{
     }
     
     
-    /*
+    
     private String getTypeFromVCF(Variant v){
-        if (v.getRefAlleleFWD().length() == v.getAltAlleleFWD().get(0).length()){
+        String[] altAllele = v.getAltAllele();
+        if (v.getRefAllele().length() == altAllele[0].length()){
             return "SNP";
         }
-        if (v.getRefAlleleFWD().length() < v.getAltAlleleFWD().get(0).length()){
-            return "Insertion";
+        if (v.getRefAllele().length() < altAllele[0].length()){
+            return "insertion";
         }
-        if (v.getRefAlleleFWD().length() > v.getAltAlleleFWD().get(0).length()){
-            return "Deletion";
+        if (v.getRefAllele().length() > altAllele[0].length()){
+            return "deletion";
         }
         else return "unknown";
     }
-    * 
-    */
 
     private String[] al(String raw){
         ArrayList finalList = new ArrayList();
