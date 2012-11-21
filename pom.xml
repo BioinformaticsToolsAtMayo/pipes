@@ -96,4 +96,18 @@
             <url>http://www.biojava.org/download/maven/</url>
         </repository>
     </repositories>
+<!-- Distribution through Nexus -->
+ <distributionManagement>
+        <repository>
+            <id>mayo-nexus-bsi</id>
+            <name> Mayo Internal BSI Nexus releases</name>
+            <url>http://nexus.mayo.edu/content/repositories/hsr_bsi/</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>mayo-nexus-bsi</id>
+            <name>Mayo Internal BSI Nexus snapshots</name>
+            <url>http://nexus.mayo.edu/content/repositories/hsr_bsi-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
