@@ -6,11 +6,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.zip.GZIPInputStream;
+
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 public class GZipFileLineIterator implements Iterator {
 	static final int BUFFER = 2048;
-	GZIPInputStream gzip;
+	GzipCompressorInputStream gzip;
 	FileInputStream fis;
 	BufferedReader br;
 	InputStreamReader isr;
@@ -54,7 +55,7 @@ public class GZipFileLineIterator implements Iterator {
     	readok = true;
 		this.filename = filename;
 		fis = new FileInputStream(filename);
-		gzip = new GZIPInputStream(fis);	
+		gzip = new GzipCompressorInputStream(fis, true);	
 		isr = new InputStreamReader(gzip);
 		br = new BufferedReader(isr);
 		return br;
