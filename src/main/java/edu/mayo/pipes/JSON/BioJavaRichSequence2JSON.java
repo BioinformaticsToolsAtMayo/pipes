@@ -4,6 +4,7 @@
  */
 package edu.mayo.pipes.JSON;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.tinkerpop.pipes.AbstractPipe;
 import java.util.*;
@@ -26,6 +27,7 @@ import java.util.*;
 import org.biojava.bio.*;
 import org.biojava.bio.seq.*;
 import org.biojava.bio.seq.io.*;
+import org.biojava.bio.symbol.Location;
 //BioJava extension libraries
 import org.biojavax.*;
 import org.biojavax.ontology.*;
@@ -39,8 +41,10 @@ import org.biojavax.bio.seq.*;
 public class BioJavaRichSequence2JSON extends AbstractPipe<RichSequence, List<String>>{
     
     private String chromosome;
+    private String[] featureTypes;
     public BioJavaRichSequence2JSON(String chr, String[] featureTypes){
         this.chromosome = chr;
+        this.featureTypes = featureTypes;
     }
 
     //Use BioJava defined ComparableTerms 
@@ -71,10 +75,10 @@ public class BioJavaRichSequence2JSON extends AbstractPipe<RichSequence, List<St
     	System.out.println("BioJavaRichSequence2ThriftGenes.transform()..");
         List<String> features = new ArrayList<String>();
         
-        //for(){
-            List<String> extFeatures = extractFeaturesByType("gene", rs);
+        for(int i = 0; i<featureTypes.length; i++){
+            List<String> extFeatures = extractFeaturesByType(featureTypes[i], rs);
             features.addAll(extFeatures);   
-        //}
+        }
         
         if(features.size() < 1 ){
             throw new NoSuchElementException();
@@ -112,12 +116,40 @@ public class BioJavaRichSequence2JSON extends AbstractPipe<RichSequence, List<St
             }else {
                 f.addProperty("strand", ".");
             }
-                        
+            
+            String subregionType = "subregions";
+            JsonArray subregions = new JsonArray();
+            if(type.equalsIgnoreCase("mRNA") || type.equalsIgnoreCase("transcript") || type.equalsIgnoreCase("CDS")){
+                subregionType = "exons";
+            }
+            
+            //exons : [123,234],[345,456],... 
+            
             //Get the location of the feature
             String featureLocation = rf.getLocation().toString(); 
             f.addProperty("minBP", rf.getLocation().getMin());
             f.addProperty("maxBP", rf.getLocation().getMax());
             //System.out.println(featureLocation);
+            
+            //Some Features have many locations joined together (e.g. a transcript consists of multiple exons)
+            Location location = rf.getLocation();
+            Iterator<Location> blockIterator = location.blockIterator();
+            while(blockIterator.hasNext()){
+                JsonObject sregion = new JsonObject();
+                Location next = blockIterator.next();
+                int min = next.getMin();
+                int max = next.getMax();              
+                //System.out.println("Pos =" + min + ":" + max);
+                sregion.addProperty("minBP", min);
+                sregion.addProperty("maxBP", max);
+                subregions.add(sregion);
+            }
+            if(subregions.size() > 1){
+                f.add(subregionType, subregions);
+            }else if(type.equalsIgnoreCase("mRNA") || type.equalsIgnoreCase("transcript") || type.equalsIgnoreCase("CDS")){
+                f.add(subregionType, subregions);
+            }
+            
 
             //Get the annotation of the feature
             RichAnnotation ra = (RichAnnotation)rf.getAnnotation();
