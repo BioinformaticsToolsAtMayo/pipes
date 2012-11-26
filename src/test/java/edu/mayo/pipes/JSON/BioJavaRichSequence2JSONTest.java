@@ -55,8 +55,11 @@ public class BioJavaRichSequence2JSONTest {
         System.out.println("Testing on Genbank file: " + gbk);
         
         //tell the pipe what type of features you want it to extract:
-        String[] featureTypes = new String[1];
+        String[] featureTypes = new String[3];
         featureTypes[0] = "gene";
+        featureTypes[1] = "mRNA";
+        featureTypes[2] = "CDS";
+        
         
         BioJavaRichSequence2JSON bjrs2tg = new BioJavaRichSequence2JSON("17", featureTypes);
         Pipe p = new Pipeline(new GenbankPipe(), bjrs2tg, new DrainPipe(), new PrintPipe());
