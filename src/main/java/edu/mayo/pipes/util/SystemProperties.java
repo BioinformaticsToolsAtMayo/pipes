@@ -3,7 +3,7 @@ package edu.mayo.pipes.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-
+import java.net.URL;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
@@ -18,6 +18,7 @@ import java.util.logging.Logger;
  *   2. uses the file named sys.properties in the user's home directory.
  *   3. uses the file defined by the java System property SYS_PROP.
  *   4. uses /etc/sys.properties.
+ *   5. uses JVM Classloader to locate sys.properties on the classpath
  * @author Daniel J. Quest
  */
 public class SystemProperties {
@@ -38,9 +39,13 @@ public class SystemProperties {
             file = System.getenv("HOME") + "/sys.properties";
         } else if (System.getProperty(SYS_PROP) != null) {
             file = System.getProperty(SYS_PROP);
-        } else {
+        } else if (new File(System.getenv("user.dir") + "/sys.properties").exists() == true) {
             //file = "/etc/sys.properties";
             file = System.getProperty("user.dir") + "/conf/sys.properties";
+        } else if (SystemProperties.class.getClassLoader().getResource("sys.properties") != null) {
+        	// use classloader to find sys.properties on classpath
+        	URL url = SystemProperties.class.getClassLoader().getResource("sys.properties");
+        	file = url.getFile();
         }
 
         Logger.getLogger(SystemProperties.class.getName()).log(Level.INFO,
