@@ -4,6 +4,7 @@
  */
 package edu.mayo.pipes.JSON;
 
+import com.google.gson.JsonObject;
 import com.tinkerpop.pipes.AbstractPipe;
 import java.util.*;
 import org.biojava.bio.seq.Feature;
@@ -38,7 +39,7 @@ import org.biojavax.bio.seq.*;
 public class BioJavaRichSequence2JSON extends AbstractPipe<RichSequence, List<String>>{
     
     private String chromosome;
-    public BioJavaRichSequence2JSON(String chr){
+    public BioJavaRichSequence2JSON(String chr, String[] featureTypes){
         this.chromosome = chr;
     }
 
@@ -58,100 +59,89 @@ public class BioJavaRichSequence2JSON extends AbstractPipe<RichSequence, List<St
             
             RichSequence seq = this.starts.next();
             //TODO: this needs to be filled in
-            List<String> genes = null;//transform(seq);
-            return genes;
+            List<String> features = transform(seq);
+            
+            return features;
         }else{
             throw new NoSuchElementException();
         }
     }
-
-/*    
-    private List<String> transform(RichSequence rs){    
+   
+    private List<String> transform(RichSequence rs) throws NoSuchElementException {    
     	System.out.println("BioJavaRichSequence2ThriftGenes.transform()..");
-        List<String> genes = new ArrayList<Gene>();
-        //Filter the sequence on CDS features
-        FeatureFilter ff = new FeatureFilter.ByType("gene");//CDS
+        List<String> features = new ArrayList<String>();
+        
+        //for(){
+            List<String> extFeatures = extractFeaturesByType("gene", rs);
+            features.addAll(extFeatures);   
+        //}
+        
+        if(features.size() < 1 ){
+            throw new NoSuchElementException();
+        }
+        
+        return features;
+    }
+    
+    /**
+     * Extract all features of a given type (e.g. gene, CDS, exon, mRNA, ...)
+     * convert those featues to a JSON String and return a list of the converted strings
+     * @param type
+     * @return 
+     */
+    private List<String> extractFeaturesByType(String type, RichSequence rs){
+        List<String> features = new ArrayList<String>();
+        
+        //Filter the sequence on CDS,gene, mRNA or whatever type of features
+        FeatureFilter ff = new FeatureFilter.ByType(type);//CDS
         FeatureHolder fh = rs.filter(ff);
- 
-        //Iterate through the gene features
+        
+        //Iterate through the features
         for (Iterator <Feature> i = fh.features(); i.hasNext();){
             RichFeature rf = (RichFeature)i.next();
-            Gene g = new Gene();
-            g.setNspace(nspace);
-            g.setVersion(version);
+            JsonObject f = new JsonObject(); //the next feature
+            f.addProperty("type", type);
+            f.addProperty("chr", this.chromosome);                     
             
-            g.setChr(this.chromosome);
-
             //Get the strand orientation of the feature
             char featureStrand = rf.getStrand().getToken();
             if(featureStrand == '+'){
-                g.setStrand(Strand.FORWARD);
+                f.addProperty("strand", "+");
             }else if(featureStrand == '-'){
-                g.setStrand(Strand.REVERSE);
+                f.addProperty("strand", "-");
             }else {
-                g.setStrand(Strand.UNSPECIFIED);
-            }           
-
+                f.addProperty("strand", ".");
+            }
+                        
             //Get the location of the feature
             String featureLocation = rf.getLocation().toString(); 
-            g.setMinBP(rf.getLocation().getMin());
-            g.setMaxBP(rf.getLocation().getMax());
+            f.addProperty("minBP", rf.getLocation().getMin());
+            f.addProperty("maxBP", rf.getLocation().getMax());
             //System.out.println(featureLocation);
 
             //Get the annotation of the feature
-            RichAnnotation ra = (RichAnnotation)rf.getAnnotation(); 
-
-
+            RichAnnotation ra = (RichAnnotation)rf.getAnnotation();
+                       
             //Iterate through the notes/qualifiers in the annotation 
             for (Iterator <Note> it = ra.getNoteSet().iterator(); it.hasNext();){
                 Note note = it.next();
-
-                //System.out.println(note.getTerm() + ":*:" + note.getValue());
-
-                //Check each note to see if it matches one of the required ComparableTerms
-                if(note.getTerm().equals(locusTerm)){
-                    String locus = note.getValue().toString();
-                    g.setId(locus);
-                }else if(note.getTerm().equals(productTerm)){
-                    String product = note.getValue().toString();
-                }else if(note.getTerm().equals(geneTerm)){
-                    String genestr = note.getValue().toString();
-                    System.out.println("BioJavaRichSequence2ThriftGenes:HgncSymbol="+genestr);
-                    g.setHgncSymbol(genestr);
-                }else if(note.getTerm().equals(synonymTerm)){
-                    String geneSynonym = note.getValue().toString();
-                }else if(note.getTerm().equals(noteTerm)){
-                    String n = note.getValue().toString();
-                    g.setDescription(n);
-                }else {
-                    g.putToProperties(note.getTerm().toString(), note.getValue().toString());
-                }
+                f.addProperty(note.getTerm().toString().replace("biojavax:", ""), note.getValue().toString());
             }
-
+            
             //Get the dbxrefs...
             Set<RankedCrossRef> rankedCrossRefs = rf.getRankedCrossRefs();
             for (Iterator <RankedCrossRef> it = rankedCrossRefs.iterator(); it.hasNext();){
                 RankedCrossRef next = it.next();
                 CrossRef crossRef = next.getCrossRef();
-                //System.out.println(crossRef.getDbname() + ":*:" + crossRef.getAccession());
-                if(crossRef.getDbname().equals("GeneID")){
-                    g.setId(crossRef.getAccession());
-                }else if(crossRef.getDbname().equals("MIM")){
-                    g.setOmimID(crossRef.getAccession());
-                }else if(crossRef.getDbname().equals("HGNC")){
-                    g.setHgncID(crossRef.getAccession());
-                }else {
-                    g.putToGxrefs(crossRef.getDbname(), crossRef.getAccession());
-                }
+                f.addProperty(crossRef.getDbname(), crossRef.getAccession());
             }
-
-            //Add the current gene to the list of genes
-            genes.add(g);
-            //System.out.println(g);
+            
+            features.add(f.toString());   
         }
-        return null;
+        
+        
+        return features;
     }
-    * 
-    */
+
     
 }
