@@ -48,7 +48,7 @@ public class BioJavaRichSequence2JSONTest {
     /**
      * Test of processNextStart method, of class BioJavaRichSequence2JSON.
      */
-    //@Test
+    @Test
     public void testProcessNextStart() throws IOException {
         //assertEquals(expResult, result);
       
@@ -65,12 +65,31 @@ public class BioJavaRichSequence2JSONTest {
         featureTypes[2] = "CDS";        
         
         BioJavaRichSequence2JSON bjrs2tg = new BioJavaRichSequence2JSON("17", featureTypes);
-        Pipe p = new Pipeline(new GenbankPipe(), bjrs2tg, new DrainPipe(), new PrintPipe());
+        //Pipe p = new Pipeline(new GenbankPipe(), bjrs2tg, new DrainPipe(), new PrintPipe());        
+        Pipe p = new Pipeline(new GenbankPipe(), bjrs2tg, new DrainPipe());
         p.setStarts(Arrays.asList(gbk));
+
+        String resultJson = "";
+        JsonPath jsonPath = null;
+        boolean hasGene=false, hasmRNA=false, hasCDS=false;
+
         for(int i=0; p.hasNext(); i++){
-            p.next();
-            //System.out.println(i);
+            resultJson = (String)p.next();
+            //System.out.println(resultJson);
+
+            jsonPath = JsonPath.compile("type");
+			if (jsonPath.read(resultJson).toString().equals("gene")) {
+				hasGene = true;
+			} else if (jsonPath.read(resultJson).toString().equals("mRNA")) {
+				hasmRNA = true;
+			} else if (jsonPath.read(resultJson).toString().equals("CDS")) {
+				hasCDS = true;
+			}			
         }
+        
+        assertTrue(hasGene);
+        assertTrue(hasmRNA);
+        assertTrue(hasCDS);
     }
     
     @Test
