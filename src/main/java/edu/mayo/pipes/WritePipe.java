@@ -21,10 +21,20 @@ import java.util.logging.Logger;
  */
 public class WritePipe extends AbstractPipe<String, String>{
     
-    BufferedWriter out = null; 
+    private BufferedWriter out = null; 
+    private boolean append = true;
     public WritePipe(String filename){
         try {
-                out = new BufferedWriter(new FileWriter(filename));
+                out = new BufferedWriter(new FileWriter(filename, append));
+                //out.write("aString");
+        } catch (IOException e) {
+        }
+    }
+    
+    public WritePipe(String filename, boolean append){
+        this.append = append;
+        try {
+                out = new BufferedWriter(new FileWriter(filename, append));
                 //out.write("aString");
         } catch (IOException e) {
         }
