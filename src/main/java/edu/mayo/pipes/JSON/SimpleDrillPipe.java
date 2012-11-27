@@ -44,7 +44,8 @@ public class SimpleDrillPipe extends AbstractPipe<String, List<String>>{
                 JsonPath jsonPath = compiledPaths.get(i);
                 Object o = jsonPath.read(json);
 		if (o != null) {
-                    System.out.println(o.toString());
+                    //System.out.println(o.toString());
+                    out.add(o.toString());
 		}
             }
             if(keepJSON){
