@@ -55,6 +55,12 @@ public class SimpleDrillPipeTest {
             List<String> drilled = (List<String>) p.next();
             for(int j=0; j<drilled.size(); j++){
                 System.out.println(drilled.get(j));
+                if(i==1 && j==0){
+                    assertEquals(drilled.get(j),"BRCA1");
+                }
+                if(i==1 && j==2){
+                    assertEquals(drilled.get(j),s2);
+                }
             }
         }
 //        SimpleDrillPipe instance = null;
