@@ -14,10 +14,16 @@ import java.util.NoSuchElementException;
  */
 public class MergePipe extends AbstractPipe<List<String>, String>{
     private String delimiter = "\t";
+    private boolean newline = false;
     public MergePipe(String delim){
         this.delimiter = delim;
     }
 
+    public MergePipe(String delim, boolean appendNewlines){
+        this.delimiter = delim;
+        newline = appendNewlines;
+    }
+    
     @Override
     protected String processNextStart() throws NoSuchElementException {
         if(this.starts.hasNext()){
@@ -32,6 +38,9 @@ public class MergePipe extends AbstractPipe<List<String>, String>{
                 sb.append(delimiter);
             }
             sb.append(l.get(l.size()-1));
+            if(newline){
+                sb.append("\n");
+            }
             return sb.toString();
         }else {
             throw new NoSuchElementException();
