@@ -3,20 +3,22 @@
  * and open the template in the editor.
  */
 package edu.mayo.pipes.bioinformatics;
-
-import com.tinkerpop.pipes.Pipe;
-import com.tinkerpop.pipes.util.Pipeline;
-import edu.mayo.pipes.HeaderPipe;
-import edu.mayo.pipes.PrintPipe;
-import edu.mayo.pipes.SplitPipe;
-import edu.mayo.pipes.UNIX.CatGZPipe;
-import edu.mayo.pipes.UNIX.CatPipe;
-import edu.mayo.pipes.aggregators.AggregatorPipe;
-import edu.mayo.pipes.records.Variant;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
-import org.junit.*;
-import static org.junit.Assert.*;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.jayway.jsonpath.JsonPath;
+import com.tinkerpop.pipes.Pipe;
+import com.tinkerpop.pipes.util.Pipeline;
+
+import edu.mayo.pipes.PrintPipe;
+import edu.mayo.pipes.UNIX.CatPipe;
 
 /**
  *
@@ -49,17 +51,55 @@ public class VCF2VariantPipeTest {
     @Test
     public void testProcessNextStart() {
         VCF2VariantPipe vcf = new VCF2VariantPipe();
-        Pipe<String, Variant> pipeline = new Pipeline<String, Variant>(new CatPipe(),new HeaderPipe(59), new SplitPipe("\t"), vcf);
-        pipeline.setStarts(Arrays.asList("/src/test/resources/testData/example.vcf"));
-        if (pipeline.hasNext()) {
-	        Variant v = (Variant)pipeline.next();
-	        System.out.println(v);
-	        assertEquals("chr1", v.getChr().toString());
-	        //assertEquals("rs144773400", v.getRsID());
-	        //assertEquals("137", v.getVersion());
-	        //assertEquals("TA",v.getRefAlleleFWD());
-	        //assertEquals("T", v.getAltAlleleFWD().get(0));
-        }
-	
+        Pipe<String, String> pipeline = new Pipeline<String, String>(new CatPipe(), vcf, new PrintPipe());
+        pipeline.setStarts(Arrays.asList("src/test/resources/testData/vcf-format-4_0.vcf"));
+
+        // grab 1st row of data
+        pipeline.hasNext();	    
+        String json = (String) pipeline.next();
+        
+        // use JSON paths to drill out values and compare with expected
+        assertEquals("1",			JsonPath.compile("CHROM").read(json));
+        assertEquals("10144",		JsonPath.compile("POS").read(json));
+        assertEquals("rs144773400",	JsonPath.compile("ID").read(json));
+        assertEquals("TA",			JsonPath.compile("REF").read(json));
+        assertEquals("T",			JsonPath.compile("ALT").read(json));
+        assertEquals("GOOD",		JsonPath.compile("QUAL").read(json));
+        assertEquals("PASS",		JsonPath.compile("FILTER").read(json));
+        assertEquals(true,			JsonPath.compile("INFO.MOCK_FLAG").read(json));
+        assertEquals("A",			JsonPath.compile("INFO.MOCK_CHAR").read(json));
+        assertEquals("foobar",		JsonPath.compile("INFO.MOCK_STR").read(json));
+        assertEquals(3,				JsonPath.compile("INFO.MOCK_INTEGER").read(json));
+        assertEquals(3.78,			JsonPath.compile("INFO.MOCK_FLOAT").read(json));
+        assertEquals("rs144773400",	JsonPath.compile(CoreAttributes._accID.toString()).read(json));
+        assertEquals("1",			JsonPath.compile(CoreAttributes._chrom.toString()).read(json));
+        assertEquals(10144,			JsonPath.compile(CoreAttributes._minBP.toString()).read(json));
+        assertEquals(10145,			JsonPath.compile(CoreAttributes._maxBP.toString()).read(json));
+        assertEquals("TA",			JsonPath.compile(CoreAttributes._refAllele.toString()).read(json));
+        assertEquals("T",			JsonPath.compile(CoreAttributes._altAlleles.toString()+"[0]").read(json));
+        
+        // grab 2nd row of data only
+        pipeline.hasNext();	    
+        json = (String) pipeline.next();
+        
+        // use JSON paths to drill out values and compare with expected
+        assertEquals("20",			JsonPath.compile("CHROM").read(json));
+        assertEquals("9076",		JsonPath.compile("POS").read(json));
+        assertEquals("fake_id",		JsonPath.compile("ID").read(json));
+        assertEquals("AGAAA",		JsonPath.compile("REF").read(json));
+        assertEquals("A",			JsonPath.compile("ALT").read(json));
+        assertEquals("AVERAGE",		JsonPath.compile("QUAL").read(json));
+        assertEquals("FAIL",		JsonPath.compile("FILTER").read(json));
+        assertEquals("foobar1",		JsonPath.compile("INFO.MOCK_STR_MULTI[0]").read(json));
+        assertEquals("foobar2",		JsonPath.compile("INFO.MOCK_STR_MULTI[1]").read(json));
+        assertEquals(1,				JsonPath.compile("INFO.MOCK_INTEGER_MULTI[0]").read(json));
+        assertEquals(2,				JsonPath.compile("INFO.MOCK_INTEGER_MULTI[1]").read(json));
+        assertEquals(3,				JsonPath.compile("INFO.MOCK_INTEGER_MULTI[2]").read(json));
+        assertEquals("fake_id",		JsonPath.compile(CoreAttributes._accID.toString()).read(json));
+        assertEquals("20",			JsonPath.compile(CoreAttributes._chrom.toString()).read(json));
+        assertEquals(9076,			JsonPath.compile(CoreAttributes._minBP.toString()).read(json));
+        assertEquals(9080,			JsonPath.compile(CoreAttributes._maxBP.toString()).read(json));
+        assertEquals("AGAAA",		JsonPath.compile(CoreAttributes._refAllele.toString()).read(json));
+        assertEquals("A",			JsonPath.compile(CoreAttributes._altAlleles.toString()+"[0]").read(json));        
     }
 }
