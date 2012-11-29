@@ -15,7 +15,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.tinkerpop.pipes.AbstractPipe;
 
-import edu.mayo.pipes.records.Variant;
 import edu.mayo.pipes.util.GenomicObjectUtils;
 
 /**
@@ -252,19 +251,19 @@ public class VCF2VariantPipe extends AbstractPipe<String,String>{
         }
     }
     
-    private String getTypeFromVCF(Variant v){
-        String[] altAllele = v.getAltAllele();
-        if (v.getRefAllele().length() == altAllele[0].length()){
-            return "SNP";
-        }
-        if (v.getRefAllele().length() < altAllele[0].length()){
-            return "insertion";
-        }
-        if (v.getRefAllele().length() > altAllele[0].length()){
-            return "deletion";
-        }
-        else return "unknown";
-    }
+//    private String getTypeFromVCF(Variant v){
+//        String[] altAllele = v.getAltAllele();
+//        if (v.getRefAllele().length() == altAllele[0].length()){
+//            return "SNP";
+//        }
+//        if (v.getRefAllele().length() < altAllele[0].length()){
+//            return "insertion";
+//        }
+//        if (v.getRefAllele().length() > altAllele[0].length()){
+//            return "deletion";
+//        }
+//        else return "unknown";
+//    }
 
     private String[] al(String raw){
         ArrayList finalList = new ArrayList();
