@@ -42,5 +42,5 @@ public enum CoreAttributes {
         /**
          * Tye type of the feature, e.g. gene, mRNA, contig, drug, variant ...
          */
-        _type
+        _type;
 }
