@@ -16,6 +16,7 @@ import org.biojavax.bio.seq.RichFeature;
 import org.biojavax.bio.seq.RichSequence;
 import org.biojavax.ontology.ComparableTerm;
 import com.tinkerpop.pipes.AbstractPipe;
+import edu.mayo.pipes.bioinformatics.CoreAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -104,17 +105,17 @@ public class BioJavaRichSequence2JSON extends AbstractPipe<RichSequence, List<St
         for (Iterator <Feature> i = fh.features(); i.hasNext();){
             RichFeature rf = (RichFeature)i.next();
             JsonObject f = new JsonObject(); //the next feature
-            f.addProperty("type", type);
-            f.addProperty("chr", this.chromosome);                     
+            f.addProperty(CoreAttributes._type.toString(), type);
+            f.addProperty(CoreAttributes._landmark.toString(), this.chromosome);                     
             
             //Get the strand orientation of the feature
             char featureStrand = rf.getStrand().getToken();
             if(featureStrand == '+'){
-                f.addProperty("strand", "+");
+                f.addProperty(CoreAttributes._strand.toString(), "+");
             }else if(featureStrand == '-'){
-                f.addProperty("strand", "-");
+                f.addProperty(CoreAttributes._strand.toString(), "-");
             }else {
-                f.addProperty("strand", ".");
+                f.addProperty(CoreAttributes._strand.toString(), ".");
             }
             
             String subregionType = "subregions";
@@ -127,8 +128,8 @@ public class BioJavaRichSequence2JSON extends AbstractPipe<RichSequence, List<St
             
             //Get the location of the feature
             String featureLocation = rf.getLocation().toString(); 
-            f.addProperty("minBP", rf.getLocation().getMin());
-            f.addProperty("maxBP", rf.getLocation().getMax());
+            f.addProperty(CoreAttributes._minBP.toString(), rf.getLocation().getMin());
+            f.addProperty(CoreAttributes._maxBP.toString(), rf.getLocation().getMax());
             //System.out.println(featureLocation);
             
             //Some Features have many locations joined together (e.g. a transcript consists of multiple exons)
