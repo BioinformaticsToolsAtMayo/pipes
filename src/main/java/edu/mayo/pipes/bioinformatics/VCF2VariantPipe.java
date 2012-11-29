@@ -68,7 +68,9 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
     private static final int REGEX_GRP_NUM  = 2;
     private static final int REGEX_GRP_TYPE = 3;
     private Pattern mRegexPattern = Pattern.compile(mRegexStr);
-        
+
+    private boolean mHeaderInitialized = false;
+    
     // maps a given INFO field ID to an InfoFieldMeta object
     private Map<String, InfoFieldMeta> mFieldMap = new HashMap<String, InfoFieldMeta>();
     
@@ -99,6 +101,26 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
     @Override
     protected List<String> processNextStart() throws NoSuchElementException {
         List<String> history = this.starts.next();
+        
+        // fast forward and capture header rows until we hit the first data row
+        if (mHeaderInitialized == false) {
+	    	String commentCol = history.get(0);
+	        while(commentCol.startsWith("#")){
+	            mHeaderRows.add(commentCol);
+	
+	            history = this.starts.next();
+	        	commentCol = history.get(0);
+	        }
+	
+	        // entire header has been captured, now process it
+	        initializeHeader();
+	        
+	        mHeaderInitialized = true;
+        }
+                
+        if(history.size() < COL_HEADERS.length){
+        	throw new NoSuchElementException();
+      	}        
 
         // transform into JSON
         String json = buildJSON(history);
@@ -114,24 +136,7 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
      * @param history A single VCF data row
      * @return
      */
-    private String buildJSON(List<String> history) {
-        
-        // fast forward and capture header rows until we hit the first data row
-    	String commentCol = history.get(0);
-        while(commentCol.startsWith("#")){
-            mHeaderRows.add(commentCol);
-
-            history = this.starts.next();
-        	commentCol = history.get(0);
-        }
-
-        // entire header has been captured, now process it
-        initializeHeader();
-        
-        if(history.size() < COL_HEADERS.length){
-        	throw new NoSuchElementException();
-      	}        
-    	
+    private String buildJSON(List<String> history) {    	
     	
         JsonObject root = new JsonObject();
         
