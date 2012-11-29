@@ -21,6 +21,7 @@ import com.tinkerpop.pipes.util.Pipeline;
 import edu.mayo.pipes.SplitPipe;
 import edu.mayo.pipes.UNIX.CatPipe;
 import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
+import edu.mayo.pipes.bioinformatics.vocab.Type;
 
 /**
  *
@@ -89,6 +90,7 @@ public class VCF2VariantPipeTest {
         assertEquals(10145,			JsonPath.compile(CoreAttributes._maxBP.toString()).read(json));
         assertEquals("TA",			JsonPath.compile(CoreAttributes._refAllele.toString()).read(json));
         assertEquals("T",			JsonPath.compile(CoreAttributes._altAlleles.toString()+"[0]").read(json));
+        assertEquals(Type.VARIANT.toString(),	JsonPath.compile(CoreAttributes._type.toString()).read(json));
         
         // grab 2nd row of data only
         pipeline.hasNext();	    
@@ -113,6 +115,7 @@ public class VCF2VariantPipeTest {
         assertEquals(9076,			JsonPath.compile(CoreAttributes._minBP.toString()).read(json));
         assertEquals(9080,			JsonPath.compile(CoreAttributes._maxBP.toString()).read(json));
         assertEquals("AGAAA",		JsonPath.compile(CoreAttributes._refAllele.toString()).read(json));
-        assertEquals("A",			JsonPath.compile(CoreAttributes._altAlleles.toString()+"[0]").read(json));        
+        assertEquals("A",			JsonPath.compile(CoreAttributes._altAlleles.toString()+"[0]").read(json));
+        assertEquals(Type.VARIANT.toString(),	JsonPath.compile(CoreAttributes._type.toString()).read(json));        
     }
 }

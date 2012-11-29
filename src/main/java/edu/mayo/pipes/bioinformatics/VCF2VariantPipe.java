@@ -16,6 +16,7 @@ import com.google.gson.JsonPrimitive;
 import com.tinkerpop.pipes.AbstractPipe;
 
 import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
+import edu.mayo.pipes.bioinformatics.vocab.Type;
 import edu.mayo.pipes.util.GenomicObjectUtils;
 
 /**
@@ -240,6 +241,8 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
     	//guaranteed to be unique, if no then perhaps bug
     	String accID = history.get(COL_ID);
     	root.addProperty(CoreAttributes._id.toString(), accID);
+    	
+    	root.addProperty(CoreAttributes._type.toString(), Type.VARIANT.toString());
     	
     	String chr = GenomicObjectUtils.computechr(history.get(COL_CHROM));
     	root.addProperty(CoreAttributes._landmark.toString(), chr);
