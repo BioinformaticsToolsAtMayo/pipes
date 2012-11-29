@@ -71,8 +71,8 @@ public class VCF2VariantPipeTest {
         assertEquals("foobar",		JsonPath.compile("INFO.MOCK_STR").read(json));
         assertEquals(3,				JsonPath.compile("INFO.MOCK_INTEGER").read(json));
         assertEquals(3.78,			JsonPath.compile("INFO.MOCK_FLOAT").read(json));
-        assertEquals("rs144773400",	JsonPath.compile(CoreAttributes._accID.toString()).read(json));
-        assertEquals("1",			JsonPath.compile(CoreAttributes._chrom.toString()).read(json));
+        assertEquals("rs144773400",	JsonPath.compile(CoreAttributes._id.toString()).read(json));
+        assertEquals("1",			JsonPath.compile(CoreAttributes._landmark.toString()).read(json));
         assertEquals(10144,			JsonPath.compile(CoreAttributes._minBP.toString()).read(json));
         assertEquals(10145,			JsonPath.compile(CoreAttributes._maxBP.toString()).read(json));
         assertEquals("TA",			JsonPath.compile(CoreAttributes._refAllele.toString()).read(json));
@@ -95,8 +95,8 @@ public class VCF2VariantPipeTest {
         assertEquals(1,				JsonPath.compile("INFO.MOCK_INTEGER_MULTI[0]").read(json));
         assertEquals(2,				JsonPath.compile("INFO.MOCK_INTEGER_MULTI[1]").read(json));
         assertEquals(3,				JsonPath.compile("INFO.MOCK_INTEGER_MULTI[2]").read(json));
-        assertEquals("fake_id",		JsonPath.compile(CoreAttributes._accID.toString()).read(json));
-        assertEquals("20",			JsonPath.compile(CoreAttributes._chrom.toString()).read(json));
+        assertEquals("fake_id",		JsonPath.compile(CoreAttributes._id.toString()).read(json));
+        assertEquals("20",			JsonPath.compile(CoreAttributes._landmark.toString()).read(json));
         assertEquals(9076,			JsonPath.compile(CoreAttributes._minBP.toString()).read(json));
         assertEquals(9080,			JsonPath.compile(CoreAttributes._maxBP.toString()).read(json));
         assertEquals("AGAAA",		JsonPath.compile(CoreAttributes._refAllele.toString()).read(json));

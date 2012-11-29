@@ -6,14 +6,14 @@ package edu.mayo.pipes.bioinformatics;
  */
 public enum CoreAttributes {
 	/**
-	 * Accession ID.
+	 * Unique identifier (example: Accession ID).
 	 */
-	_accID,
+	_id,
 
 	/**
-	 * Chromosome.
+	 * Landmark region (example: chromosome)
 	 */
-	_chrom,
+	_landmark,
 
 	/**
 	 * Minimum basepair position on a chromosome.

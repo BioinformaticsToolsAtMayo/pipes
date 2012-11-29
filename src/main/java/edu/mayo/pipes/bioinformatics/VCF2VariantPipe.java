@@ -229,10 +229,10 @@ public class VCF2VariantPipe extends AbstractPipe<String,String>{
 
     	//guaranteed to be unique, if no then perhaps bug
     	String accID = data[COL_ID];
-    	root.addProperty(CoreAttributes._accID.toString(), accID);
+    	root.addProperty(CoreAttributes._id.toString(), accID);
     	
     	String chr = GenomicObjectUtils.computechr(data[COL_CHROM]);
-    	root.addProperty(CoreAttributes._chrom.toString(), chr);
+    	root.addProperty(CoreAttributes._landmark.toString(), chr);
     	
     	String refAllele = data[COL_REF];
     	root.addProperty(CoreAttributes._refAllele.toString(), refAllele);
