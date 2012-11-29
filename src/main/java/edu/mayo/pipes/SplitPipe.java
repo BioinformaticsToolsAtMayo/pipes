@@ -1,24 +1,32 @@
 package edu.mayo.pipes;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.tinkerpop.pipes.AbstractPipe;
 
-public class SplitPipe extends AbstractPipe<String, String[]> {
+public class SplitPipe extends AbstractPipe<String, List<String>> {
 	
-	private String delimiter = "\t";
+	private String delimiter;
+	
 	public SplitPipe(String delim){
 		delimiter = delim;
 	}
 
 	@Override
-	protected String[] processNextStart() throws NoSuchElementException {	
+	protected List<String> processNextStart() throws NoSuchElementException {	
 		while(true) {
 		       String parseMe = this.starts.next();
-                       return parseMe.split(delimiter);
+               String[] arr = parseMe.split(delimiter);
+               
+               List<String> list = new ArrayList<String>();
+               for (String s: arr) {
+            	   list.add(s);
+               }
+               
+               return list;
+               
 		       //return ImmutableList.copyOf(Splitter.on(delimiter).split(parseMe)); 
 		}
 	}
