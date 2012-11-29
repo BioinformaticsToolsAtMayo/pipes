@@ -18,12 +18,17 @@ import com.tinkerpop.pipes.AbstractPipe;
 import edu.mayo.pipes.util.GenomicObjectUtils;
 
 /**
- * Parses a file in VCF 4.0 format and builds a Variant JSON object per line of data.
+ * <b>INPUT:</b>	History that contains 8 columns that correspond to the VCF 4.0 format.
+ * 					Assumes the first 8 columns in the history are VCF related.
+ * 
+ * </br>
+ * 
+ * <b>OUTPUT:</b>	JSON object string is appended to the end of the history as a new column.
  * 
  * @see http://www.1000genomes.org/wiki/analysis/vcf4.0
  * 
  */
-public class VCF2VariantPipe extends AbstractPipe<String,String>{
+public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
     
 	private static final Logger sLogger = Logger.getLogger(VCF2VariantPipe.class);
 	
@@ -92,59 +97,59 @@ public class VCF2VariantPipe extends AbstractPipe<String,String>{
     }
 
     @Override
-    protected String processNextStart() throws NoSuchElementException {
-        String s = this.starts.next();
+    protected List<String> processNextStart() throws NoSuchElementException {
+        List<String> history = this.starts.next();
 
-        return compute(s);
+        // transform into JSON
+        String json = buildJSON(history);
+        
+        history.add(json);
+        
+        return history;
     }    
-    
-    private String compute(String line) {
-        String currentLine = line;
+        
+    /**
+     * Translates the VCF data row into JSON
+     * 
+     * @param history A single VCF data row
+     * @return
+     */
+    private String buildJSON(List<String> history) {
         
         // fast forward and capture header rows until we hit the first data row
-        while(currentLine.startsWith("#")){
-            mHeaderRows.add(currentLine);
-            currentLine = this.starts.next();
+    	String commentCol = history.get(0);
+        while(commentCol.startsWith("#")){
+            mHeaderRows.add(commentCol);
+
+            history = this.starts.next();
+        	commentCol = history.get(0);
         }
 
         // entire header has been captured, now process it
         initializeHeader();
         
-        // split data row on TAB character
-        String data[] = currentLine.split("\\t");
-
-        if(data.length < COL_HEADERS.length){
+        if(history.size() < COL_HEADERS.length){
         	throw new NoSuchElementException();
       	}        
-        
-        // transform data row into JSON
-        return buildJSON(data);        
-    }
-    
-    /**
-     * Translates the VCF data row into JSON
-     * 
-     * @param data A single VCF data row
-     * @return
-     */
-    private String buildJSON(String[] data) {
+    	
+    	
         JsonObject root = new JsonObject();
         
         // carry forward all columns except for INFO verbatim into JSON
-        root.addProperty(COL_HEADERS[COL_CHROM],  data[COL_CHROM]);        
-        root.addProperty(COL_HEADERS[COL_POS],    data[COL_POS]);
-        root.addProperty(COL_HEADERS[COL_ID],     data[COL_ID]);
-        root.addProperty(COL_HEADERS[COL_REF],    data[COL_REF]);
-        root.addProperty(COL_HEADERS[COL_ALT],    data[COL_ALT]);
-        root.addProperty(COL_HEADERS[COL_QUAL],   data[COL_QUAL]);
-        root.addProperty(COL_HEADERS[COL_FILTER], data[COL_FILTER]);
+        root.addProperty(COL_HEADERS[COL_CHROM],  history.get(COL_CHROM));        
+        root.addProperty(COL_HEADERS[COL_POS],    history.get(COL_POS));
+        root.addProperty(COL_HEADERS[COL_ID],     history.get(COL_ID));
+        root.addProperty(COL_HEADERS[COL_REF],    history.get(COL_REF));
+        root.addProperty(COL_HEADERS[COL_ALT],    history.get(COL_ALT));
+        root.addProperty(COL_HEADERS[COL_QUAL],   history.get(COL_QUAL));
+        root.addProperty(COL_HEADERS[COL_FILTER], history.get(COL_FILTER));
         
         // parse and shred INFO column
-        JsonObject info = buildInfoJSON(data[COL_INFO]);
+        JsonObject info = buildInfoJSON(history.get(COL_INFO));
         root.add(COL_HEADERS[COL_INFO], info);
         
         // add core attributes to be used by downstream pipes
-        addCoreAttributes(root, data);
+        addCoreAttributes(root, history);
         
         return root.toString();    	
     }
@@ -219,32 +224,32 @@ public class VCF2VariantPipe extends AbstractPipe<String,String>{
      * Adds core attributes relevant to a variant to the given JSON object.
      * 
      * @param root JSON object to add to.
-     * @param data Data row from VCF.
+     * @param history Data row from VCF.
      */
-    private void addCoreAttributes(JsonObject root, String[] data) {
+    private void addCoreAttributes(JsonObject root, List<String> history) {
     	// TODO: do we need type???
         //root.addProperty("variant_type", getTypeFromVCF(variant));
         //root.addProperty("type", "Variant");
 
     	//guaranteed to be unique, if no then perhaps bug
-    	String accID = data[COL_ID];
+    	String accID = history.get(COL_ID);
     	root.addProperty(CoreAttributes._id.toString(), accID);
     	
-    	String chr = GenomicObjectUtils.computechr(data[COL_CHROM]);
+    	String chr = GenomicObjectUtils.computechr(history.get(COL_CHROM));
     	root.addProperty(CoreAttributes._landmark.toString(), chr);
     	
-    	String refAllele = data[COL_REF];
+    	String refAllele = history.get(COL_REF);
     	root.addProperty(CoreAttributes._refAllele.toString(), refAllele);
     	
     	JsonArray altAlleles = new JsonArray();
-    	for (String allele: al(data[COL_ALT])) {
+    	for (String allele: al(history.get(COL_ALT))) {
     		altAlleles.add(new JsonPrimitive(allele));
     	}
     	root.add(CoreAttributes._altAlleles.toString(), altAlleles);
     	
-        if (data[COL_POS] != null) {
-            int minBP = new Integer(data[COL_POS]);        
-            int maxBP = new Integer(minBP + data[COL_REF].length() - 1);        	
+        if (history.get(COL_POS) != null) {
+            int minBP = new Integer(history.get(COL_POS));        
+            int maxBP = new Integer(minBP + history.get(COL_REF).length() - 1);        	
 
             root.addProperty(CoreAttributes._minBP.toString(), minBP);
         	root.addProperty(CoreAttributes._maxBP.toString(), maxBP);

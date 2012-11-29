@@ -6,6 +6,7 @@ package edu.mayo.pipes.bioinformatics;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -17,7 +18,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
-import edu.mayo.pipes.PrintPipe;
+import edu.mayo.pipes.SplitPipe;
 import edu.mayo.pipes.UNIX.CatPipe;
 
 /**
@@ -50,13 +51,23 @@ public class VCF2VariantPipeTest {
      */
     @Test
     public void testProcessNextStart() {
-        VCF2VariantPipe vcf = new VCF2VariantPipe();
-        Pipe<String, String> pipeline = new Pipeline<String, String>(new CatPipe(), vcf, new PrintPipe());
+    	// pipes
+    	CatPipe			cat 	= new CatPipe();
+    	SplitPipe		split	= new SplitPipe("\t");
+        VCF2VariantPipe vcf 	= new VCF2VariantPipe();
+        
+        Pipe<String, List<String>> pipeline = new Pipeline<String, List<String>>
+        	(
+        		cat,	// read VCF line	--> String
+        		split,	// split String 	-->	List<String> history
+        		vcf		// history			--> add JSON to end of history
+        	);
         pipeline.setStarts(Arrays.asList("src/test/resources/testData/vcf-format-4_0.vcf"));
 
         // grab 1st row of data
         pipeline.hasNext();	    
-        String json = (String) pipeline.next();
+        List<String> history = pipeline.next();
+        String json = history.get(history.size() - 1);
         
         // use JSON paths to drill out values and compare with expected
         assertEquals("1",			JsonPath.compile("CHROM").read(json));
@@ -80,7 +91,8 @@ public class VCF2VariantPipeTest {
         
         // grab 2nd row of data only
         pipeline.hasNext();	    
-        json = (String) pipeline.next();
+        history = pipeline.next();
+        json = history.get(history.size() - 1);
         
         // use JSON paths to drill out values and compare with expected
         assertEquals("20",			JsonPath.compile("CHROM").read(json));
