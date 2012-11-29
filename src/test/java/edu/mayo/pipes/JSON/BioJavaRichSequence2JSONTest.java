@@ -77,7 +77,7 @@ public class BioJavaRichSequence2JSONTest {
             resultJson = (String)p.next();
             //System.out.println(resultJson);
 
-            jsonPath = JsonPath.compile("type");
+            jsonPath = JsonPath.compile("_type");
 			if (jsonPath.read(resultJson).toString().equals("gene")) {
 				hasGene = true;
 			} else if (jsonPath.read(resultJson).toString().equals("mRNA")) {
@@ -142,13 +142,13 @@ public class BioJavaRichSequence2JSONTest {
 			}
 			
             // Test MinBp            
-            jsonPath = JsonPath.compile("minBP");
+            jsonPath = JsonPath.compile("_minBP");
 			if (jsonPath.read(resultJson).toString().equals("41196312")) {
 				hasMinBp = true;
 			}
 
             // Test MaxBp            
-            jsonPath = JsonPath.compile("maxBP");
+            jsonPath = JsonPath.compile("_maxBP");
 			if (jsonPath.read(resultJson).toString().equals("41277500")) {
 				hasMaxBp = true;
 			}
