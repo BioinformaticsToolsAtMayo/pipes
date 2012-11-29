@@ -15,6 +15,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.tinkerpop.pipes.AbstractPipe;
 
+import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 import edu.mayo.pipes.util.GenomicObjectUtils;
 
 /**

@@ -20,6 +20,7 @@ import com.tinkerpop.pipes.util.Pipeline;
 
 import edu.mayo.pipes.SplitPipe;
 import edu.mayo.pipes.UNIX.CatPipe;
+import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 
 /**
  *
