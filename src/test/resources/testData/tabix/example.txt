@@ -1,0 +1,8 @@
+#EXAMPLE GFF3
+abc123	.	gene	6000	12000	.	+	.	ID=gene00005
+abc123	.	gene	8000	16000	.	+	.	ID=gene00005
+ctg123	.	gene	1050	1500	.	+	.	ID=gene00002;namespace=Ensembl;
+ctg123	.	gene	1300	1500	.	+	.	ID=gene00001;namespace=UCSC
+ctg123	.	gene	3000	3902	.	+	.	ID=gene00003;GO_id=1234
+ctg123	.	gene	5000	5500	.	+	.	ID=gene00004
+ctg123	.	gene	7000	9000	.	+	.	ID=gene00005
