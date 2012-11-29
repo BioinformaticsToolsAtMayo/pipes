@@ -16,7 +16,7 @@ import org.biojavax.bio.seq.RichFeature;
 import org.biojavax.bio.seq.RichSequence;
 import org.biojavax.ontology.ComparableTerm;
 import com.tinkerpop.pipes.AbstractPipe;
-import edu.mayo.pipes.bioinformatics.CoreAttributes;
+import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;

@@ -6,7 +6,7 @@ package edu.mayo.pipes.JSON.tabix;
 
 import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.AbstractPipe;
-import edu.mayo.pipes.bioinformatics.CoreAttributes;
+import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
