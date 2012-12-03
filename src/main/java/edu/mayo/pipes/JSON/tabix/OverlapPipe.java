@@ -4,16 +4,16 @@
  */
 package edu.mayo.pipes.JSON.tabix;
 
+import com.jayway.jsonpath.JsonPath;
+import com.tinkerpop.pipes.AbstractPipe;
+import edu.mayo.pipes.JSON.tabix.TabixReader.Iterator;
+import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
-
-import com.jayway.jsonpath.JsonPath;
-import com.tinkerpop.pipes.AbstractPipe;
-
-import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 
 /**
  *
@@ -24,23 +24,21 @@ import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 	_landmark,
 	_minBP,
 	_maxBP,
- * to get back all strings that overlap, it constructs a query with the core attributes
+ * to get back all strings that overlap, it constructs a query with the core attributes.
  */
-public class OverlapPipe extends AbstractPipe<List<String>, List<String>>{
-    
+public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {    
     private TabixReader tr;
     private List<String> history = null;
     private TabixReader.Iterator resultIterator = null;
     private int jsonpos = 3;
     private int queryResults = 0;
-    
-    
+        
     /** private variables for getting at the landmark information */
     private JsonPath landmarkPath;
     private JsonPath minBPPath;
     private JsonPath maxBPPath;
     
-    public OverlapPipe(String tabixDataFile) throws IOException{
+    public OverlapPipe(String tabixDataFile) throws IOException {
         queryDone = false;
         tr = new TabixReader(tabixDataFile);
         landmarkPath = JsonPath.compile(CoreAttributes._landmark.toString());
@@ -50,31 +48,47 @@ public class OverlapPipe extends AbstractPipe<List<String>, List<String>>{
     
     @Override
     protected List<String> processNextStart() throws NoSuchElementException {
-        //If I have never recieved a history... then get a history from my source
-        if(history == null){
-            if(this.starts.hasNext()){
+    	ArrayList<String> al = null;
+        //If I have never received a history... then get a history from my source
+        if(history == null) {
+        	System.out.println("OverlapPipe: history empty..");
+        	if (this.starts.hasNext()) {            
                 history = this.starts.next();
                 queryResults = 0;
-            }else {
+            } else {
                 throw new NoSuchElementException();
-            }
-        }else {//I have an active history
-            String json = history.get(history.size()-1);
-            //are there additional results from the query?
+            }        
+        }
+        //} else { //I have an active history
+        	System.out.println("Active history..");
+        	System.out.println(history.size());            
+        	String json = history.get(history.size()-1);
+            //System.out.println("json="+json);
+
+        	String lastrow = history.get(history.size()-1);
+            System.out.println("lastrow="+lastrow);
+            json = lastrow.substring(lastrow.lastIndexOf("\t"), lastrow.length());
+            //System.out.println(lastrow.substring(lastrow.lastIndexOf("\t"), lastrow.length()));
+
+        	//are there additional results from the query?
             if(this.hasNextMatch(json)){
-                ArrayList<String> al = new ArrayList();
+                al = new ArrayList<String>();
                 al.addAll(history);
                 al.add(this.getNextMatch(json));
                 return al;
-            }else { //there are no matches remaining to pull
+            } else { //there are no matches remaining to pull
                 //If this history had zero matches, then I should pass along the history with a blank json object...
                 if(queryResults == 0){
-                    
-                }
-            
+                	al = new ArrayList<String>();
+                    al.addAll(history);
+                    al.add(null);
+                    return al;
+                }            
             }
-        }
-        return null;
+        //}
+        
+        
+        return al;
     }
     
 //    @Override
@@ -110,33 +124,34 @@ public class OverlapPipe extends AbstractPipe<List<String>, List<String>>{
     LinkedList<String> queue = new LinkedList();
     private boolean queryDone = true;
     private int results = 0;
-    public boolean hasNextMatch(String json){
+
+    public boolean hasNextMatch(String json) {
+    	boolean hasMatch=false;
         if(queue.size() > 0){ 
             return true; 
         }
         if(queryDone == false){ 
- //           resultIterator = query(json);
+        	//resultIterator = query(json);
             queryDone = true;
             results = 0; 
         }
-	String line;
-	try {
+		String line;
+		try {
             if ((line = resultIterator.next()) != null) {
                 queue.add(line);
-		return true;
+                hasMatch=true;
             } else {
                 queryDone = false;
-                return false;
+                hasMatch=false;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-	}
-	return false;
-    }
-	
+	    } catch (IOException e) {
+	    	e.printStackTrace();
+		}
+		return hasMatch;
+    }	
 
     public String getNextMatch(String json) {
-	if(queue.size() < 1){
+    	if(queue.size() < 1){
             this.hasNextMatch(json);
         }
         return queue.pollFirst();
@@ -168,34 +183,39 @@ public class OverlapPipe extends AbstractPipe<List<String>, List<String>>{
 //        }
 //    }
     
-
-    
-    public TabixReader.Iterator query(String json) throws IOException{
-        String landmark;
+    public TabixReader.Iterator query(String json) throws IOException {        
         Object o;
+        
+        //_landmark
+        String landmark;
         o = landmarkPath.read(json);
-	if (o != null) {
-            landmark = o.toString();
-	}else {
-            return null;
-        }
-        String minBP;     
-        o = minBPPath.read(json);
-	if (o != null) {
-            minBP = o.toString();
-	}else {
-            return null;
-        }
-        String maxBP;     
-        o = minBPPath.read(json);
-	if (o != null) {
-            maxBP = o.toString();
-	}else {
-            return null;
-        }
-        //abc123:7000-13000
-        resultIterator = tquery(landmark + ":" + minBP + "-" + maxBP);
-        return resultIterator;
+		if (o != null) {
+			landmark = o.toString();
+		} else {
+	        return null;
+	    }
+	    
+		//_minBP
+		String minBP;     
+	    o = minBPPath.read(json);
+		if (o != null) {
+			minBP = o.toString();
+		} else {
+			return null;
+	    }
+		
+		//_maxBP
+	    String maxBP;     
+	    o = minBPPath.read(json);
+		if (o != null) {
+			maxBP = o.toString();
+		} else {
+			return null;
+	    }
+		
+	    //abc123:7000-13000
+	    resultIterator = tquery(landmark + ":" + minBP + "-" + maxBP);
+	    return resultIterator;
     }
     
 //    public TabixReader.Iterator query() throws IOException{
@@ -211,7 +231,5 @@ public class OverlapPipe extends AbstractPipe<List<String>, List<String>>{
         TabixReader.Iterator records = tr.query(query);
         return records;
     }
-    
-    
     
 }
