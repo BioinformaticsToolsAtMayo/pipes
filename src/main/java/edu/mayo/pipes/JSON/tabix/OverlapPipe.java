@@ -4,15 +4,16 @@
  */
 package edu.mayo.pipes.JSON.tabix;
 
-import com.jayway.jsonpath.JsonPath;
-import com.tinkerpop.pipes.AbstractPipe;
-import edu.mayo.pipes.JSON.tabix.TabixReader.Iterator;
-import edu.mayo.pipes.bioinformatics.CoreAttributes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import com.jayway.jsonpath.JsonPath;
+import com.tinkerpop.pipes.AbstractPipe;
+
+import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 
 /**
  *
