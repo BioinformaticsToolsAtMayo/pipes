@@ -4,10 +4,20 @@
  */
 package edu.mayo.pipes.JSON.tabix;
 
+import edu.mayo.pipes.PrintPipe;
+import edu.mayo.pipes.SplitPipe;
 import edu.mayo.pipes.JSON.tabix.TabixReader.Iterator;
+import edu.mayo.pipes.UNIX.CatGZPipe;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.*;
+
+import com.tinkerpop.pipes.Pipe;
+import com.tinkerpop.pipes.util.Pipeline;
+
 import static org.junit.Assert.*;
 
 /**
@@ -73,16 +83,14 @@ public class OverlapPipeTest {
         String brca1 = "{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"-\",\"_minBP\":41196312,\"_maxBP\":41277500,\"gene\":\"BRCA1\",\"gene_synonym\":\"BRCAI; BRCC1; BROVCA1; IRIS; PNCA4; PPP1R53; PSCP; RNF53\",\"note\":\"breast cancer 1, early onset; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"672\",\"HGNC\":\"1100\",\"HPRD\":\"00218\",\"MIM\":\"113705\"}";
         Iterator records = op.query(brca1);
         for(int i=1;(record = records.next()) != null; i++){
-            System.out.println(record);
+            System.out.println("Record:"+record);
             String[] s = record.split("\t");
             assertEquals(4, s.length);
             assertEquals("17", s[0]);
             assertEquals("41196312", s[1]); 
             assertEquals("41277500", s[2]);
         }
-    }
-    
-    
+    }     
 
     /**
      * Test of processNextStart method, of class Overlap.
@@ -91,13 +99,11 @@ public class OverlapPipeTest {
     public void testProcessNextStart() throws IOException {
         System.out.println( "Tabix Test!" );
         
-
-        
-//        Pipe p = new Pipeline( new Overlap(dataFile) );
-//        p.setStarts(Arrays.asList(""));
-//        for(int i=0; p.hasNext(); i++){
-//            p.next();
-//        }
+        //        Pipe p = new Pipeline( new Overlap(dataFile) );
+        //        p.setStarts(Arrays.asList(""));
+        //        for(int i=0; p.hasNext(); i++){
+        //            p.next();
+        //        }
         
         //Overlap instance = null;
         //List expResult = null;
@@ -107,10 +113,26 @@ public class OverlapPipeTest {
         
         //String dataFile = "/Users/m102417/tabixtest/example.gff.gz";
         //String tabixIndexFile = "/Users/m102417/tabixtest/example.gff.gz.tbi";
+       
+        String samplejson = "{\"_type\":\"gene\",\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41277500\"}";
         
-        OverlapPipe tt = new OverlapPipe(dataFile);
-        //tt.tquery();
+        List<String> aresult = new ArrayList<String>();
+        Pipe p1 = new Pipeline(new CatGZPipe("gzip"));
+        p1.setStarts(Arrays.asList(geneFile));
+        for(int i=0; p1.hasNext(); i++) {
+        	//aresult.add((String)p1.next() + "\t" + samplejson);
+        	aresult.add((String) p1.next());
+        }       
         
-    
+        
+        List<String> result = new ArrayList<String>();
+        OverlapPipe op = new OverlapPipe(geneFile);
+        Pipe p2 = new Pipeline(new SplitPipe("\t"), op);
+        p2.setStarts(Arrays.asList(aresult));
+        for(int i=0; p2.hasNext(); i++) {
+        	result.addAll((List<String>)p2.next());
+        }
+        
+        System.out.println(result.size());    
     }
 }
