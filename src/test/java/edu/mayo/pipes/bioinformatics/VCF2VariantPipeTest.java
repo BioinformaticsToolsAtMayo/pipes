@@ -116,6 +116,14 @@ public class VCF2VariantPipeTest {
         assertEquals(9080,			JsonPath.compile(CoreAttributes._maxBP.toString()).read(json));
         assertEquals("AGAAA",		JsonPath.compile(CoreAttributes._refAllele.toString()).read(json));
         assertEquals("A",			JsonPath.compile(CoreAttributes._altAlleles.toString()+"[0]").read(json));
-        assertEquals(Type.VARIANT.toString(),	JsonPath.compile(CoreAttributes._type.toString()).read(json));        
+        assertEquals(Type.VARIANT.toString(),	JsonPath.compile(CoreAttributes._type.toString()).read(json));
+        
+        // grab 3nd row of data only
+        pipeline.hasNext();	    
+        history = pipeline.next();
+        json = history.get(history.size() - 1);
+        
+        // test for a field that shows up in INFO but is NOT defined in the header
+        assertEquals("123",				JsonPath.compile("INFO.UNKNOWN_FIELD").read(json));
     }
 }
