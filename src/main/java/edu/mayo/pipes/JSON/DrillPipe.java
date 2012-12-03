@@ -7,6 +7,7 @@ package edu.mayo.pipes.JSON;
 import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.AbstractPipe;
+import edu.mayo.pipes.exceptions.InvalidJSONException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -37,14 +38,15 @@ public class DrillPipe extends AbstractPipe<List<String>, List<String>>{
     }
     
     @Override
-    protected List<String> processNextStart() throws NoSuchElementException {
+    protected List<String> processNextStart() throws NoSuchElementException, InvalidJSONException {
         if(this.starts.hasNext()){
             List<String> out = this.starts.next();
             String json = out.remove(out.size()-1);
             //System.out.println("About to Drill: " + json);
             for(int i=0;i< compiledPaths.size(); i++){
                 if(!json.startsWith("{")){ //TODO: we may need a more rigourus check to see if it is json.
-                    out.add(".");
+                    //out.add("."); 
+                    throw new InvalidJSONException("A column input to Drill that should be JSON was not JSON, I can't Drill non-JSON columns");
                 }else {
                     try {
                         JsonPath jsonPath = compiledPaths.get(i);
