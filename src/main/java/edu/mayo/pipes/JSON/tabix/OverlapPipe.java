@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -27,65 +29,72 @@ import java.util.NoSuchElementException;
  * to get back all strings that overlap, it constructs a query with the core attributes.
  */
 public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {    
-    private TabixReader tr;
     private List<String> history = null;
-    private TabixReader.Iterator resultIterator = null;
-    private int jsonpos = 3;
-    private int queryResults = 0;
-        
-    /** private variables for getting at the landmark information */
-    private JsonPath landmarkPath;
-    private JsonPath minBPPath;
-    private JsonPath maxBPPath;
     
     public OverlapPipe(String tabixDataFile) throws IOException {
-        queryDone = false;
-        tr = new TabixReader(tabixDataFile);
-        landmarkPath = JsonPath.compile(CoreAttributes._landmark.toString());
-        minBPPath = JsonPath.compile(CoreAttributes._minBP.toString());
-        maxBPPath = JsonPath.compile(CoreAttributes._maxBP.toString());
+
     }
+    
+    
     
     @Override
     protected List<String> processNextStart() throws NoSuchElementException {
     	ArrayList<String> al = null;
-        //If I have never received a history... then get a history from my source
-        if(history == null) {
-        	System.out.println("OverlapPipe: history empty..");
-        	if (this.starts.hasNext()) {            
-                history = this.starts.next();
-                queryResults = 0;
-            } else {
-                throw new NoSuchElementException();
-            }        
-        }
-        //} else { //I have an active history
-        	System.out.println("Active history..");
-        	System.out.println(history.size());            
-        	String json = history.get(history.size()-1);
-            //System.out.println("json="+json);
-
-        	String lastrow = history.get(history.size()-1);
-            System.out.println("lastrow="+lastrow);
-            json = lastrow.substring(lastrow.lastIndexOf("\t"), lastrow.length());
-            //System.out.println(lastrow.substring(lastrow.lastIndexOf("\t"), lastrow.length()));
-
-        	//are there additional results from the query?
-            if(this.hasNextMatch(json)){
-                al = new ArrayList<String>();
-                al.addAll(history);
-                al.add(this.getNextMatch(json));
-                return al;
-            } else { //there are no matches remaining to pull
-                //If this history had zero matches, then I should pass along the history with a blank json object...
-                if(queryResults == 0){
-                	al = new ArrayList<String>();
-                    al.addAll(history);
-                    al.add(null);
-                    return al;
-                }            
-            }
-        //}
+//        //If I have never received a history... then get a history from my source
+//        if(history == null) {
+//        	System.out.println("OverlapPipe: history empty..");
+//        	if (this.starts.hasNext()) {            
+//                history = this.starts.next();
+//                queryResults = 0;
+//            } else {
+//                throw new NoSuchElementException();
+//            }        
+//        }
+//        System.out.println("I have an active history, with size: " + history.size());
+//        String json = history.get(history.size()-1);
+//        System.out.println("json="+json);
+//        try {
+//            if(this.hasNextMatch(json)){
+//                al = new ArrayList<String>();
+//                al.addAll(history);
+//                al.add(this.getNextMatch(json));                
+//                return al;
+//            }else {
+//                //can the iterator return me any more results???
+//                if (this.starts.hasNext()) { 
+//                    //if no, then reset the history to the next thing.
+//                    history = this.starts.next();
+//                    queryDone = false;
+//                    this.queryResults = 0;
+//                }else {
+//                    throw new NoSuchElementException();
+//                }
+//
+//            }
+//
+//
+//                    //are there additional results from the query?
+//    //            if(this.hasNextMatch(json)){
+//    //                al = new ArrayList<String>();
+//    //                al.addAll(history);
+//    //                al.add(this.getNextMatch(json));
+//    //                return al;
+//    //            } else { //there are no matches remaining to pull
+//    //                //If this history had zero matches, then I should pass along the history with a blank json object...
+//    //                if(queryResults == 0){
+//    //                	al = new ArrayList<String>();
+//    //                    al.addAll(history);
+//    //                    al.add(null);
+//    //                    return al;
+//    //                }            
+//    //            }
+//        } catch (IOException ex) {
+//            Logger.getLogger(OverlapPipe.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        
+            
+       //somehow, I have to get the next history from my source if the query is exausted...
+        //if I get a new history, then queryDone = false
         
         
         return al;
@@ -121,41 +130,61 @@ public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {
 //        }
 //    }
     
-    LinkedList<String> queue = new LinkedList();
-    private boolean queryDone = true;
-    private int results = 0;
 
-    public boolean hasNextMatch(String json) {
-    	boolean hasMatch=false;
-        if(queue.size() > 0){ 
-            return true; 
-        }
-        if(queryDone == false){ 
-        	//resultIterator = query(json);
-            queryDone = true;
-            results = 0; 
-        }
-		String line;
-		try {
-            if ((line = resultIterator.next()) != null) {
-                queue.add(line);
-                hasMatch=true;
-            } else {
-                queryDone = false;
-                hasMatch=false;
-            }
-	    } catch (IOException e) {
-	    	e.printStackTrace();
-		}
-		return hasMatch;
-    }	
 
-    public String getNextMatch(String json) {
-    	if(queue.size() < 1){
-            this.hasNextMatch(json);
-        }
-        return queue.pollFirst();
-    }
+//    public boolean hasNextMatch(String json) throws IOException {
+//    	boolean hasMatch=false;
+//        //if there is something in the queue, then return true
+//        if(queue.size() > 0){ 
+//            return true; 
+//        }
+//        //if I don't have an active iterator, then I need to do a query to activate it
+//        if(queryDone == false){ 
+//            resultIterator = query(json);
+//            String line;
+//            if ((line = resultIterator.next()) != null) {
+//                this.queryResults++;
+//                queue.add(line);
+//                return true;
+//            }
+//            queryDone = true;
+//            results = 0; 
+//        }else {
+//            //The iterator has more elements that we have not seen yet, it could be true
+//            String line;
+//            if ((line = resultIterator.next()) != null) {
+//                this.queryResults++;
+//                queue.add(line);
+//                return true;
+//            }else {
+//                return false;
+//            }
+//            
+//        }
+//        return false;
+////	String line;
+////		try {
+////            if ((line = resultIterator.next()) != null) {
+////                queue.add(line);
+////                hasMatch=true;
+////            } else {
+////                queryDone = false;
+////                hasMatch=false;
+////            }
+////	    } catch (IOException e) {
+////	    	e.printStackTrace();
+////		}
+////		return hasMatch;
+//    }	
+
+//    public String getNextMatch(String json) throws IOException {
+//    	if(queue.size() < 1){
+//            this.hasNextMatch(json);
+//        }
+//        String result = queue.pollFirst();
+//        String[] split = result.split("\t");
+//        return split[jsonpos];
+//    }
         
 //    public boolean hasNextMatch(String json){
 //        
@@ -183,53 +212,6 @@ public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {
 //        }
 //    }
     
-    public TabixReader.Iterator query(String json) throws IOException {        
-        Object o;
-        
-        //_landmark
-        String landmark;
-        o = landmarkPath.read(json);
-		if (o != null) {
-			landmark = o.toString();
-		} else {
-	        return null;
-	    }
-	    
-		//_minBP
-		String minBP;     
-	    o = minBPPath.read(json);
-		if (o != null) {
-			minBP = o.toString();
-		} else {
-			return null;
-	    }
-		
-		//_maxBP
-	    String maxBP;     
-	    o = minBPPath.read(json);
-		if (o != null) {
-			maxBP = o.toString();
-		} else {
-			return null;
-	    }
-		
-	    //abc123:7000-13000
-	    resultIterator = tquery(landmark + ":" + minBP + "-" + maxBP);
-	    return resultIterator;
-    }
-    
-//    public TabixReader.Iterator query() throws IOException{
-//        String record = null;
-//        TabixReader.Iterator records = tr.query(0, 1000,14000);
-//        
-//        while((record = records.next()) != null){
-//            System.out.println(record);
-//        }
-//    }
-    
-    public TabixReader.Iterator tquery(String query) throws IOException{
-        TabixReader.Iterator records = tr.query(query);
-        return records;
-    }
+
     
 }
