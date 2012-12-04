@@ -169,6 +169,13 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
      * @return JSON object
      */
     private JsonObject buildInfoJSON(String infoCol) {
+
+    	// used where an INFO field is not defined in the header
+    	// in these special cases, treat as a string
+    	InfoFieldMeta defaultMeta = new InfoFieldMeta();
+    	defaultMeta.id = "not_defined";
+    	defaultMeta.number = 1;
+    	defaultMeta.type = INFO_TYPE.String;
     	
     	JsonObject info = new JsonObject();
     	
@@ -180,7 +187,11 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
         		String id = field.substring(0, firstEq);
         		String value = field.substring(firstEq + 1);
         		
-        		InfoFieldMeta meta = mFieldMap.get(id);
+        		InfoFieldMeta meta = defaultMeta;
+        		if (mFieldMap.containsKey(id)) {
+        			meta = mFieldMap.get(id);
+        		}        		
+        		
         		if ((meta.number == null) || (meta.number > 1)) {
 
         			// not sure if there are 1 or more, assume array to be safe
