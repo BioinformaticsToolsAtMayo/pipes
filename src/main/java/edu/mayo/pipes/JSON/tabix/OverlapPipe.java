@@ -6,6 +6,8 @@ package edu.mayo.pipes.JSON.tabix;
 
 import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.AbstractPipe;
+import com.tinkerpop.pipes.Pipe;
+import com.tinkerpop.pipes.util.Pipeline;
 import edu.mayo.pipes.JSON.tabix.TabixReader.Iterator;
 import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 import java.io.IOException;
@@ -30,75 +32,127 @@ import java.util.logging.Logger;
  */
 public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {    
     private List<String> history = null;
+    private String tabixDataFile;
+    private Pipe<String, String> search;
+    private int qcount;
     
     public OverlapPipe(String tabixDataFile) throws IOException {
-
+        this.tabixDataFile = tabixDataFile;
     }
     
-    
+    private List<String> copyAppend(List<String> history, String result){
+        List<String> arr = new ArrayList<String>();
+        arr.addAll(history);
+        arr.add(result);
+        return arr;
+    }
     
     @Override
     protected List<String> processNextStart() throws NoSuchElementException {
-    	ArrayList<String> al = null;
-//        //If I have never received a history... then get a history from my source
-//        if(history == null) {
-//        	System.out.println("OverlapPipe: history empty..");
-//        	if (this.starts.hasNext()) {            
-//                history = this.starts.next();
-//                queryResults = 0;
-//            } else {
-//                throw new NoSuchElementException();
-//            }        
-//        }
-//        System.out.println("I have an active history, with size: " + history.size());
-//        String json = history.get(history.size()-1);
-//        System.out.println("json="+json);
-//        try {
-//            if(this.hasNextMatch(json)){
-//                al = new ArrayList<String>();
-//                al.addAll(history);
-//                al.add(this.getNextMatch(json));                
-//                return al;
-//            }else {
-//                //can the iterator return me any more results???
-//                if (this.starts.hasNext()) { 
-//                    //if no, then reset the history to the next thing.
-//                    history = this.starts.next();
-//                    queryDone = false;
-//                    this.queryResults = 0;
-//                }else {
-//                    throw new NoSuchElementException();
-//                }
-//
-//            }
-//
-//
-//                    //are there additional results from the query?
-//    //            if(this.hasNextMatch(json)){
-//    //                al = new ArrayList<String>();
-//    //                al.addAll(history);
-//    //                al.add(this.getNextMatch(json));
-//    //                return al;
-//    //            } else { //there are no matches remaining to pull
-//    //                //If this history had zero matches, then I should pass along the history with a blank json object...
-//    //                if(queryResults == 0){
-//    //                	al = new ArrayList<String>();
-//    //                    al.addAll(history);
-//    //                    al.add(null);
-//    //                    return al;
-//    //                }            
-//    //            }
-//        } catch (IOException ex) {
-//            Logger.getLogger(OverlapPipe.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-        
+        //if it is the first call to the pipe... set it up
+        if(search == null){
+            //get the history
+            history = this.starts.next();
+            qcount = 0;
+            try {
+                search = new Pipeline(new TabixSearchPipe(tabixDataFile));
+                search.setStarts(Arrays.asList(history.get(history.size()-1)));
+            } catch (IOException ex) {
+                Logger.getLogger(OverlapPipe.class.getName()).log(Level.SEVERE, null, ex);
+                throw new NoSuchElementException();
+            }
+        }
+        //If the search has another result, append the result to the history
+        if(search.hasNext()){
+            //System.out.println("Next Search Result...");
+            qcount++;
+            String result = search.next();
+            return copyAppend(history, result);
+        }else {//otherwise, the search did not have any more results, get the next history
+            if(qcount == 0){//we did not have any search results, append empty JSON to the history and send it along
+                qcount++; //just to get the history to reset on the next call
+                return copyAppend(history,"{}");
+            }else {//we did have at least one result.. and they are all done
+                history = this.starts.next();
+                try {//reset the pipeline for the search query
+                    search = new Pipeline(new TabixSearchPipe(tabixDataFile));
+                    search.setStarts(Arrays.asList(history.get(history.size()-1)));
+                    qcount = 0;
+                    //and start pulling data again...
+                    return processNextStart();
+                } catch (IOException ex) {
+                    Logger.getLogger(OverlapPipe.class.getName()).log(Level.SEVERE, null, ex);
+                    throw new NoSuchElementException();
+                }
+            }
             
-       //somehow, I have to get the next history from my source if the query is exausted...
-        //if I get a new history, then queryDone = false
-        
-        
-        return al;
+        }
     }
+    
+    
+    
+//    @Override
+//    protected List<String> processNextStart() throws NoSuchElementException {
+//    	ArrayList<String> al = null;
+////        //If I have never received a history... then get a history from my source
+////        if(history == null) {
+////        	System.out.println("OverlapPipe: history empty..");
+////        	if (this.starts.hasNext()) {            
+////                history = this.starts.next();
+////                queryResults = 0;
+////            } else {
+////                throw new NoSuchElementException();
+////            }        
+////        }
+////        System.out.println("I have an active history, with size: " + history.size());
+////        String json = history.get(history.size()-1);
+////        System.out.println("json="+json);
+////        try {
+////            if(this.hasNextMatch(json)){
+////                al = new ArrayList<String>();
+////                al.addAll(history);
+////                al.add(this.getNextMatch(json));                
+////                return al;
+////            }else {
+////                //can the iterator return me any more results???
+////                if (this.starts.hasNext()) { 
+////                    //if no, then reset the history to the next thing.
+////                    history = this.starts.next();
+////                    queryDone = false;
+////                    this.queryResults = 0;
+////                }else {
+////                    throw new NoSuchElementException();
+////                }
+////
+////            }
+////
+////
+////                    //are there additional results from the query?
+////    //            if(this.hasNextMatch(json)){
+////    //                al = new ArrayList<String>();
+////    //                al.addAll(history);
+////    //                al.add(this.getNextMatch(json));
+////    //                return al;
+////    //            } else { //there are no matches remaining to pull
+////    //                //If this history had zero matches, then I should pass along the history with a blank json object...
+////    //                if(queryResults == 0){
+////    //                	al = new ArrayList<String>();
+////    //                    al.addAll(history);
+////    //                    al.add(null);
+////    //                    return al;
+////    //                }            
+////    //            }
+////        } catch (IOException ex) {
+////            Logger.getLogger(OverlapPipe.class.getName()).log(Level.SEVERE, null, ex);
+////        }
+//        
+//            
+//       //somehow, I have to get the next history from my source if the query is exausted...
+//        //if I get a new history, then queryDone = false
+//        
+//        
+//        return al;
+//    }
     
 //    @Override
 //    protected List<String> processNextStart() throws NoSuchElementException {
@@ -211,6 +265,8 @@ public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {
 //             return getNextMatch(json);
 //        }
 //    }
+
+
     
 
     

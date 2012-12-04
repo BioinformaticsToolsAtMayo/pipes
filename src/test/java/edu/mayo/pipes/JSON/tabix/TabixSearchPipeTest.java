@@ -6,10 +6,12 @@ package edu.mayo.pipes.JSON.tabix;
 
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
+import edu.mayo.pipes.JSON.SimpleDrillPipe;
 import edu.mayo.pipes.JSON.tabix.TabixReader.Iterator;
 import edu.mayo.pipes.PrintPipe;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -44,11 +46,30 @@ public class TabixSearchPipeTest {
     
     @Test
     public void testProcessNextStart() throws IOException {
-        String query = "{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41300000\"}"; //5 results
-        Pipe p = new Pipeline(new TabixSearchPipe(geneFile), new PrintPipe());
+        System.out.println("Test Tabix Search Pipe... multiple query results");
+        //String query = "{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41300000\"}"; //5 results
+        String query = "{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41300000}";
+        String[] drills = new String[1];
+        drills[0] = "gene";
+        Pipe p = new Pipeline(new TabixSearchPipe(geneFile), new PrintPipe(), new SimpleDrillPipe(false, drills));
         p.setStarts(Arrays.asList(query));
-        while(p.hasNext()){
-            p.next();
+        for(int i=0; p.hasNext(); i++){
+            List<String> d = (List<String>) p.next();
+            if(i==0){
+                assertEquals("BRCA1",d.get(0));
+            }
+            if(i==1){
+                assertEquals("RPL21P4",d.get(0));
+            }
+            if(i==2){
+                assertEquals("NBR2",d.get(0));
+            }
+            if(i==3){
+                assertEquals("LOC100505873",d.get(0));
+            }
+            //make sure we only had 5 elements!
+            assertTrue(i != 5);
+                    
         }
     }
     
@@ -86,6 +107,7 @@ public class TabixSearchPipeTest {
             assertEquals("17", s[0]);
             assertEquals("41196312", s[1]); 
             assertEquals("41277500", s[2]);
+            break;
         }
     }     
 
