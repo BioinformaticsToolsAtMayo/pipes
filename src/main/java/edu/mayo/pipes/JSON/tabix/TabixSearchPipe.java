@@ -142,7 +142,7 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
     }
     
     public TabixReader.Iterator tquery(String query) throws IOException {
-        System.out.println("Query to Tabix File: " + query);
+        //System.out.println("Query to Tabix File: " + query);
         TabixReader.Iterator records = tr.query(query);
         return records;
     }
