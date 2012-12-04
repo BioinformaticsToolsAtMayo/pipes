@@ -12,6 +12,8 @@ import edu.mayo.pipes.PrintPipe;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
+
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -45,7 +47,7 @@ public class TabixSearchPipeTest {
     public String tabixIndexFile = "src/test/resources/testData/tabix/example.gff.gz.tbi";
     
     @Test
-    public void testProcessNextStart() throws IOException {
+    public void testProcessNextStart() throws Exception {
         System.out.println("Test Tabix Search Pipe... multiple query results");
         //String query = "{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41300000\"}"; //5 results
         String query = "{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41300000}";
@@ -68,13 +70,51 @@ public class TabixSearchPipeTest {
                 assertEquals("LOC100505873",d.get(0));
             }
             //make sure we only had 5 elements!
-            assertTrue(i != 5);
-                    
+            assertTrue(i != 5);                    
         }
+    }
+
+    @Test
+    public void testProcessNextStart_EmptyResults() throws Exception {
+        System.out.println("Test Tabix Search Pipe... empty query results");
+        String query = "{\"_landmark\":\"17\",\"_minBP\":1,\"_maxBP\":4}";
+        String[] drills = new String[1];
+        drills[0] = "gene";
+        Pipe p = new Pipeline(new TabixSearchPipe(geneFile), new SimpleDrillPipe(false, drills));
+        p.setStarts(Arrays.asList(query));
+        assertTrue(p.hasNext()==false);
+    }    
+   
+    @Test 
+    public void testProcessNextStart_InvalidQuery() {
+        System.out.println("Test Tabix Search Pipe... invalid query empty query results!!");
+        String query = "some invalid query";
+        String[] drills = new String[1];
+        drills[0] = "gene";
+        Pipe p;
+		try {
+			p = new Pipeline(new TabixSearchPipe(geneFile), new SimpleDrillPipe(false, drills));
+	        p.setStarts(Arrays.asList(query));
+	        for(int i=0; p.hasNext(); i++){
+	            p.next(); //throws an exception
+	        }
+		} catch (Exception e) {
+			Assert.fail("INVALID QUERY... EXPECTED EXCEPTION!!!");
+		}
+    }
+    
+    @Test (expected=IOException.class) 
+    public void testProcessNextStart_InvalidFile() throws Exception {
+        System.out.println("Test Tabix Search Pipe... invalid file!!");
+        String query = "{\"_landmark\":\"22\",\"_minBP\":41196309,\"_maxBP\":411966310}";
+        String[] drills = new String[1];
+        drills[0] = "gene";
+        Pipe p = new Pipeline(new TabixSearchPipe("invalid-file"), new SimpleDrillPipe(false, drills)); // should throw an exception
+        p.setStarts(Arrays.asList(query)); 
     }
     
     @Test
-    public void testTQuery() throws IOException{
+    public void testTQuery() throws Exception {
         System.out.println("Test TQuery");
         String record = "";
         String r1 = "abc123\t.\tgene\t6000\t12000\t.\t+\t.\tID=gene00005";
@@ -94,7 +134,7 @@ public class TabixSearchPipeTest {
     }
     
     @Test
-    public void testQuery() throws IOException{
+    public void testQuery() throws Exception{
         System.out.println("Test Query Based on JSON input");
         String record = "";
         TabixSearchPipe op = new TabixSearchPipe(geneFile);
@@ -104,11 +144,11 @@ public class TabixSearchPipeTest {
             System.out.println("Record:"+record);
             String[] s = record.split("\t");
             assertEquals(4, s.length);
-            assertEquals("17", s[0]);
-            assertEquals("41196312", s[1]); 
-            assertEquals("41277500", s[2]);
+            assertEquals("17", s[0]); //chromosome
+            assertEquals("41196312", s[1]); //minbp
+            assertEquals("41277500", s[2]); //maxbp
             break;
         }
-    }     
+    } 
 
 }

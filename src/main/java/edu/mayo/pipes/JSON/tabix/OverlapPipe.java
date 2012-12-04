@@ -57,9 +57,9 @@ public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {
             try {
                 search = new Pipeline(new TabixSearchPipe(tabixDataFile));
                 search.setStarts(Arrays.asList(history.get(history.size()-1)));
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 Logger.getLogger(OverlapPipe.class.getName()).log(Level.SEVERE, null, ex);
-                throw new NoSuchElementException();
+                throw new NoSuchElementException(ex.getMessage());
             }
         }
         //If the search has another result, append the result to the history
@@ -80,9 +80,9 @@ public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {
                     qcount = 0;
                     //and start pulling data again...
                     return processNextStart();
-                } catch (IOException ex) {
+                } catch (Exception ex) {
                     Logger.getLogger(OverlapPipe.class.getName()).log(Level.SEVERE, null, ex);
-                    throw new NoSuchElementException();
+                    throw new NoSuchElementException(ex.getMessage());
                 }
             }
             

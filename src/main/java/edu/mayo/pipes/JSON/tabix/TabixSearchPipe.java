@@ -8,6 +8,8 @@ import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.AbstractPipe;
 import edu.mayo.pipes.JSON.tabix.TabixReader;
 import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,33 +37,37 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
     private JsonPath maxBPPath;
 
     
-    public TabixSearchPipe(String tabixDataFile) throws IOException{
+    public TabixSearchPipe(String tabixDataFile) throws Exception{
         init(tabixDataFile);
     }
     
-    public TabixSearchPipe(String tabixDataFile, int jsonpos) throws IOException{
+    public TabixSearchPipe(String tabixDataFile, int jsonpos) throws Exception{
         init(tabixDataFile);
         this.jsonpos = jsonpos;
     }
     
-    private void init(String tabixDataFile) throws IOException{
-        tr = new TabixReader(tabixDataFile);
+    private void init(String tabixDataFile) throws IOException {
+    	if (new File(tabixDataFile).isFile()){
+    		tr = new TabixReader(tabixDataFile);
+    	} else {
+    		throw new IOException("TabixSearchPipe init(tabixDataFile) requires tabixDataFile to be a valid file. ");
+    	}
         landmarkPath = JsonPath.compile(CoreAttributes._landmark.toString());
         minBPPath = JsonPath.compile(CoreAttributes._minBP.toString());
         maxBPPath = JsonPath.compile(CoreAttributes._maxBP.toString());     
     }
     
-    private void requery() throws IOException, NoSuchElementException{
-            if(records == null){
-                if(query == null){
-                    if(this.starts.hasNext()){
-                        query = this.starts.next();//get the next json string
-                    }else {
-                        throw new NoSuchElementException();
-                    }
+    private void requery() throws NoSuchElementException, Exception {
+        if(records == null){
+            if(query == null){
+                if(this.starts.hasNext()){
+                    query = this.starts.next();//get the next json string
+                }else {
+                    throw new NoSuchElementException();
                 }
-                records = query(query);
             }
+            records = query(query);
+        }
     }
     
     public String format(String s){
@@ -78,52 +84,28 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
             requery();
             
             record = records.next();//give you back the next query result
-            if(record != null){
+            if(record != null) {
                 return format(record);
-            }else {
+            } else {
                 records = null;
                 query = null;
                 requery();
                 record = records.next();
                 if(record != null){
                     return format(record);
-                }else {
+                } else {
                     throw new NoSuchElementException();
-                }
-                
+                }                
             }
-                    //return record; //split the record or something!
-            
-            
-    //        if(query == null){
-    //            if(this.starts.hasNext()){
-    //                query = this.starts.next();
-    //                try {
-    //                    records = query(query);
-    //                } catch (IOException ex) {
-    //                    Logger.getLogger(TabixSearchPipe.class.getName()).log(Level.SEVERE, null, ex);
-    //                    throw new NoSuchElementException();
-    //                }
-    //            }else {
-    //                throw new NoSuchElementException();
-    //            }          
-    //        }
-    //        try {
-    //            String record;
-    //            while((record = records.next()) != null){
-    //                return record; //split the record or something!
-    //            }  
-    //            throw new NoSuchElementException();
-    //        } catch(IOException e){
-    //        }
-    //        }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(TabixSearchPipe.class.getName()).log(Level.SEVERE, null, ex);
+            //System.out.println("TabixSearchPipe.processNextStart() Failed : " + ex.getMessage());
+            throw new NoSuchElementException(ex.getMessage());
         }
-        throw new NoSuchElementException();
+        //throw new NoSuchElementException();
     }
     
-    public TabixReader.Iterator query(String json) throws IOException {    
+    public TabixReader.Iterator query(String json) throws Exception {    
         Object o;
         
         //_landmark
@@ -155,19 +137,11 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
 		
 	    //abc123:7000-13000
 	    records = tquery(landmark + ":" + minBP + "-" + maxBP);
+	    
 	    return records;
     }
     
-//    public TabixReader.Iterator query() throws IOException{
-//        String record = null;
-//        TabixReader.Iterator records = tr.query(0, 1000,14000);
-//        
-//        while((record = records.next()) != null){
-//            System.out.println(record);
-//        }
-//    }
-    
-    public TabixReader.Iterator tquery(String query) throws IOException{
+    public TabixReader.Iterator tquery(String query) throws Exception {
         System.out.println("Query to Tabix File: " + query);
         TabixReader.Iterator records = tr.query(query);
         return records;
