@@ -98,15 +98,17 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
                 }                
             }
         } catch (Exception ex) {
-            Logger.getLogger(TabixSearchPipe.class.getName()).log(Level.SEVERE, null, ex);
-            //System.out.println("TabixSearchPipe.processNextStart() Failed : " + ex.getMessage());
-            throw new NoSuchElementException(ex.getMessage());
+            //Logger.getLogger(TabixSearchPipe.class.getName()).log(Level.SEVERE, null, ex);
+            //System.out.println("TabixSearchPipe.processNextStart() Failed : " + ex.getMessage());            
         }
-        //throw new NoSuchElementException();
+        throw new NoSuchElementException();
     }
     
     public TabixReader.Iterator query(String json) throws IOException {    
-        Object o;
+        
+    	
+    	Object o;
+        
         
         //_landmark
         String landmark;

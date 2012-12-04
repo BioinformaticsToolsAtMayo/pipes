@@ -90,18 +90,19 @@ public class OverlapPipeTest {
         //Example direct tabix query and the results... (note only the JSON will be returned by the overlapPipe)
         //r0240560:tabix m102417$ tabix genes.tsv.bgz 17:41196312-41300000 
         //17	41196312	41277500	{"_type":"gene","_landmark":"17","_strand":"-","_minBP":41196312,"_maxBP":41277500,"gene":"BRCA1","gene_synonym":"BRCAI; BRCC1; BROVCA1; IRIS; PNCA4; PPP1R53; PSCP; RNF53","note":"breast cancer 1, early onset; Derived by automated computational analysis using gene prediction method: BestRefseq.","GeneID":"672","HGNC":"1100","HPRD":"00218","MIM":"113705"}
-        String query = "my\tfirst\tquery\t{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41277500}";  //1 result
+        //{"_type":"gene","_landmark":"17","_strand":"+","_minBP":41231278,"_maxBP":41231833,"gene":"RPL21P4","gene_synonym":"RPL21_58_1548","note":"ribosomal protein L21 pseudogene 4; Derived by automated computational analysis using gene prediction method: Curated Genomic.","pseudo":"","GeneID":"140660","HGNC":"17959"}
+        String query = "my\tfirst\tquery\t{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41277500}";  //2 results
 
         List<String> result = new ArrayList<String>();
         OverlapPipe op = new OverlapPipe(geneFile);
         Pipe p2 = new Pipeline(new SplitPipe("\t"), op);
         p2.setStarts(Arrays.asList(query));
         for(int i=0; p2.hasNext(); i++) {
-            p2.next();
+            //p2.next();
         	result.addAll((List<String>)p2.next());
         }
         //System.out.println("size="+result.size());
-        assertEquals(5, result.size()); //one result            
+        assertEquals(10, result.size()); //one result            
     }
 
     
@@ -126,4 +127,29 @@ public class OverlapPipeTest {
 		}
     }
     
+    /**
+     * 1	49482	rs202079915	G	A	.	.	RSPOS=49482;dbSNPBuildID=137;SSR=0;SAO=0;VP=050000000005000002000100;WGT=1;VC=SNV;ASP;OTHERK{"CHROM":"1","POS":"49482","ID":"rs202079915","REF":"G","ALT":"A","QUAL":".","FILTER":".","INFO":{"RSPOS":49482,"dbSNPBuildID":137,"SSR":0,"SAO":0,"VP":"050000000005000002000100","WGT":1,"VC":"SNV","ASP":true,"OTHERKG":true},"_id":"rs202079915","_type":"variant","_landmark":"1","_refAllele":"G","_altAlleles":["A"],"_minBP":49482,"_maxBP":49482}	{}
+     */
+    @Test 
+    public void testProcessNextStart_ZeroResultsEmptyJson() throws Exception {
+        System.out.println( "Tabix Test.. Zero Results.. with Empty JSON!" );
+        
+        String query = "my\tfirst\tquery\t{\"_landmark\":\"1\",\"_minBP\":49482,\"_maxBP\":49482}";  //1 result
+
+        try {
+	        List<String> result = new ArrayList<String>();
+	        OverlapPipe op = new OverlapPipe(geneFile);
+	        Pipe p2 = new Pipeline(new SplitPipe("\t"), op, new PrintPipe());
+	        p2.setStarts(Arrays.asList(query));
+	        //assertTrue(p.hasNext()==false);
+	        for(int i=0; p2.hasNext(); i++) {
+	        	result.addAll((List<String>)p2.next());       	
+	        }   
+	        //System.out.println(result.size());
+	        assertEquals("{}", result.get(4)); //EMPTY JSON as last element in the list
+        } catch (Exception e) {        	
+			Assert.fail("INVALID QUERY... EXPECTED EXCEPTION!!!");
+		}
+    }
+        
 }
