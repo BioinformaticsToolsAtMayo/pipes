@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
+
 import org.junit.*;
 
 import com.tinkerpop.pipes.Pipe;
@@ -59,21 +61,6 @@ public class OverlapPipeTest {
     public void testProcessNextStart() throws IOException {
         System.out.println( "Tabix Test!" );
         
-        //        Pipe p = new Pipeline( new Overlap(dataFile) );
-        //        p.setStarts(Arrays.asList(""));
-        //        for(int i=0; p.hasNext(); i++){
-        //            p.next();
-        //        }
-        
-        //Overlap instance = null;
-        //List expResult = null;
-        //List result = instance.processNextStart();
-        //assertEquals(expResult, result);
-        
-        
-        //String dataFile = "/Users/m102417/tabixtest/example.gff.gz";
-        //String tabixIndexFile = "/Users/m102417/tabixtest/example.gff.gz.tbi";
-        
         //Example direct tabix query and the results... (note only the JSON will be returned by the overlapPipe)
         //r0240560:tabix m102417$ tabix genes.tsv.bgz 17:41196312-41300000 
         //17	41196312	41277500	{"_type":"gene","_landmark":"17","_strand":"-","_minBP":41196312,"_maxBP":41277500,"gene":"BRCA1","gene_synonym":"BRCAI; BRCC1; BROVCA1; IRIS; PNCA4; PPP1R53; PSCP; RNF53","note":"breast cancer 1, early onset; Derived by automated computational analysis using gene prediction method: BestRefseq.","GeneID":"672","HGNC":"1100","HPRD":"00218","MIM":"113705"}
@@ -81,21 +68,62 @@ public class OverlapPipeTest {
         //17	41277600	41297130	{"_type":"gene","_landmark":"17","_strand":"+","_minBP":41277600,"_maxBP":41297130,"gene":"NBR2","gene_synonym":"NCRNA00192","note":"neighbor of BRCA1 gene 2 (non-protein coding); Derived by automated computational analysis using gene prediction method: BestRefseq.","GeneID":"10230","HGNC":"20691"}
         //17	41286808	41287385	{"_type":"gene","_landmark":"17","_strand":"+","_minBP":41286808,"_maxBP":41287385,"gene":"LOC100505873","note":"Derived by automated computational analysis using gene prediction method: GNOMON. Supporting evidence includes similarity to: 1 EST, 1 Protein","pseudo":"","GeneID":"100505873"}
         //17	41296973	41297272	{"_type":"gene","_landmark":"17","_strand":"+","_minBP":41296973,"_maxBP":41297272,"gene":"HMGN1P29","note":"high mobility group nucleosome binding domain 1 pseudogene 29; Derived by automated computational analysis using gene prediction method: Curated Genomic.","pseudo":"","GeneID":"100885865","HGNC":"39373"} 
-        String query = "my\tfirst\tquery\t{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41277500}";  //1 result
+        //String query = "my\tfirst\tquery\t{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41277500}";  //1 result
         String query2 = "my\tfirst\tquery\t{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41300000}"; //5 results
-              
-        
+
         List<String> result = new ArrayList<String>();
         OverlapPipe op = new OverlapPipe(geneFile);
         Pipe p2 = new Pipeline(new SplitPipe("\t"), op, new PrintPipe());
-        p2.setStarts(Arrays.asList(query, query2));
-        for(int i=0; p2.hasNext(); i++) {
-            p2.next();
-        	//result.addAll((List<String>)p2.next());
+        p2.setStarts(Arrays.asList(query2));
+        for(int i=0; p2.hasNext(); i++) {            
+        	result.addAll((List<String>)p2.next());
         }
         
-        //System.out.println(result.size());    
+        assertEquals(25, result.size()); //5 rows returned
+        //System.out.println(result.get(4)); //5 rows returned        
     }
+
+    @Test
+    public void testProcessNextStart_OneResult() throws IOException {
+        System.out.println( "Tabix Test.. ONE RESULT!" );
+        
+        //Example direct tabix query and the results... (note only the JSON will be returned by the overlapPipe)
+        //r0240560:tabix m102417$ tabix genes.tsv.bgz 17:41196312-41300000 
+        //17	41196312	41277500	{"_type":"gene","_landmark":"17","_strand":"-","_minBP":41196312,"_maxBP":41277500,"gene":"BRCA1","gene_synonym":"BRCAI; BRCC1; BROVCA1; IRIS; PNCA4; PPP1R53; PSCP; RNF53","note":"breast cancer 1, early onset; Derived by automated computational analysis using gene prediction method: BestRefseq.","GeneID":"672","HGNC":"1100","HPRD":"00218","MIM":"113705"}
+        String query = "my\tfirst\tquery\t{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41277500}";  //1 result
+
+        List<String> result = new ArrayList<String>();
+        OverlapPipe op = new OverlapPipe(geneFile);
+        Pipe p2 = new Pipeline(new SplitPipe("\t"), op);
+        p2.setStarts(Arrays.asList(query));
+        for(int i=0; p2.hasNext(); i++) {
+            p2.next();
+        	result.addAll((List<String>)p2.next());
+        }
+        //System.out.println("size="+result.size());
+        assertEquals(5, result.size()); //one result            
+    }
+
     
     //make sure to test zero results!!!
+    @Test 
+    public void testProcessNextStart_ZeroResults() throws Exception {
+        System.out.println( "Tabix Test.. Zero Results!" );
+        
+        String query = "my\tfirst\tquery\t{\"_landmark\":\"17\",\"_minBP\":4,\"_maxBP\":41}";  //1 result
+
+        try {
+	        List<String> result = new ArrayList<String>();
+	        OverlapPipe op = new OverlapPipe(geneFile);
+	        Pipe p2 = new Pipeline(new SplitPipe("\t"), op, new PrintPipe());
+	        p2.setStarts(Arrays.asList(query));
+	        //assertTrue(p.hasNext()==false);
+	        for(int i=0; p2.hasNext(); i++) {
+	            p2.next();        	
+	        }   
+        } catch (Exception e) {
+			Assert.fail("INVALID QUERY... EXPECTED EXCEPTION!!!");
+		}
+    }
+    
 }
