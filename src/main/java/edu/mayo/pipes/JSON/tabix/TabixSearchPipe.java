@@ -57,7 +57,7 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
         maxBPPath = JsonPath.compile(CoreAttributes._maxBP.toString());     
     }
     
-    private void requery() throws NoSuchElementException, Exception {
+    private void requery() throws NoSuchElementException, IOException {
         if(records == null){
             if(query == null){
                 if(this.starts.hasNext()){
@@ -105,7 +105,7 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
         //throw new NoSuchElementException();
     }
     
-    public TabixReader.Iterator query(String json) throws Exception {    
+    public TabixReader.Iterator query(String json) throws IOException {    
         Object o;
         
         //_landmark
@@ -141,7 +141,7 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
 	    return records;
     }
     
-    public TabixReader.Iterator tquery(String query) throws Exception {
+    public TabixReader.Iterator tquery(String query) throws IOException {
         System.out.println("Query to Tabix File: " + query);
         TabixReader.Iterator records = tr.query(query);
         return records;
