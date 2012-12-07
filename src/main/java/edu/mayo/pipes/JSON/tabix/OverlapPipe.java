@@ -32,12 +32,12 @@ import java.util.logging.Logger;
  */
 public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {    
     private List<String> history = null;
-    private String tabixDataFile;
-    private Pipe<String, String> search;
+    private Pipe search;
     private int qcount;
+    private boolean isFirst = true;
     
     public OverlapPipe(String tabixDataFile) throws IOException {
-        this.tabixDataFile = tabixDataFile;
+        search = new TabixSearchPipe(tabixDataFile);
     }
     
     private List<String> copyAppend(List<String> history, String result){
@@ -50,40 +50,32 @@ public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {
     @Override
     protected List<String> processNextStart() throws NoSuchElementException {
         //if it is the first call to the pipe... set it up
-        if(search == null){
+        if(isFirst){
+            isFirst = false;
             //get the history
             history = this.starts.next();
             qcount = 0;
-            try {
-                search = new Pipeline(new TabixSearchPipe(tabixDataFile));
-                search.setStarts(Arrays.asList(history.get(history.size()-1)));
-            } catch (Exception ex) {
-                Logger.getLogger(OverlapPipe.class.getName()).log(Level.SEVERE, null, ex);
-                throw new NoSuchElementException(ex.getMessage());
-            }
+            search.reset();
+            search.setStarts(Arrays.asList(history.get(history.size()-1)));
         }
         //If the search has another result, append the result to the history
         if(search.hasNext()){
             //System.out.println("Next Search Result...");
             qcount++;
-            String result = search.next();
+            String result = (String) search.next();
             return copyAppend(history, result);
         }else {//otherwise, the search did not have any more results, get the next history
             if(qcount == 0){//we did not have any search results, append empty JSON to the history and send it along
                 qcount++; //just to get the history to reset on the next call
-                return copyAppend(history,"{}");
-            }else {//we did have at least one result.. and they are all done
+                return copyAppend(history,"{}");//return empty result
+            }else {//we did have at least one result (perhaps empty).. and they are all done
                 history = this.starts.next();
-                try {//reset the pipeline for the search query
-                    search = new Pipeline(new TabixSearchPipe(tabixDataFile));
-                    search.setStarts(Arrays.asList(history.get(history.size()-1)));
-                    qcount = 0;
-                    //and start pulling data again...
-                    return processNextStart();
-                } catch (Exception ex) {
-                    Logger.getLogger(OverlapPipe.class.getName()).log(Level.SEVERE, null, ex);
-                    throw new NoSuchElementException(ex.getMessage());
-                }
+                //reset the pipeline for the search query
+                search.reset(); 
+                search.setStarts(Arrays.asList(history.get(history.size()-1)));
+                qcount = 0;
+                //and start pulling data again...
+                return processNextStart();
             }
             
         }

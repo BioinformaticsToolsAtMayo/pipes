@@ -69,6 +69,9 @@ public class TabixSearchPipeTest {
             if(i==3){
                 assertEquals("LOC100505873",d.get(0));
             }
+            if(i==4){
+                assertEquals("HMGN1P29",d.get(0));
+            }
             //make sure we only had 5 elements!
             assertTrue(i != 5);                    
         }

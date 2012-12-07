@@ -19,6 +19,7 @@ import org.junit.*;
 
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
+import edu.mayo.pipes.MergePipe;
 
 import static org.junit.Assert.*;
 
@@ -73,13 +74,13 @@ public class OverlapPipeTest {
 
         List<String> result = new ArrayList<String>();
         OverlapPipe op = new OverlapPipe(geneFile);
-        Pipe p2 = new Pipeline(new SplitPipe("\t"), op, new PrintPipe());
+        Pipe<String,String> p2 = new Pipeline<String,String>(new SplitPipe("\t"), op, new MergePipe("\t"), new PrintPipe());
         p2.setStarts(Arrays.asList(query2));
-        for(int i=0; p2.hasNext(); i++) {            
-        	result.addAll((List<String>)p2.next());
+        while( p2.hasNext()) {            
+            result.add(p2.next());
         }
         
-        assertEquals(25, result.size()); //5 rows returned
+        assertEquals(5, result.size()); //5 rows returned
         //System.out.println(result.get(4)); //5 rows returned        
     }
 

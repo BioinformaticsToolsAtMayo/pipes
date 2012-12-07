@@ -37,11 +37,11 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
     private JsonPath maxBPPath;
 
     
-    public TabixSearchPipe(String tabixDataFile) throws Exception{
+    public TabixSearchPipe(String tabixDataFile) throws IOException{
         init(tabixDataFile);
     }
     
-    public TabixSearchPipe(String tabixDataFile, int jsonpos) throws Exception{
+    public TabixSearchPipe(String tabixDataFile, int jsonpos) throws IOException{
         init(tabixDataFile);
         this.jsonpos = jsonpos;
     }
@@ -142,7 +142,12 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
 	    
 	    return records;
     }
-    
+    /**
+     * tquery takes a tabix style query, e.g. tabix genes.tsv.bgz 17:10000,20000
+     * @param query = 17:10000,20000 
+     * @return  landmark:min:max
+     * @throws IOException 
+     */
     public TabixReader.Iterator tquery(String query) throws IOException {
         //System.out.println("Query to Tabix File: " + query);
         TabixReader.Iterator records = tr.query(query);
