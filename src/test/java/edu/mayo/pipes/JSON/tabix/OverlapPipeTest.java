@@ -4,24 +4,28 @@
  */
 package edu.mayo.pipes.JSON.tabix;
 
-import edu.mayo.pipes.PrintPipe;
-import edu.mayo.pipes.SplitPipe;
-import edu.mayo.pipes.JSON.tabix.TabixReader.Iterator;
-import edu.mayo.pipes.UNIX.CatGZPipe;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
-import edu.mayo.pipes.MergePipe;
 
-import static org.junit.Assert.*;
+import edu.mayo.pipes.MergePipe;
+import edu.mayo.pipes.PrintPipe;
+import edu.mayo.pipes.SplitPipe;
+import edu.mayo.pipes.history.History;
+import edu.mayo.pipes.history.HistoryInPipe;
 
 /**
  *
@@ -72,9 +76,9 @@ public class OverlapPipeTest {
         //String query = "my\tfirst\tquery\t{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41277500}";  //1 result
         String query2 = "my\tfirst\tquery\t{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41300000}"; //5 results
 
-        List<String> result = new ArrayList<String>();
+        List<History> result = new ArrayList<History>();
         OverlapPipe op = new OverlapPipe(geneFile);
-        Pipe<String,String> p2 = new Pipeline<String,String>(new SplitPipe("\t"), op, new MergePipe("\t"), new PrintPipe());
+        Pipe<String, History> p2 = new Pipeline<String, History>(new HistoryInPipe() , op);
         p2.setStarts(Arrays.asList(query2));
         while( p2.hasNext()) {            
             result.add(p2.next());
@@ -96,9 +100,9 @@ public class OverlapPipeTest {
         //TODO find a query that returns exactly 1 row
         String query = "my\tfirst\tquery\t{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41277500}";  //2 results
         
-        List<String> result = new ArrayList<String>();
+        List<History> result = new ArrayList<History>();
         OverlapPipe op = new OverlapPipe(geneFile);
-        Pipe<String,String> p2 = new Pipeline<String,String>(new SplitPipe("\t"), op, new MergePipe("\t"));
+        Pipe<String, History> p2 = new Pipeline<String, History>(new HistoryInPipe(), op);
         p2.setStarts(Arrays.asList(query));
         while(p2.hasNext()) {
         	result.add(p2.next());
@@ -116,9 +120,9 @@ public class OverlapPipeTest {
         String query = "my\tfirst\tquery\t{\"_landmark\":\"17\",\"_minBP\":4,\"_maxBP\":41}";  //1 result
 
         try {
-	        List<String> result = new ArrayList<String>();
+	        List<History> result = new ArrayList<History>();
 	        OverlapPipe op = new OverlapPipe(geneFile);
-	        Pipe p2 = new Pipeline(new SplitPipe("\t"), op, new PrintPipe());
+	        Pipe<String, History> p2 = new Pipeline<String, History>(new HistoryInPipe(), op);
 	        p2.setStarts(Arrays.asList(query));
 	        //assertTrue(p.hasNext()==false);
 	        for(int i=0; p2.hasNext(); i++) {
@@ -139,9 +143,9 @@ public class OverlapPipeTest {
         String query = "my\tfirst\tquery\t{\"_landmark\":\"1\",\"_minBP\":49482,\"_maxBP\":49482}";  //1 result
 
         try {
-	        List<String> result = new ArrayList<String>();
+	        List<History> result = new ArrayList<History>();
 	        OverlapPipe op = new OverlapPipe(geneFile);
-	        Pipe<String,String> p2 = new Pipeline<String,String>(new SplitPipe("\t"), op, new PrintPipe());
+	        Pipe<String, History> p2 = new Pipeline<String, History>(new HistoryInPipe(), op);
 	        p2.setStarts(Arrays.asList(query));
 	        //assertTrue(p.hasNext()==false);
 	        for(int i=0; p2.hasNext(); i++) {

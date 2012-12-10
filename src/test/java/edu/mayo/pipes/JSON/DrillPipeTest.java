@@ -4,14 +4,22 @@
  */
 package edu.mayo.pipes.JSON;
 
-import com.tinkerpop.pipes.Pipe;
-import com.tinkerpop.pipes.util.Pipeline;
-import edu.mayo.pipes.PrintPipe;
-import edu.mayo.pipes.SplitPipe;
+import static org.junit.Assert.assertEquals;
+
 import java.util.Arrays;
 import java.util.List;
-import org.junit.*;
-import static org.junit.Assert.*;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.tinkerpop.pipes.Pipe;
+import com.tinkerpop.pipes.util.Pipeline;
+
+import edu.mayo.pipes.history.History;
+import edu.mayo.pipes.history.HistoryInPipe;
 
 /**
  *
@@ -53,10 +61,11 @@ public class DrillPipeTest {
         String[] paths = new String[2];
         paths[0] = "gene";
         paths[1] = "minBP";
-        Pipe p = new Pipeline(new SplitPipe("\t"), new DrillPipe(true, paths), new PrintPipe());
+        Pipe<String, History> p = new Pipeline(new HistoryInPipe(), new DrillPipe(true, paths));
         p.setStarts(Arrays.asList(s1,s2, s4));
         for(int i=0; p.hasNext(); i++){
-            List<String> drilled = (List<String>) p.next();
+        	History history = p.next();
+            List<String> drilled = history;
             for(int j=0; j<drilled.size(); j++){
                 //System.out.println(drilled.get(j));
                 if(i==1 && j==2){//j==0 is foo, j==1 is bar, j==2 starts the drilled data.

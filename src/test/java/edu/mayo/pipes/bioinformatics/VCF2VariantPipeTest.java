@@ -6,7 +6,6 @@ package edu.mayo.pipes.bioinformatics;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -18,10 +17,11 @@ import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
-import edu.mayo.pipes.SplitPipe;
 import edu.mayo.pipes.UNIX.CatPipe;
 import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 import edu.mayo.pipes.bioinformatics.vocab.Type;
+import edu.mayo.pipes.history.History;
+import edu.mayo.pipes.history.HistoryInPipe;
 
 /**
  *
@@ -53,22 +53,23 @@ public class VCF2VariantPipeTest {
      */
     @Test
     public void testProcessNextStart() {
+    	
     	// pipes
     	CatPipe			cat 	= new CatPipe();
-    	SplitPipe		split	= new SplitPipe("\t");
+    	HistoryInPipe historyIn = new HistoryInPipe();
         VCF2VariantPipe vcf 	= new VCF2VariantPipe();
         
-        Pipe<String, List<String>> pipeline = new Pipeline<String, List<String>>
+        Pipe<String, History> pipeline = new Pipeline<String, History>
         	(
-        		cat,	// read VCF line	--> String
-        		split,	// split String 	-->	List<String> history
-        		vcf		// history			--> add JSON to end of history
+        		cat,		// read VCF line	--> String
+        		historyIn,	// String			--> history
+        		vcf			// history			--> add JSON to end of history
         	);
         pipeline.setStarts(Arrays.asList("src/test/resources/testData/vcf-format-4_0.vcf"));
 
         // grab 1st row of data
-        pipeline.hasNext();	    
-        List<String> history = pipeline.next();
+        pipeline.hasNext();
+        History history = pipeline.next();
         String json = history.get(history.size() - 1);
         
         // use JSON paths to drill out values and compare with expected

@@ -8,8 +8,6 @@ import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -17,6 +15,8 @@ import com.tinkerpop.pipes.AbstractPipe;
 
 import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 import edu.mayo.pipes.bioinformatics.vocab.Type;
+import edu.mayo.pipes.history.ColumnMetaData;
+import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.util.GenomicObjectUtils;
 
 /**
@@ -30,9 +30,7 @@ import edu.mayo.pipes.util.GenomicObjectUtils;
  * @see http://www.1000genomes.org/wiki/analysis/vcf4.0
  * 
  */
-public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
-    
-	private static final Logger sLogger = Logger.getLogger(VCF2VariantPipe.class);
+public class VCF2VariantPipe extends AbstractPipe<History,History> {
 	
 	// VCF column ordinals
 	private static final int COL_CHROM = 0;
@@ -46,9 +44,6 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
 	
 	private static final String[] COL_HEADERS = 
 		{"CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO"};
-	
-	// collects the VCF header rows, order is preserved as seen in file
-    private List<String> mHeaderRows = new ArrayList<String>();
     
     /*
      	From VCF 4.0 format specification:
@@ -70,17 +65,20 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
     private static final int REGEX_GRP_NUM  = 2;
     private static final int REGEX_GRP_TYPE = 3;
     private Pattern mRegexPattern = Pattern.compile(mRegexStr);
-
-    private boolean mHeaderInitialized = false;
     
     // maps a given INFO field ID to an InfoFieldMeta object
     private Map<String, InfoFieldMeta> mFieldMap = new HashMap<String, InfoFieldMeta>();
     
+    private boolean isHeaderProcessed = false;
+    
+    public VCF2VariantPipe() {    	
+    }
+    
     /**
      * Processes the VCF header for the INFO column's metadata per field.
      */
-    private void initializeHeader(){
-        for (String row: mHeaderRows) {
+    private void processHeader(List<String> headerLines){
+        for (String row: headerLines) {
         	Matcher m = mRegexPattern.matcher(row);
         	if (m.find()) {
         		
@@ -101,23 +99,18 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
     }
 
     @Override
-    protected List<String> processNextStart() throws NoSuchElementException {
-        List<String> history = this.starts.next();
+    protected History processNextStart() throws NoSuchElementException {
         
-        // fast forward and capture header rows until we hit the first data row
-        if (mHeaderInitialized == false) {
-	    	String commentCol = history.get(0);
-	        while(commentCol.startsWith("#")){
-	            mHeaderRows.add(commentCol);
-	
-	            history = this.starts.next();
-	        	commentCol = history.get(0);
-	        }
-	
-	        // entire header has been captured, now process it
-	        initializeHeader();
-	        
-	        mHeaderInitialized = true;
+        History history = this.starts.next();
+
+        // initialize header only once, on the 1st time through this method
+        if (isHeaderProcessed == false) {
+        	processHeader(History.getMetaData().getOriginalHeader());
+        	
+        	ColumnMetaData cmd = new ColumnMetaData(getClass().getSimpleName());
+        	History.getMetaData().getColumns().add(cmd);
+        	
+        	isHeaderProcessed = true;
         }
                 
         if(history.size() < COL_HEADERS.length){
@@ -245,9 +238,6 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
      * @param history Data row from VCF.
      */
     private void addCoreAttributes(JsonObject root, List<String> history) {
-    	// TODO: do we need type???
-        //root.addProperty("variant_type", getTypeFromVCF(variant));
-        //root.addProperty("type", "Variant");
 
     	//guaranteed to be unique, if no then perhaps bug
     	String accID = history.get(COL_ID);
@@ -275,23 +265,9 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
         	root.addProperty(CoreAttributes._maxBP.toString(), maxBP);
         }
     }
-    
-//    private String getTypeFromVCF(Variant v){
-//        String[] altAllele = v.getAltAllele();
-//        if (v.getRefAllele().length() == altAllele[0].length()){
-//            return "SNP";
-//        }
-//        if (v.getRefAllele().length() < altAllele[0].length()){
-//            return "insertion";
-//        }
-//        if (v.getRefAllele().length() > altAllele[0].length()){
-//            return "deletion";
-//        }
-//        else return "unknown";
-//    }
 
     private String[] al(String raw){
-        ArrayList finalList = new ArrayList();
+        List<String> finalList = new ArrayList<String>();
         if(raw.contains(",")){
             //System.out.println(raw);
             String[] split = raw.split(",");
@@ -302,20 +278,6 @@ public class VCF2VariantPipe extends AbstractPipe<List<String>,List<String>>{
             finalList.add(raw);
         }
         return (String[]) finalList.toArray( new String[0] ); //finalList.size()
-    }
-    
-    private HashMap populate(String[] data){
-        HashMap hm = new HashMap();
-        for(int i = 0; i<data.length; i++){
-            //System.out.println(data[i]);
-            if(data[i].contains("=")){
-                String[] tokens = data[i].split("=");
-                hm.put(tokens[0], tokens[1]);
-            }else {
-                hm.put(data[i], "1");
-            }
-        }
-        return hm;
     }
     
     /* enumeration to capture Type values efficiently */

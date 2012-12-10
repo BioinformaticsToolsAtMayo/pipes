@@ -4,20 +4,14 @@
  */
 package edu.mayo.pipes.JSON.tabix;
 
-import com.jayway.jsonpath.JsonPath;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.NoSuchElementException;
+
 import com.tinkerpop.pipes.AbstractPipe;
 import com.tinkerpop.pipes.Pipe;
-import com.tinkerpop.pipes.util.Pipeline;
-import edu.mayo.pipes.JSON.tabix.TabixReader.Iterator;
-import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import edu.mayo.pipes.history.History;
 
 /**
  *
@@ -30,8 +24,8 @@ import java.util.logging.Logger;
 	_maxBP,
  * to get back all strings that overlap, it constructs a query with the core attributes.
  */
-public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {    
-    private List<String> history = null;
+public class OverlapPipe extends AbstractPipe<History, History> {    
+    private History history = null;
     private Pipe search;
     private int qcount;
     private boolean isFirst = true;
@@ -40,15 +34,14 @@ public class OverlapPipe extends AbstractPipe<List<String>, List<String>> {
         search = new TabixSearchPipe(tabixDataFile);
     }
     
-    private List<String> copyAppend(List<String> history, String result){
-        List<String> arr = new ArrayList<String>();
-        arr.addAll(history);
-        arr.add(result);
-        return arr;
-    }
+    private History copyAppend(History history, String result){
+		History clone = (History) history.clone();
+		clone.add(result);    	
+		return clone;    
+	}
     
     @Override
-    protected List<String> processNextStart() throws NoSuchElementException {
+    protected History processNextStart() throws NoSuchElementException {
         //if it is the first call to the pipe... set it up
         if(isFirst){
             isFirst = false;
