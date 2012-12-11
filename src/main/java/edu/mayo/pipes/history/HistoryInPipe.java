@@ -32,7 +32,7 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
 
 				line = this.starts.next();
 			}
-			HistoryMetaData histMetaData = new HistoryMetaData(headerRows);
+			HistoryMetaData hMeta = new HistoryMetaData(headerRows);
 
 			// process column header if present
 			if (headerRows.size() > 0) {
@@ -43,7 +43,7 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
 
 				for (String colName : colHeaderLine.split(COL_DELIMITER)) {
 					ColumnMetaData cmd = new ColumnMetaData(colName);
-					histMetaData.getColumns().add(cmd);
+					hMeta.getColumns().add(cmd);
 				}
 			} else {
 				int numCols = line.split(COL_DELIMITER).length;
@@ -51,11 +51,11 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
 				// UNKNOWN
 				for (int i = 1; i <= numCols; i++) {
 					ColumnMetaData cmd = new ColumnMetaData("UNKNOWN_" + i);
-					History.getMetaData().getColumns().add(cmd);
+					hMeta.getColumns().add(cmd);
 				}
 			}
 
-			history.setMetaData(histMetaData);
+			history.setMetaData(hMeta);
 		}
 
 		// split data row, add to history

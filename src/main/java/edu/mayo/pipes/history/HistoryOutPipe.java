@@ -36,9 +36,14 @@ public class HistoryOutPipe extends AbstractPipe<History, String>{
 
 			// add the header lines to the queue first so they appear in the
 			// output first
-			for (String headerLine: History.getMetaData().getOriginalHeader()) {
-				mQueue.add(headerLine);
+			final int origHeaderSize = History.getMetaData().getOriginalHeader().size();
+			// add all header lines except for LAST line, which is the column header row
+			for (int i=0; i < (origHeaderSize - 1); i++) {
+				String headerLine = History.getMetaData().getOriginalHeader().get(i);
+				mQueue.add(headerLine);					
 			}
+			// add a new generated column header row, even if the original header was blank
+			mQueue.add(History.getMetaData().getColumnHeaderRow(FIELD_DELIMITER));
 
 			// need to also queue up the 1st data row
 			String firstDataRow = history.getMergedData(FIELD_DELIMITER);
@@ -48,32 +53,10 @@ public class HistoryOutPipe extends AbstractPipe<History, String>{
 		}
 		
 		if (mQueue.size() > 0) {
-			
-			// handle column header row
-			// NOTE: 2nd to last item in QUEUE is the column header
-			if (mQueue.size() == 2) {
-
-				// throw away original column header row
-				mQueue.remove(0);
-				
-				//  reconstruct column header row dynamically based on meta data
-				StringBuilder sb = new StringBuilder();
-				sb.append("#");
-				final int numCols = History.getMetaData().getColumns().size();
-				for (int i=0; i < numCols; i++) {
-					ColumnMetaData cmd = History.getMetaData().getColumns().get(i);
-					sb.append(cmd.getColumnName());
-					
-					if (i < (numCols - 1)) {
-						sb.append(FIELD_DELIMITER);
-					}					
-				}
-				String colHeaderRow = sb.toString();				
-				return colHeaderRow;
-			}
-			
+						
 			// pop off first item from queue
 			return mQueue.remove(0);
+			
 		} else {
 			
 			// QUEUE has been exhausted, now just append the data rows 			

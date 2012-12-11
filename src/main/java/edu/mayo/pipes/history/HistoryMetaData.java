@@ -34,7 +34,27 @@ public class HistoryMetaData {
 	public List<String> getOriginalHeader() {
 		return mHeader;
 	}
-
+	
+	/**
+	 * Reconstructs column header row dynamically based on ColumnMetaData.
+	 * @return
+	 */
+	public String getColumnHeaderRow(String delimiter) {
+		//  reconstruct column header row dynamically based on meta data
+		StringBuilder sb = new StringBuilder();
+		sb.append("#");
+		final int numCols = History.getMetaData().getColumns().size();
+		for (int i=0; i < numCols; i++) {
+			ColumnMetaData cmd = History.getMetaData().getColumns().get(i);
+			sb.append(cmd.getColumnName());
+			
+			if (i < (numCols - 1)) {
+				sb.append(delimiter);
+			}					
+		}
+		return sb.toString();
+	}
+	
 	/**
 	 * Metadata about this history's columns.
 	 * 
