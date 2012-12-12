@@ -4,6 +4,7 @@
  */
 package edu.mayo.pipes.util;
 
+import edu.mayo.pipes.bioinformatics.vocab.Undefined;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -106,8 +107,7 @@ public class GenomicObjectUtils {
         }else if(raw.contains("1") ){
             return "1";
         }
-        //TODO: return Chromosome.unknown;
-        return null;
+        return Undefined.UNKNOWN.toString();
     }
 
 
