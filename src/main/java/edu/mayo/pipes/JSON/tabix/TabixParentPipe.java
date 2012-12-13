@@ -27,10 +27,15 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     protected Pipe search;
     protected int qcount;
     protected boolean isFirst = true;
-    protected FilterLogic fl;
+    protected ComparableObjectInterface comparableObject;
     
     public TabixParentPipe(String tabixDataFile) throws IOException {
+        init(tabixDataFile);
+    }
+    
+    protected void init(String tabixDataFile) throws IOException{
         search = new TabixSearchPipe(tabixDataFile);
+        comparableObject = new FilterLogic();
     }
     
     protected History copyAppend(History history, String result){
@@ -58,11 +63,16 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
         
     }
 
-    
+    /**
+     * This valid logic is for filtering out results that match based on one criteria (e.g. position)
+     * but fail to match for another reason (e.g. alt and ref allele don't match or IDs don't match)
+     * The way this works, is that in the subclass some comparitor object can be declared, and then
+     * you set the 
+     */
     protected String validResult = "";
-    private boolean valid(FilterLogic fl){
+    private boolean valid(ComparableObjectInterface fl){
         String result = (String) search.next();
-//        boolean ret = fl.same(result,history.get(history.size()-1));
+        boolean ret = fl.same(result,history.get(history.size()-1));
 //        if(ret){
             validResult = result;
 //        }else {
@@ -78,7 +88,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
         //If the search has another result, append the result to the history
         if(search.hasNext()){
             //System.out.println("Next Search Result...");
-            if(valid(fl)){
+            if(valid(comparableObject)){
                 qcount++;
                 return copyAppend(history, validResult);
             }else {//not a valid result, try again...
@@ -108,7 +118,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
 
         @Override
         public boolean same(Object a, Object b) {
-            throw new UnsupportedOperationException("Not supported yet.");
+            return true;
         }
 
     }

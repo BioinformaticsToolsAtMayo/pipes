@@ -6,6 +6,7 @@ package edu.mayo.pipes.JSON.tabix;
 
 import com.tinkerpop.pipes.AbstractPipe;
 import com.tinkerpop.pipes.Pipe;
+import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
 import edu.mayo.pipes.history.History;
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,9 +30,21 @@ public class SameVariantPipe extends TabixParentPipe{
 
     public SameVariantPipe(String tabixDataFile) throws IOException {
         super(tabixDataFile);
+        this.comparableObject = new SameVariantLogic();
     }
     
 
+    /**
+     * 
+     */
+    private class SameVariantLogic implements ComparableObjectInterface {
+
+        @Override
+        public boolean same(Object a, Object b) {
+            return true;
+        }
+
+    }
     
     
 }
