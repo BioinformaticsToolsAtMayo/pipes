@@ -29,38 +29,11 @@ public class OverlapPipe extends TabixParentPipe {
     public OverlapPipe(String tabixDataFile) throws IOException {
         super(tabixDataFile);
     }
-  
-// Original overlap pipe code, refactored and moved up to TabixParentPipe    
-//    @Override
-//    protected History processNextStart() throws NoSuchElementException {
-//        setup();
-//        //If the search has another result, append the result to the history
-//        if(search.hasNext()){
-//            //System.out.println("Next Search Result...");
-//            qcount++;
-//            String result = (String) search.next();
-//            return copyAppend(history, result);
-//        }else {//otherwise, the search did not have any more results, get the next history
-//            if(qcount == 0){//we did not have any search results, append empty JSON to the history and send it along
-//                qcount++; //just to get the history to reset on the next call
-//                return copyAppend(history,"{}");//return empty result
-//            }else {//we did have at least one result (perhaps empty).. and they are all done
-//                history = this.starts.next();
-//                //reset the pipeline for the search query
-//                search.reset(); 
-//                search.setStarts(Arrays.asList(history.get(history.size()-1)));
-//                qcount = 0;
-//                //and start pulling data again...
-//                return processNextStart();
-//            }
-//            
-//        }
-//    }
     
-    
-
-
-    
+    public OverlapPipe(String tabixDataFile, int minBPExtend, int maxBPExtend) throws IOException{
+        super(tabixDataFile);
+        search = new TabixSearchPipe(tabixDataFile, minBPExtend, maxBPExtend);
+    }    
 
     
 }
