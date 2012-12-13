@@ -93,8 +93,14 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-compress</artifactId>
 			<version>1.4.1</version>
-		</dependency>  
-                
+		</dependency>
+	 <dependency>
+	  <groupId>edu.mayo</groupId>
+	  <artifactId>pipes</artifactId>
+	  <version>0.0.1-SNAPSHOT</version>
+	  <scope>test</scope>
+	  <type>jar</type>
+	 </dependency>
 	</dependencies>	
     <repositories>
     	<repository>

@@ -6,6 +6,7 @@ package edu.mayo.pipes.JSON;
 
 import com.google.gson.JsonObject;
 import com.tinkerpop.pipes.AbstractPipe;
+import edu.mayo.pipes.history.History;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -27,7 +28,7 @@ import java.util.NoSuchElementException;
  * 
  * @author m102417
  */
-public class Tab2JSONPipe extends AbstractPipe<List<String>, List<String>>{
+public class Tab2JSONPipe extends AbstractPipe<History, History>{
     String[] meta = null;
     //delimiters...not in use yet
 //    public static String comma = "comma";
@@ -52,8 +53,9 @@ public class Tab2JSONPipe extends AbstractPipe<List<String>, List<String>>{
     
     
     @Override
-    protected List<String> processNextStart() throws NoSuchElementException {
-        List<String> history = this.starts.next();
+    protected History processNextStart() throws NoSuchElementException {
+        History history = this.starts.next();
+        
         history.add(computeJSON(history));
         return  history;
     }

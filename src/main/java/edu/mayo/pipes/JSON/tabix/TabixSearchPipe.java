@@ -35,10 +35,25 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
     private JsonPath landmarkPath;
     private JsonPath minBPPath;
     private JsonPath maxBPPath;
+    private int extendminbp = 0;
+    private int extendmaxbp = 0;
 
     
     public TabixSearchPipe(String tabixDataFile) throws IOException{
         init(tabixDataFile);
+    }
+    
+    /**
+     * 
+     * @param tabixDataFile
+     * @param minBPExtend  the amount you would like to extend the boundary 
+     * @param maxBPExtend
+     * @throws IOException 
+     */
+    
+    public TabixSearchPipe(String tabixDataFile, int minBPExtend, int maxBPExtend) throws IOException{
+        init(tabixDataFile);
+        this.extendmaxbp = maxBPExtend;
     }
     
     public TabixSearchPipe(String tabixDataFile, int jsonpos) throws IOException{
@@ -124,6 +139,10 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
 	    o = minBPPath.read(json);
 		if (o != null) {
 			minBP = o.toString();
+                        if(extendminbp != 0){
+                           int t = Integer.parseInt(minBP);
+                           minBP = String.valueOf( t - extendminbp );
+                        }
 		} else {
 			return null;
 	    }
@@ -133,6 +152,10 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
 	    o = maxBPPath.read(json);
 		if (o != null) {
 			maxBP = o.toString();
+                        if(extendmaxbp != 0){
+                           int t = Integer.parseInt(minBP);
+                           minBP = String.valueOf( t - extendmaxbp );
+                        }
 		} else {
 			return null;
 	    }

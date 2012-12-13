@@ -1,0 +1,10 @@
+2012-12-12 15:44:07,208 [main] INFO  edu.mayo.bior.cli.CommandLineApp - Loading plugin: edu.mayo.bior.cli.cmd.VCF2VariantCommand
+2012-12-12 15:44:21,228 [main] INFO  edu.mayo.bior.cli.CommandLineApp - Loading plugin: edu.mayo.bior.cli.cmd.VCF2VariantCommand
+2012-12-12 15:45:02,576 [main] INFO  edu.mayo.bior.cli.CommandLineApp - Loading plugin: edu.mayo.bior.cli.cmd.VCF2VariantCommand
+2012-12-12 15:45:02,584 [main] INFO  edu.mayo.bior.cli.CommandLineApp - Loading plugin: edu.mayo.bior.cli.cmd.DrillCommand
+2012-12-12 15:45:13,885 [main] INFO  edu.mayo.bior.cli.CommandLineApp - Loading plugin: edu.mayo.bior.cli.cmd.VCF2VariantCommand
+2012-12-12 15:45:13,885 [main] INFO  edu.mayo.bior.cli.CommandLineApp - Loading plugin: edu.mayo.bior.cli.cmd.DrillCommand
+2012-12-12 15:45:25,136 [main] INFO  edu.mayo.bior.cli.CommandLineApp - Loading plugin: edu.mayo.bior.cli.cmd.DrillCommand
+2012-12-12 15:45:25,138 [main] INFO  edu.mayo.bior.cli.CommandLineApp - Loading plugin: edu.mayo.bior.cli.cmd.VCF2VariantCommand
+2012-12-12 15:46:00,201 [main] INFO  edu.mayo.bior.cli.CommandLineApp - Loading plugin: edu.mayo.bior.cli.cmd.DrillCommand
+2012-12-12 15:46:00,204 [main] INFO  edu.mayo.bior.cli.CommandLineApp - Loading plugin: edu.mayo.bior.cli.cmd.VCF2VariantCommand

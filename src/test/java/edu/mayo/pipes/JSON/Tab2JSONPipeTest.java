@@ -7,6 +7,7 @@ package edu.mayo.pipes.JSON;
 import com.tinkerpop.pipes.util.Pipeline;
 import edu.mayo.pipes.PrintPipe;
 import edu.mayo.pipes.SplitPipe;
+import edu.mayo.pipes.history.HistoryInPipe;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.*;
@@ -52,7 +53,7 @@ public class Tab2JSONPipeTest {
         meta[1] = "color";
         meta[2] = "age";
         Tab2JSONPipe t2j = new Tab2JSONPipe(meta);
-        Pipeline p = new Pipeline(new SplitPipe("\t"), t2j, new PrintPipe());
+        Pipeline p = new Pipeline(new HistoryInPipe(), t2j, new PrintPipe());
         p.setStarts(Arrays.asList(tab1, tab2, tab3));
         while(p.hasNext()){
             p.next();

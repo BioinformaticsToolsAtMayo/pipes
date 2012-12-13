@@ -1,0 +1,20 @@
+cache
+dir ./cache/
+format vcf
+species homo_sapiens
+fork 4
+sift b
+polyphen b
+ccds
+hgnc
+numbers
+domains
+regulatory
+canonical
+protein
+gmaf
+gene
+freq_pop any
+offline
+buffer_size 10000
+write_cache
