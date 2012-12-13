@@ -6,11 +6,13 @@ package edu.mayo.pipes.JSON.tabix;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.tinkerpop.pipes.AbstractPipe;
 import com.tinkerpop.pipes.Pipe;
 
+import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
 
 /**
@@ -50,6 +52,11 @@ public class OverlapPipe extends AbstractPipe<History, History> {
             qcount = 0;
             search.reset();
             search.setStarts(Arrays.asList(history.get(history.size()-1)));
+            
+            // add column meta data
+            List<ColumnMetaData> cols = History.getMetaData().getColumns();
+    		ColumnMetaData cmd = new ColumnMetaData(getClass().getSimpleName());
+    		cols.add(cmd);
         }
         //If the search has another result, append the result to the history
         if(search.hasNext()){
