@@ -43,14 +43,14 @@ public class SameVariantPipeTest {
     public void tearDown() {
     }
     
-    private String catalogFile = "src/test/resources/testData/biorVariant.catalog.gz";
+    private String catalogFile = "src/test/resources/testData/";
 
     @Test
     public void testSomeMethod() {
         try {
             System.out.println("Process Next Start...");
             Pipe p = new Pipeline(new CatPipe(), new HistoryInPipe(), new VCF2VariantPipe(), new SameVariantPipe(catalogFile));
-            p.setStarts(Arrays.asList("src/test/resources/testData/example.vcf"));
+            p.setStarts(Arrays.asList("src/test/resources/testData/sameVariant.vcf"));
             while(p.hasNext()){
                 History next = (History) p.next();
                 
