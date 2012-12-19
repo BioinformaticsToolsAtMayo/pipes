@@ -4,19 +4,16 @@
  */
 package edu.mayo.pipes.JSON.tabix;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.jayway.jsonpath.JsonPath;
-import com.tinkerpop.pipes.AbstractPipe;
-import com.tinkerpop.pipes.Pipe;
-import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
-import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
-import edu.mayo.pipes.history.History;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
+
+import net.minidev.json.JSONArray;
+
+import com.google.gson.Gson;
+import com.jayway.jsonpath.JsonPath;
+
+import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
+import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 
 /**
  *
@@ -93,7 +90,7 @@ public class SameVariantPipe extends TabixParentPipe{
             Integer minBpIn  = minBpJsonPath.read(jsonIn);
             Integer minBpOut = minBpJsonPath.read(jsonOut);
             //System.out.println(minbpIN + ":" + minbpOUT);
-            if(minBpIn == null || minBpIn != minBpOut){
+            if(minBpIn == null || minBpIn.compareTo(minBpOut) != 0) {
                 return false;
             }
             
@@ -101,10 +98,8 @@ public class SameVariantPipe extends TabixParentPipe{
             String rsIdOut = rsIdJsonPath.read(jsonOut);
             String refIn   = refJsonPath.read(jsonIn);
             String refOut  = refJsonPath.read(jsonOut);
-            String altsInStr = altJsonPath.read(jsonIn);
-            String altsOutStr= altJsonPath.read(jsonOut);
-            ArrayList<String> altsIn   = (ArrayList<String>) Arrays.asList(gson.fromJson(altsInStr, String[].class));
-            ArrayList<String> altsOut  = (ArrayList<String>) Arrays.asList(gson.fromJson(altsOutStr, String[].class));
+            ArrayList<String> altsIn   = toList((JSONArray)altJsonPath.read(jsonIn));
+            ArrayList<String> altsOut  = toList((JSONArray)altJsonPath.read(jsonOut));
             boolean isRsIdMatch = rsIdIn != null && rsIdIn.length() > 0 && rsIdIn.equalsIgnoreCase(rsIdOut);
             boolean isRefAlleleMatch = refIn  != null && refIn.length() > 0 && refIn.equalsIgnoreCase(refOut);
             boolean isAltAlleleMatch = altsIn != null && altsIn.size() > 0 && isSubset(altsIn, altsOut);
@@ -125,6 +120,13 @@ public class SameVariantPipe extends TabixParentPipe{
         			return false;
         	}
         	return true;
+        }
+        
+        private ArrayList<String> toList(JSONArray jsonArray) {
+        	ArrayList<String> list = new ArrayList<String>();
+        	for(int i=0; i < jsonArray.size(); i++) 
+        		list.add((String)jsonArray.get(i));
+			return list;
         }
     }
     
