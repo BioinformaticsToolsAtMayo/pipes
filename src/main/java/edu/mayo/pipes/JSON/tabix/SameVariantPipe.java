@@ -4,6 +4,7 @@
  */
 package edu.mayo.pipes.JSON.tabix;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.AbstractPipe;
@@ -58,8 +59,9 @@ public class SameVariantPipe extends TabixParentPipe{
         private JsonPath minBpJsonPath = null;
         private JsonPath rsIdJsonPath = null;
         private JsonPath refJsonPath = null;
-        private JsonPath altJsonPath = null;    
-
+        private JsonPath altJsonPath = null;
+        private Gson gson = new Gson();
+        
         public SameVariantLogic(){
             init();
         }
@@ -99,8 +101,10 @@ public class SameVariantPipe extends TabixParentPipe{
             String rsIdOut = rsIdJsonPath.read(jsonOut);
             String refIn   = refJsonPath.read(jsonIn);
             String refOut  = refJsonPath.read(jsonOut);
-            ArrayList<String> altsIn   = altJsonPath.read(jsonIn);
-            ArrayList<String> altsOut  = altJsonPath.read(jsonOut);
+            String altsInStr = altJsonPath.read(jsonIn);
+            String altsOutStr= altJsonPath.read(jsonOut);
+            ArrayList<String> altsIn   = (ArrayList<String>) Arrays.asList(gson.fromJson(altsInStr, String[].class));
+            ArrayList<String> altsOut  = (ArrayList<String>) Arrays.asList(gson.fromJson(altsOutStr, String[].class));
             boolean isRsIdMatch = rsIdIn != null && rsIdIn.length() > 0 && rsIdIn.equalsIgnoreCase(rsIdOut);
             boolean isRefAlleleMatch = refIn  != null && refIn.length() > 0 && refIn.equalsIgnoreCase(refOut);
             boolean isAltAlleleMatch = altsIn != null && altsIn.size() > 0 && isSubset(altsIn, altsOut);
@@ -122,14 +126,6 @@ public class SameVariantPipe extends TabixParentPipe{
         	}
         	return true;
         }
-        
-        private ArrayList<String> toList(JsonArray jsonArray) {
-        	ArrayList<String> list = new ArrayList<String>();
-        	for(int i=0; i < jsonArray.size(); i++) {
-        		list.add(jsonArray.getAsString());
-        	}
-        	return list;
-        }
-     }
+    }
     
 }
