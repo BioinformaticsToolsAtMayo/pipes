@@ -17,9 +17,9 @@ import static org.junit.Assert.*;
  *
  * @author m102417
  */
-public class Tab2JSONPipeTest {
+public class Delim2JSONPipeTest {
     
-    public Tab2JSONPipeTest() {
+    public Delim2JSONPipeTest() {
     }
 
     @BeforeClass
@@ -45,14 +45,15 @@ public class Tab2JSONPipeTest {
     public void testProcessNextStart() {
         System.out.println("processNextStart");
         //My Dog Objects
-        String tab1 = "Rex\tbrown\t12";
-        String tab2 = "Simon\tblack\t2.5";
-        String tab3 = "Pillsbury\twhite\t6";
+        String delim = "pipe";
+        String tab1 = "Rex|brown|12";
+        String tab2 = "Simon|black|2.5";
+        String tab3 = "Pillsbury|white|6";
         String[] meta = new String[3];
         meta[0] = "name";
         meta[1] = "color";
         meta[2] = "age";
-        Tab2JSONPipe t2j = new Tab2JSONPipe(meta);
+        Delim2JSONPipe t2j = new Delim2JSONPipe(meta, delim);
         Pipeline p = new Pipeline(new HistoryInPipe(), t2j, new PrintPipe());
         p.setStarts(Arrays.asList(tab1, tab2, tab3));
         while(p.hasNext()){
