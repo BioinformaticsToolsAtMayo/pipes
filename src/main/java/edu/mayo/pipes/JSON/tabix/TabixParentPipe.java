@@ -28,6 +28,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     protected int qcount;
     protected boolean isFirst = true;
     protected ComparableObjectInterface comparableObject;
+    protected int historyPos = -1; //position in the history to look for the input to the transform (default the last column)
     
     public TabixParentPipe(String tabixDataFile) throws IOException {
         init(tabixDataFile);
@@ -72,7 +73,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     protected String validResult = "";
     private boolean valid(ComparableObjectInterface fl){
         String result = (String) search.next();
-        boolean ret = fl.same(result,history.get(history.size()-1));
+        boolean ret = fl.same(result,history.get(history.size()+historyPos));
         if(ret){
             validResult = result;
         }else {
@@ -102,7 +103,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
                 history = this.starts.next();
                 //reset the pipeline for the search query
                 search.reset(); 
-                search.setStarts(Arrays.asList(history.get(history.size()-1)));
+                search.setStarts(Arrays.asList(history.get(history.size()+historyPos)));
                 qcount = 0;
                 //and start pulling data again...
                 return processNextStart();
