@@ -73,13 +73,13 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     private boolean valid(ComparableObjectInterface fl){
         String result = (String) search.next();
         boolean ret = fl.same(result,history.get(history.size()-1));
-//        if(ret){
+        if(ret){
             validResult = result;
-//        }else {
-//            validResult = "";
-//        }
-//        return ret;
-        return true;
+        }else {
+            validResult = "";
+        }
+        return ret;
+//        return true;
     }
      
     @Override
@@ -117,7 +117,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     private class FilterLogic implements ComparableObjectInterface {
 
         @Override
-        public boolean same(Object a, Object b) {
+        public boolean same(String a, String b) {
             return true;
         }
 

@@ -43,7 +43,7 @@ public class SameVariantPipeTest {
     public void tearDown() {
     }
     
-    private String catalogFile = "src/test/resources/testData/";
+    private String catalogFile = "src/test/resources/testData/sameVariantCatalog.tsv.gz";
 
     @Test
     public void testSomeMethod() {

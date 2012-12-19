@@ -4,12 +4,16 @@
  */
 package edu.mayo.pipes.JSON.tabix;
 
+import com.google.gson.JsonArray;
+import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.AbstractPipe;
 import com.tinkerpop.pipes.Pipe;
 import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
+import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 import edu.mayo.pipes.history.History;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -50,11 +54,78 @@ public class SameVariantPipe extends TabixParentPipe{
      * 
      */
     private class SameVariantLogic implements ComparableObjectInterface {
+        private boolean rsidCheckOnly = false;//user says you can only compare on rsids...
+        private boolean alleleCheckOnly = false; //user says you can only compare on alleles
+        private JsonPath landmark = null;
+        private JsonPath minBP = null;
+        private JsonPath id = null;
+        private JsonPath ref = null;
+        private JsonPath alt = null;    
 
-        @Override
-        public boolean same(Object a, Object b) {
-            return true;
+        public SameVariantLogic(){
+            init();
         }
+        
+        public void init(){
+            landmark = JsonPath.compile(CoreAttributes._landmark.toString());
+            minBP = JsonPath.compile(CoreAttributes._minBP.toString());
+            id = JsonPath.compile(CoreAttributes._id.toString());
+            ref = JsonPath.compile(CoreAttributes._refAllele.toString());
+            alt = JsonPath.compile(CoreAttributes._altAlleles.toString());
+        }
+
+        /**
+         * 
+         * @param a - input variant (e.g. from the user)
+         * @param b - variant from the tabix file / database
+         * @return true if they are the 'same' false otherwise
+         */
+        @Override
+        public boolean same(String jsonIN, String jsonOUT) {
+            //landmarks must be the same...
+            String lmrkIN = landmark.read(jsonIN);
+            String lmrkOUT = landmark.read(jsonOUT);
+            if(lmrkIN == null || lmrkIN.length()==0 || !lmrkIN.equalsIgnoreCase(lmrkOUT)){
+                return false;        
+            }
+            //minbp must be the same
+            Integer minbpIN = minBP.read(jsonIN);
+            Integer minbpOUT = minBP.read(jsonOUT);
+            //System.out.println(minbpIN + ":" + minbpOUT);
+            if(minbpIN == null || minbpIN == minbpOUT){
+                return false;
+            }
+
+            
+            
+            
+            return false;
+        }
+        
+        /** Check whether variant1's altAllele list is a subset of variant2's */ 
+//	private boolean hasSameAltAlleles(JsonArray altsIN, JsonArray altsOUT) {
+//		if (!v1.isSetAltAlleleFWD() && !v2.isSetAltAlleleFWD()) {
+//			// not set for either objects
+//			return true;
+//		} else if ((v1.isSetAltAlleleFWD() && v2.isSetAltAlleleFWD()) == false) {
+//			// not set for only 1 object
+//			return false;
+//		} else {
+//			// set for both objects, need to dig deeper
+//
+//			List<String> alts1 = v1.getAltAlleleFWD();
+//			List<String> alts2 = v2.getAltAlleleFWD();
+//
+//			// Make sure all Alt alleles in the 1st variant are contained in the 2nd variant's alt allele list
+//			boolean hasAll = true;
+//			for(String alt : alts1) {
+//				if( ! alts2.contains(alt) )
+//					hasAll = false;
+//			}
+//			return hasAll;
+//		}
+//	}
+        
 
     }
     

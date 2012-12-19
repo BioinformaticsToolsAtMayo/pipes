@@ -10,6 +10,6 @@ package edu.mayo.pipes.bioinformatics.vocab;
  */
 public interface ComparableObjectInterface {
     
-    public boolean same(Object a, Object b);
+    public boolean same(String jsonIN, String jsonOUT);
     
 }
