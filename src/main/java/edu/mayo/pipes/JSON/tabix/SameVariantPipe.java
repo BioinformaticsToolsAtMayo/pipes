@@ -12,6 +12,7 @@ import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
 import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 import edu.mayo.pipes.history.History;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -50,84 +51,85 @@ public class SameVariantPipe extends TabixParentPipe{
     }
     
 
-    /**
-     * 
-     */
     private class SameVariantLogic implements ComparableObjectInterface {
-        private boolean rsidCheckOnly = false;//user says you can only compare on rsids...
-        private boolean alleleCheckOnly = false; //user says you can only compare on alleles
-        private JsonPath landmark = null;
-        private JsonPath minBP = null;
-        private JsonPath id = null;
-        private JsonPath ref = null;
-        private JsonPath alt = null;    
+        private boolean isRsidCheckOnly = false;//user says you can only compare on rsids...
+        private boolean isAlleleCheckOnly = false; //user says you can only compare on alleles
+        private JsonPath chrJsonPath = null;
+        private JsonPath minBpJsonPath = null;
+        private JsonPath rsIdJsonPath = null;
+        private JsonPath refJsonPath = null;
+        private JsonPath altJsonPath = null;    
 
         public SameVariantLogic(){
             init();
         }
         
         public void init(){
-            landmark = JsonPath.compile(CoreAttributes._landmark.toString());
-            minBP = JsonPath.compile(CoreAttributes._minBP.toString());
-            id = JsonPath.compile(CoreAttributes._id.toString());
-            ref = JsonPath.compile(CoreAttributes._refAllele.toString());
-            alt = JsonPath.compile(CoreAttributes._altAlleles.toString());
+        	chrJsonPath = JsonPath.compile(CoreAttributes._landmark.toString());
+        	minBpJsonPath = JsonPath.compile(CoreAttributes._minBP.toString());
+        	rsIdJsonPath = JsonPath.compile(CoreAttributes._id.toString());
+        	refJsonPath = JsonPath.compile(CoreAttributes._refAllele.toString());
+        	altJsonPath = JsonPath.compile(CoreAttributes._altAlleles.toString());
         }
 
         /**
          * 
-         * @param a - input variant (e.g. from the user)
-         * @param b - variant from the tabix file / database
+         * @param jsonIn  - input variant (e.g. from the user)
+         * @param jsonOut - variant from the tabix file / database
          * @return true if they are the 'same' false otherwise
          */
         @Override
-        public boolean same(String jsonIN, String jsonOUT) {
+        public boolean same(String jsonIn, String jsonOut) {
             //landmarks must be the same...
-            String lmrkIN = landmark.read(jsonIN);
-            String lmrkOUT = landmark.read(jsonOUT);
-            if(lmrkIN == null || lmrkIN.length()==0 || !lmrkIN.equalsIgnoreCase(lmrkOUT)){
+            String chrIn  = chrJsonPath.read(jsonIn);
+            String chrOut = chrJsonPath.read(jsonOut);
+            if(chrIn == null || chrIn.length()==0 || ! chrIn.equalsIgnoreCase(chrOut)){
                 return false;        
             }
+            
             //minbp must be the same
-            Integer minbpIN = minBP.read(jsonIN);
-            Integer minbpOUT = minBP.read(jsonOUT);
+            Integer minBpIn  = minBpJsonPath.read(jsonIn);
+            Integer minBpOut = minBpJsonPath.read(jsonOut);
             //System.out.println(minbpIN + ":" + minbpOUT);
-            if(minbpIN == null || minbpIN == minbpOUT){
+            if(minBpIn == null || minBpIn != minBpOut){
                 return false;
             }
-
             
+            String rsIdIn  = rsIdJsonPath.read(jsonIn);
+            String rsIdOut = rsIdJsonPath.read(jsonOut);
+            String refIn   = refJsonPath.read(jsonIn);
+            String refOut  = refJsonPath.read(jsonOut);
+            ArrayList<String> altsIn   = altJsonPath.read(jsonIn);
+            ArrayList<String> altsOut  = altJsonPath.read(jsonOut);
+            boolean isRsIdMatch = rsIdIn != null && rsIdIn.length() > 0 && rsIdIn.equalsIgnoreCase(rsIdOut);
+            boolean isRefAlleleMatch = refIn  != null && refIn.length() > 0 && refIn.equalsIgnoreCase(refOut);
+            boolean isAltAlleleMatch = altsIn != null && altsIn.size() > 0 && isSubset(altsIn, altsOut);
             
-            
-            return false;
+            if( isRsidCheckOnly ) 
+            	return isRsIdMatch;
+            else if( isAlleleCheckOnly ) 
+            	return isRefAlleleMatch && isAltAlleleMatch;
+            else {
+            	return isRsIdMatch || (isRefAlleleMatch && isAltAlleleMatch);
+            }
         }
         
-        /** Check whether variant1's altAllele list is a subset of variant2's */ 
-//	private boolean hasSameAltAlleles(JsonArray altsIN, JsonArray altsOUT) {
-//		if (!v1.isSetAltAlleleFWD() && !v2.isSetAltAlleleFWD()) {
-//			// not set for either objects
-//			return true;
-//		} else if ((v1.isSetAltAlleleFWD() && v2.isSetAltAlleleFWD()) == false) {
-//			// not set for only 1 object
-//			return false;
-//		} else {
-//			// set for both objects, need to dig deeper
-//
-//			List<String> alts1 = v1.getAltAlleleFWD();
-//			List<String> alts2 = v2.getAltAlleleFWD();
-//
-//			// Make sure all Alt alleles in the 1st variant are contained in the 2nd variant's alt allele list
-//			boolean hasAll = true;
-//			for(String alt : alts1) {
-//				if( ! alts2.contains(alt) )
-//					hasAll = false;
-//			}
-//			return hasAll;
-//		}
-//	}
+        /** Make sure all items in altsIn are contained within altsOut */
+        private boolean isSubset(ArrayList<String> subset, ArrayList<String> allItems) {
+        	for(String item : subset) {
+        		if(! allItems.contains(item))
+        			return false;
+        	}
+        	return true;
+        }
         
-
-    }
-    
+        private ArrayList<String> toList(JsonArray jsonArray) {
+        	ArrayList<String> list = new ArrayList<String>();
+        	for(int i=0; i < jsonArray.size(); i++) {
+        		list.add(jsonArray.getAsString());
+        	}
+        	return list;
+        }
+     }
     
 }
