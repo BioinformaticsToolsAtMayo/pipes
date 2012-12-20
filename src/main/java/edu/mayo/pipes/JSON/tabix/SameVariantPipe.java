@@ -53,6 +53,26 @@ public class SameVariantPipe extends TabixParentPipe{
         this.comparableObject = new SameVariantLogic();
     }
     
+    /**
+     * 
+     * 
+            For a given pair of variants v1,v2:
+                CASE1: rsID, chr, and start position match
+                CASE2: chr, start position, ref allele, and alt alleles match; alleles match iff 
+                            *  - Ref alleles match exactly
+                            *  - Alternate alleles from v1 are a subset of v2's
+     * 
+     * @param tabixDataFile - the catalog
+     * @param isRsidCheckOnly - default is false, if true then CASE 1 is the only valid way for two variants to be true.
+     * @param isAlleleCheckOnly - default is false, if true then CASE 2 is the only valid way for two variants to be true.
+     * @param historyPostion - number of positions to look back (default -1)
+     * @throws IOException 
+     */
+    public SameVariantPipe(String tabixDataFile, boolean isRsidCheckOnly, boolean isAlleleCheckOnly, int historyPostion) throws IOException{
+        super(tabixDataFile, historyPostion);
+        this.comparableObject = new SameVariantLogic(isRsidCheckOnly, isAlleleCheckOnly);
+    }
+    
 
     private class SameVariantLogic implements ComparableObjectInterface {
         private boolean isRsidCheckOnly = false;//user says you can only compare on rsids...
@@ -65,6 +85,12 @@ public class SameVariantPipe extends TabixParentPipe{
         private Gson gson = new Gson();
         
         public SameVariantLogic(){
+            init();
+        }
+
+        private SameVariantLogic(boolean rsidCheckOnly, boolean alleleCheckOnly) {
+            isRsidCheckOnly = rsidCheckOnly;
+            isAlleleCheckOnly = alleleCheckOnly;
             init();
         }
         
