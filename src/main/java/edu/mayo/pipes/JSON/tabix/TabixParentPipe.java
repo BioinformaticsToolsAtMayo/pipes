@@ -93,7 +93,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     protected String validResult = "";
     private boolean valid(ComparableObjectInterface fl){
         String result = (String) search.next();
-        boolean ret = fl.same(result,history.get(history.size()+historyPos));
+        boolean ret = fl.same(history.get(history.size()+historyPos),result);
         if(ret){
             validResult = result;
         }else {
