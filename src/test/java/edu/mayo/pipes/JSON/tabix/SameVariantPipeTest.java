@@ -47,19 +47,44 @@ public class SameVariantPipeTest {
 
     @Test
     public void testSomeMethod() {
-        try {
-            System.out.println("Process Next Start...");
-            Pipe p = new Pipeline(new CatPipe(), new HistoryInPipe(), new VCF2VariantPipe(), new SameVariantPipe(catalogFile));
-            p.setStarts(Arrays.asList("src/test/resources/testData/sameVariant.vcf"));
-            while(p.hasNext()){
-                History next = (History) p.next();
-                
-                System.out.println(next.get(8));
-                System.out.println(next.get(9));
-                System.out.println("****************************");
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(SameVariantPipeTest.class.getName()).log(Level.SEVERE, null, ex);
+//        try {
+//            System.out.println("Process Next Start...");
+//            Pipe p = new Pipeline(new CatPipe(), new HistoryInPipe(), new VCF2VariantPipe(), new SameVariantPipe(catalogFile));
+//            p.setStarts(Arrays.asList("src/test/resources/testData/sameVariant.vcf"));
+//            while(p.hasNext()){
+//                History next = (History) p.next();
+//                for(int i=0; i< next.size(); i++){
+//                    System.out.println(next.get(i));
+//                }
+//                System.out.println("****************************");
+//            }
+//        } catch (IOException ex) {
+//            Logger.getLogger(SameVariantPipeTest.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+    }
+    
+    
+    @Test
+    public void testNoMatch() throws IOException{
+        String variantThatDoesNotMatch = "20	24970000	rsFOOBAZ	T	C	.	.	.";
+        Pipe same = new SameVariantPipe(catalogFile);
+        Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), same);
+        p.setStarts(Arrays.asList(variantThatDoesNotMatch));
+        History next = (History) p.next();
+        assertEquals("{}", next.get(9));
+    }
+    
+    @Test
+    public void testMultipleMatch() throws IOException{
+        String variantThatDoesNotMatch = "21	26976144	rs116331755	A	G	.	.	.";
+        Pipe same = new SameVariantPipe(catalogFile);
+        Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), same, new PrintPipe());
+        p.setStarts(Arrays.asList(variantThatDoesNotMatch));
+        while(p.hasNext()){
+            History next = (History) p.next();
+            
         }
+        
+        //assertEquals("{}", next.get(9));
     }
 }
