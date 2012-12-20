@@ -70,6 +70,8 @@ public class SameVariantPipe extends TabixParentPipe{
      */
     public SameVariantPipe(String tabixDataFile, boolean isRsidCheckOnly, boolean isAlleleCheckOnly, int historyPostion) throws IOException{
         super(tabixDataFile, historyPostion);
+        if( isRsidCheckOnly && isAlleleCheckOnly )
+        	throw new IllegalArgumentException("Cannot set both rsIdOnly AND alleleOnly flags!");
         this.comparableObject = new SameVariantLogic(isRsidCheckOnly, isAlleleCheckOnly);
     }
     
