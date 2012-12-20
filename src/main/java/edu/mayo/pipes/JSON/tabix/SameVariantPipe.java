@@ -105,32 +105,32 @@ public class SameVariantPipe extends TabixParentPipe{
         /**
          * 
          * @param jsonIn  - input variant (e.g. from the user)
-         * @param jsonOut - variant from the tabix file / database
+         * @param jsonCatalog - variant from the tabix file / database
          * @return true if they are the 'same' false otherwise
          */
         @Override
-        public boolean same(String jsonIn, String jsonOut) {
+        public boolean same(String jsonIn, String jsonCatalog) {
             //landmarks must be the same...
             String chrIn  = chrJsonPath.read(jsonIn);
-            String chrOut = chrJsonPath.read(jsonOut);
+            String chrOut = chrJsonPath.read(jsonCatalog);
             if(chrIn == null || chrIn.length()==0 || ! chrIn.equalsIgnoreCase(chrOut)){
                 return false;        
             }
             
             //minbp must be the same
             Integer minBpIn  = minBpJsonPath.read(jsonIn);
-            Integer minBpOut = minBpJsonPath.read(jsonOut);
+            Integer minBpOut = minBpJsonPath.read(jsonCatalog);
             //System.out.println(minbpIN + ":" + minbpOUT);
             if(minBpIn == null || minBpIn.compareTo(minBpOut) != 0) {
                 return false;
             }
             
             String rsIdIn  = rsIdJsonPath.read(jsonIn);
-            String rsIdOut = rsIdJsonPath.read(jsonOut);
+            String rsIdOut = rsIdJsonPath.read(jsonCatalog);
             String refIn   = refJsonPath.read(jsonIn);
-            String refOut  = refJsonPath.read(jsonOut);
+            String refOut  = refJsonPath.read(jsonCatalog);
             ArrayList<String> altsIn   = toList((JSONArray)altJsonPath.read(jsonIn));
-            ArrayList<String> altsOut  = toList((JSONArray)altJsonPath.read(jsonOut));
+            ArrayList<String> altsOut  = toList((JSONArray)altJsonPath.read(jsonCatalog));
             boolean isRsIdMatch = rsIdIn != null && rsIdIn.length() > 0 && rsIdIn.equalsIgnoreCase(rsIdOut);
             boolean isRefAlleleMatch = refIn  != null && refIn.length() > 0 && refIn.equalsIgnoreCase(refOut);
             boolean isAltAlleleMatch = altsIn != null && altsIn.size() > 0 && isSubset(altsIn, altsOut);
