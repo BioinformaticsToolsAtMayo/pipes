@@ -126,5 +126,12 @@ public class VCF2VariantPipeTest {
         
         // test for a field that shows up in INFO but is NOT defined in the header
         assertEquals("123",				JsonPath.compile("INFO.UNKNOWN_FIELD").read(json));
+        
+        // grab 4th row of data only, check to see if multiple alleles gets in correctly
+        pipeline.hasNext();	    
+        history = pipeline.next();
+        json = history.get(history.size() - 1);
+        assertEquals("A",			JsonPath.compile(CoreAttributes._altAlleles.toString()+"[0]").read(json));
+        assertEquals("T",			JsonPath.compile(CoreAttributes._altAlleles.toString()+"[1]").read(json));
     }
 }
