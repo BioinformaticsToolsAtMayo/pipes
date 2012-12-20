@@ -33,6 +33,19 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     public TabixParentPipe(String tabixDataFile) throws IOException {
         init(tabixDataFile);
     }
+    /*
+     * history postion default is -1 (the previous column)
+     * you can overide it with an integer as follows:
+     * Positions : 1 2 3 4 5 6 0 
+     * 0 : the current postion
+     * 1 : the first postion
+     * 3 : the third position
+     * -2 : the second to last position
+     */
+    public TabixParentPipe(String tabixDataFile, int historyPosition) throws IOException {
+        this.historyPos = historyPosition;
+        init(tabixDataFile);
+    }
     
     protected void init(String tabixDataFile) throws IOException{
         search = new TabixSearchPipe(tabixDataFile);
@@ -46,6 +59,13 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     }
     
     protected void setup(){
+        //handle the case where the drill column is greater than zero...
+        if(historyPos > 0){
+            int size = history.size();
+            //recalculate it to be negative...
+            historyPos = historyPos - history.size() - 1;
+        }
+            
         //if it is the first call to the pipe... set it up
         if(isFirst){
             isFirst = false;
@@ -53,7 +73,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
             history = this.starts.next();
             qcount = 0;
             search.reset();
-            search.setStarts(Arrays.asList(history.get(history.size()-1)));
+            search.setStarts(Arrays.asList(history.get(history.size() + historyPos)));
             
             // add column meta data
             List<ColumnMetaData> cols = History.getMetaData().getColumns();

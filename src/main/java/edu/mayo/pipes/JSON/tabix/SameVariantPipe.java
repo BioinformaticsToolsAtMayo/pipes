@@ -48,6 +48,11 @@ public class SameVariantPipe extends TabixParentPipe{
         this.comparableObject = new SameVariantLogic();
     }
     
+    public SameVariantPipe(String tabixDataFile, int historyPostion) throws IOException {
+        super(tabixDataFile, historyPostion);
+        this.comparableObject = new SameVariantLogic();
+    }
+    
 
     private class SameVariantLogic implements ComparableObjectInterface {
         private boolean isRsidCheckOnly = false;//user says you can only compare on rsids...

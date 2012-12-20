@@ -30,10 +30,19 @@ public class OverlapPipe extends TabixParentPipe {
         super(tabixDataFile);
     }
     
+    public OverlapPipe(String tabixDataFile, int historyPostion) throws IOException {
+        super(tabixDataFile, historyPostion);
+    }
+    
     public OverlapPipe(String tabixDataFile, int minBPExtend, int maxBPExtend) throws IOException{
         super(tabixDataFile);
         search = new TabixSearchPipe(tabixDataFile, minBPExtend, maxBPExtend);
     }    
 
+    public OverlapPipe(String tabixDataFile, int minBPExtend, int maxBPExtend, int historyPostion) throws IOException{
+        super(tabixDataFile, historyPostion);
+        search = new TabixSearchPipe(tabixDataFile, minBPExtend, maxBPExtend);
+        
+    }  
     
 }
