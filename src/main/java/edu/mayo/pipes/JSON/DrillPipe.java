@@ -27,10 +27,18 @@ public class DrillPipe extends AbstractPipe<History, History>{
     private String[] drillPaths;
     private ArrayList<JsonPath> compiledPaths;
     private boolean addColumnMetaData = true;
+    private int drillColumn = -1; //negative value... how many columns to go back (default -1).
     
     public DrillPipe(boolean keepJSON, String[] paths){
         this.keepJSON = keepJSON;
         this.drillPaths = paths;
+        setupPaths();
+    }
+    
+    public DrillPipe(boolean keepJSON, String[] paths, int drillColumn){
+        this.keepJSON = keepJSON;
+        this.drillPaths = paths;
+        this.drillColumn = drillColumn;
         setupPaths();
     }
     
@@ -47,10 +55,17 @@ public class DrillPipe extends AbstractPipe<History, History>{
     protected History processNextStart() throws NoSuchElementException, InvalidJSONException {
         if(this.starts.hasNext()){
             History history = this.starts.next();
+            
+            //handle the case where the drill column is greater than zero...
+            if(drillColumn > 0){
+                int size = history.size();
+                //recalculate it to be negative...
+                drillColumn = drillColumn - history.size() - 1;
+            }
                         
             if (addColumnMetaData) {
             	List<ColumnMetaData> cols = History.getMetaData().getColumns();
-                ColumnMetaData lastJsonCol = cols.remove(cols.size() - 1);
+                ColumnMetaData lastJsonCol = cols.remove(cols.size() + drillColumn);
 
                 for (String drillPath: drillPaths) {
             		ColumnMetaData cmd = new ColumnMetaData(drillPath);
@@ -64,7 +79,7 @@ public class DrillPipe extends AbstractPipe<History, History>{
             	addColumnMetaData = false;
             }
             
-            String json = history.remove(history.size()-1);
+            String json = history.remove(history.size() + drillColumn);
             //System.history.println("Abhistory to Drill: " + json);
             for(int i=0;i< compiledPaths.size(); i++){
                 if(!json.startsWith("{")){ //TODO: we may need a more rigourus check to see if it is json.
