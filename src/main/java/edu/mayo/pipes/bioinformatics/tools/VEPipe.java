@@ -22,6 +22,8 @@ import java.util.*;
  * @author Daniel Quest
  * VEP stands for Variant Effect Predictor.
  * For this pipe to work VEP needs to be installed and in your path.
+ * This pipe is not tested... it was a prototype for running VEP -- it may never be put into production
+ * Ideas in this class may be useful for running another tool.
  */
 public class VEPipe extends ToolPipe{  //don't have access to the history code, just doing this for now...   
     
