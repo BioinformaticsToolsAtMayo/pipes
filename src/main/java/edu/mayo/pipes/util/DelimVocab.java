@@ -20,21 +20,21 @@ public class DelimVocab {
     public static final String SPACE = "space";
     
     public static String toRegEX(String delim){
-        if(delim.equals(PIPE) || delim.equals("|")){
+        if(delim.equals(PIPE) || "|".equals(delim)){
             return "\\|";
-        }if(delim.equals(TAB)){
-            return "\\t";
-        }if(delim.equals(COMMA)){
+        }else if(delim.equals(TAB)){
+            return "\t";
+        }else if(delim.equals(COMMA)){
             return ",";
-        }if(delim.equals(SEMICOLON)){
+        }else if(delim.equals(SEMICOLON)){
             return ";";
-        }if(delim.equals(COLON)){
+        }else if(delim.equals(COLON)){
             return ":";
-        }if(delim.equals(PERIOD)){
+        }else if(delim.equals(PERIOD) || ".".equals(delim)){
             return "\\.";
-        }if(delim.equals(EQUAL)){
+        }else if(delim.equals(EQUAL)){
             return "=";
-        }if(delim.equals(SPACE)){
+        }else if(delim.equals(SPACE) || " ".equals(delim)){
             return " +";
         }else {
             return delim;
