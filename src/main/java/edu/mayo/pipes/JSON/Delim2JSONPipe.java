@@ -80,9 +80,9 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
         int pos = history.size() + index;
         String foo = history.get(pos);
         history.add(computeJSON(foo));
-//        if(this.keepOriginalColumn){
-//            history.remove(history.size()-2);
-//        }
+        if(this.keepOriginalColumn == false){
+            history.remove(history.size()- index -1);
+        }
         return  history;
     }
     
