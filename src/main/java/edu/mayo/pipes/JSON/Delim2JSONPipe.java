@@ -7,6 +7,7 @@ package edu.mayo.pipes.JSON;
 import com.google.gson.JsonObject;
 import com.tinkerpop.pipes.AbstractPipe;
 import edu.mayo.pipes.history.History;
+import edu.mayo.pipes.util.DelimVocab;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -32,12 +33,8 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
     private int index = -1;
     private String[] meta = null;
     private boolean keepOriginalColumn = true;
-    //delimiters...not in use yet
-//    public static final String comma = "comma";
-//    public static final String pipe = "pipe";
-//    public static final String semicolon = "semicolon";
-//    public static final String colon = "colon";
-//    public static final String equal = "equal";
+
+    
     private String delim = ":";
     
     
@@ -48,10 +45,14 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
         this.keepOriginalColumn = keepOriginalColumn;
     }
 
-    
+    /**
+     * 
+     * @param headers - the header that you want to construct as the keys
+     * @param delim - the string version of a delimiter you want to use (look at util.DelimVocab)
+     */
     public Delim2JSONPipe(String[] headers, String delim){
         meta = headers;
-        this.delim = delim;
+        this.delim = DelimVocab.toRegEX(delim);
     }
     
     private int fixIndex(History h){
