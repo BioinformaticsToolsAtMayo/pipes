@@ -7,6 +7,7 @@ package edu.mayo.pipes.JSON;
 import com.tinkerpop.pipes.util.Pipeline;
 import edu.mayo.pipes.PrintPipe;
 import edu.mayo.pipes.SplitPipe;
+import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
 import java.util.Arrays;
 import java.util.List;
@@ -43,22 +44,29 @@ public class Delim2JSONPipeTest {
      */
     @Test
     public void testProcessNextStart() {
-        System.out.println("processNextStart");
-        //My Dog Objects
         String delim = "|";
-        String tab1 = "Rex|brown|12";
-        String tab2 = "Simon|black|2.5";
-        String tab3 = "Pillsbury|white|6";
-        String[] meta = new String[3];
-        meta[0] = "name";
-        meta[1] = "color";
-        meta[2] = "age";
-        Delim2JSONPipe t2j = new Delim2JSONPipe(meta, delim);
-        Pipeline p = new Pipeline(new HistoryInPipe(), t2j, new PrintPipe());
-        p.setStarts(Arrays.asList(tab1, tab2, tab3));
-        while(p.hasNext()){
-            p.next();
-        }
+        //My Dog Objects
+        List<String> lists = Arrays.asList(
+        		"Rex|brown|12",
+        		"Simon|black|2.5",
+        		"Pillsbury|white|6"
+        		);
+        String[] meta = { "name", "color", "age" };
         
+        // Setup the pipes and start them
+        Delim2JSONPipe delim2json = new Delim2JSONPipe(meta, delim);
+        Pipeline p = new Pipeline(new HistoryInPipe(), delim2json, new PrintPipe());
+        p.setStarts(lists);
+        
+        String[] expected = { 
+        	"[Rex|brown|12,{\"name\":\"Rex\",\"color\":\"brown\",\"age\":12}]",
+        	"[Simon|black|2.5,{\"name\":\"Simon\",\"color\":\"black\",\"age\":2.5}]",
+        	"[Pillsbury|white|6,{\"name\":\"Pillsbury\",\"color\":\"white\",\"age\":6}]",
+        };
+        int expIdx = 0;
+        while(p.hasNext()){
+            History hist = (History)(p.next());
+            assertEquals(expected[expIdx++], hist.toString());
+        }
     }
 }
