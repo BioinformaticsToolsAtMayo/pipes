@@ -80,9 +80,9 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
         int pos = history.size() + index;
         String foo = history.get(pos);
         history.add(computeJSON(foo));
-        if(this.keepOriginalColumn){
-            history.remove(history.size()-2);
-        }
+//        if(this.keepOriginalColumn){
+//            history.remove(history.size()-2);
+//        }
         return  history;
     }
     
@@ -99,7 +99,7 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
                 f.addProperty(meta[i], s);
             }
         }
-        return f.toString();
+        return f.toString().trim();
     }
     
     private boolean isInt(String s){
