@@ -59,9 +59,9 @@ public class Delim2JSONPipeTest {
         p.setStarts(lists);
         
         String[] expected = { 
-        	"[Rex|brown|12,{\"name\":\"Rex\",\"color\":\"brown\",\"age\":12}]",
-        	"[Simon|black|2.5,{\"name\":\"Simon\",\"color\":\"black\",\"age\":2.5}]",
-        	"[Pillsbury|white|6,{\"name\":\"Pillsbury\",\"color\":\"white\",\"age\":6}]",
+        	"[Rex|brown|12, {\"name\":\"Rex\",\"color\":\"brown\",\"age\":12}]",
+        	"[Simon|black|2.5, {\"name\":\"Simon\",\"color\":\"black\",\"age\":2.5}]",
+        	"[Pillsbury|white|6, {\"name\":\"Pillsbury\",\"color\":\"white\",\"age\":6}]",
         };
         int expIdx = 0;
         while(p.hasNext()){
