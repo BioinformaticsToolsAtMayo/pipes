@@ -47,8 +47,12 @@ public class FindAndReplaceHPipeTest {
         FindAndReplaceHPipe findReplace = new FindAndReplaceHPipe(2,"mine","my");
         Pipe p = new Pipeline(new HistoryInPipe(), findReplace, new HistoryOutPipe());
         p.setStarts(Arrays.asList(s1));
-        p.next();//strip the stupid header
-        String next = (String) p.next();
-        assertEquals("Hello\tmy\tname\tis\tJoe", next);
+        String result = "";
+        while(p.hasNext()){
+            //strip the stupid header
+            result = (String) p.next();
+        }
+        assertEquals("Hello\tmy\tname\tis\tJoe", result);
+        
     }
 }
