@@ -19,7 +19,7 @@ public class DelimVocab {
     public static final String PERIOD = "period";
     public static final String SPACE = "space";
     
-    public String toRegEX(String delim){
+    public static String toRegEX(String delim){
         if(delim.equals(PIPE) || delim.equals("|")){
             return "\\|";
         }if(delim.equals(TAB)){
