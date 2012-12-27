@@ -45,7 +45,7 @@ public class Delim2JSONPipeTest {
     public void testProcessNextStart() {
         System.out.println("processNextStart");
         //My Dog Objects
-        String delim = "pipe";
+        String delim = "|";
         String tab1 = "Rex|brown|12";
         String tab2 = "Simon|black|2.5";
         String tab3 = "Pillsbury|white|6";
