@@ -29,44 +29,70 @@ import java.util.NoSuchElementException;
  * @author m102417
  */
 public class Delim2JSONPipe extends AbstractPipe<History, History>{
-    String[] meta = null;
+    private int index = -1;
+    private String[] meta = null;
+    private boolean keepOriginalColumn = true;
     //delimiters...not in use yet
-    public static final String comma = "comma";
-    public static final String pipe = "pipe";
-    public static final String semicolon = "semicolon";
-    public static final String colon = "colon";
-    public static final String equal = "equal";
+//    public static final String comma = "comma";
+//    public static final String pipe = "pipe";
+//    public static final String semicolon = "semicolon";
+//    public static final String colon = "colon";
+//    public static final String equal = "equal";
+    private String delim = ":";
+    
+    
+    public Delim2JSONPipe(int index, boolean keepOriginalColumn, String[] headers, String delim){
+        meta = headers;
+        this.delim = delim;
+        this.index = index;
+        this.keepOriginalColumn = keepOriginalColumn;
+    }
 
     
-    public Delim2JSONPipe(String[] encoding, String delim){
-        getMeta(encoding);
+    public Delim2JSONPipe(String[] headers, String delim){
+        meta = headers;
+        this.delim = delim;
     }
     
-    private String[] getMeta(String[] e){
-        meta = new String[e.length];
-        for(int i=0; i<e.length; i++){
-            String[] split = e[i].split(":");
-            meta[i] = split[0];
-        }
-        return meta;
+    private int fixIndex(History h){
+        if(index >0){
+            index = index - h.size() -1;
+            return index;
+        }else {
+            return index;
+        }       
     }
+//    private String[] getMeta(String[] e){
+//        meta = new String[e.length];
+//        for(int i=0; i<e.length; i++){
+//            String[] split = e[i].split(":");
+//            meta[i] = split[0];
+//        }
+//        return meta;
+//    }
     
     
     @Override
     protected History processNextStart() throws NoSuchElementException {
         History history = this.starts.next();
-        
-        history.add(computeJSON(history));
+        fixIndex(history);
+        int pos = history.size() + index;
+        String foo = history.get(pos);
+        history.add(computeJSON(foo));
+        if(this.keepOriginalColumn){
+            history.remove(history.size()-2);
+        }
         return  history;
     }
     
-    private String computeJSON(List<String> c){
+    private String computeJSON(String col){
         JsonObject f = new JsonObject();
-        for(int i=0; i<c.size(); i++){
-            String s = c.get(i);
-            if(canInt(s)){
+        String[] split = col.split(delim);
+        for(int i=0; i<split.length; i++){
+            String s = split[i];
+            if(isInt(s)){
                 f.addProperty(meta[i], toInt(s));
-            }else if(canDouble(s)){
+            }else if(isDouble(s)){
                 f.addProperty(meta[i], toDouble(s));
             }else {
                 f.addProperty(meta[i], s);
@@ -75,7 +101,7 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
         return f.toString();
     }
     
-    private boolean canInt(String s){
+    private boolean isInt(String s){
         try{
             Integer.parseInt(s);
             return true;
@@ -89,7 +115,7 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
         return p;
     }
     
-    private boolean canDouble(String s){
+    private boolean isDouble(String s){
         try{
             Double.parseDouble(s);
             return true;
