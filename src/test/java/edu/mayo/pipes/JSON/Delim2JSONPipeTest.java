@@ -44,7 +44,7 @@ public class Delim2JSONPipeTest {
      */
     @Test
     public void testProcessNextStart() {
-        String delim = "|";
+        String delim = "pipe";
         //My Dog Objects
         List<String> lists = Arrays.asList(
         		"Rex|brown|12",
