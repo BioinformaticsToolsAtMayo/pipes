@@ -40,7 +40,7 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
     
     public Delim2JSONPipe(int index, boolean keepOriginalColumn, String[] headers, String delim){
         meta = headers;
-        this.delim = delim;
+        this.delim = DelimVocab.toRegEX(delim);
         this.index = index;
         this.keepOriginalColumn = keepOriginalColumn;
     }
@@ -81,7 +81,7 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
         String foo = history.get(pos);
         history.add(computeJSON(foo));
         if(this.keepOriginalColumn == false){
-            history.remove(history.size()- index -1);
+            history.remove(history.size() + index -1);
         }
         return  history;
     }
