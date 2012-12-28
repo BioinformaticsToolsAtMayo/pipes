@@ -28,8 +28,8 @@ import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
  * to get back all strings that overlap, it constructs a query with the core attributes.
  * Then it does the followin logic:
  * Those would be variant1 and variant2, the variants that we are attempting to determine if they are the same.  
- * In essence, the pipe (script) would look at the last column in the file (JSON Ð call that v1), 
- * do a lookup in the tabix file for everything that overlaps (v2, v3, v4, É).  For each one that overlaps, 
+ * In essence, the pipe (script) would look at the last column in the file (JSON call that v1), 
+ * do a lookup in the tabix file for everything that overlaps (v2, v3, v4,).  For each one that overlaps, 
  * it would also require CASE1 or CASE2 be satisfied.  If they are not, it would dump/filter out the match.  
  * If it did, then it would append the match to the end of the column.  
 
