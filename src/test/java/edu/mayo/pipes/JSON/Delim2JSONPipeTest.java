@@ -69,4 +69,14 @@ public class Delim2JSONPipeTest {
             assertEquals(expected[expIdx++], hist.toString());
         }
     }
+    
+    @Test
+    public void testVepExample() {
+        List<String> lists = Arrays.asList(
+            "A|ENSG00000260583|ENST00000567517|Transcript|upstream_gene_variant|||||||4432|||",
+            "C|ENSG00000154719|ENST00000352957|Transcript|synonymous_variant|915|873|291|P|ccA/ccG|||||",
+            "C|ENSG00000154719|ENST00000352957|Transcript|missense_variant|293|251|84|N/S|aAc/aGc|||tolerated(0.08)|possibly_damaging(0.463)|"
+        );
+        
+    }
 }
