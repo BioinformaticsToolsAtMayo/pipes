@@ -50,7 +50,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
      	
 			INFO fields should be described as follows (all keys are required):
 
-    		##INFO=<ID=ID,Number=number,Type=type,Description=ÓdescriptionÓ>
+    		##INFO=<ID=ID,Number=number,Type=type,Description=description>
 
     		Possible Types for INFO fields are: Integer, Float, Flag, Character, and String.
     	
