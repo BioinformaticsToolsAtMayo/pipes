@@ -98,15 +98,17 @@ public class Delim2JSONPipeTest {
         Pipeline p = new Pipeline(new HistoryInPipe(), delim2json, new PrintPipe());
         p.setStarts(list);
         String[] expected = { 
-        	"{\"name\":\"Rex\",\"color\":\"brown\",\"age\":12}]",
-        	"{\"name\":\"Simon\",\"color\":\"black\",\"age\":2.5}]",
-        	"{\"name\":\"Pillsbury\",\"color\":\"white\",\"age\":6}]",
+        	"{\"Allele\":\"A\",\"Gene\":\"ENSG00000260583\",\"Feature\":\"ENST00000567517\",\"Feature_type\":\"Transcript\",\"Consequence\":\"upstream_gene_variant\",\"cDNA_position\":\"\",\"CDS_position\":\"\",\"Protein_position\":\"\",\"Amino_acids\":\"\",\"Codons\":\"\",\"Existing_variation\":\"\",\"DISTANCE\":4432}",
+                "{\"Allele\":\"C\",\"Gene\":\"ENSG00000154719\",\"Feature\":\"ENST00000352957\",\"Feature_type\":\"Transcript\",\"Consequence\":\"synonymous_variant\",\"cDNA_position\":915,\"CDS_position\":873,\"Protein_position\":291,\"Amino_acids\":\"P\",\"Codons\":\"ccA/ccG\"}",
+                "{\"Allele\":\"C\",\"Gene\":\"ENSG00000154719\",\"Feature\":\"ENST00000352957\",\"Feature_type\":\"Transcript\",\"Consequence\":\"missense_variant\",\"cDNA_position\":293,\"CDS_position\":251,\"Protein_position\":84,\"Amino_acids\":\"N/S\",\"Codons\":\"aAc/aGc\",\"Existing_variation\":\"\",\"DISTANCE\":\"\",\"SIFT\":\"tolerated(0.08)\",\"PolyPhen\":\"possibly_damaging(0.463)\"}"
+
         };
         int expIdx = 0;
-        while(p.hasNext()){
+        for(;p.hasNext();expIdx++){
             History hist = (History)(p.next());
             //System.out.println(hist.toString());
-            //assertEquals(expected[expIdx++], hist.toString());
+            //System.out.println(expected[expIdx]);
+            assertEquals(expected[expIdx], hist.get(0).toString());
         }
         
     }
