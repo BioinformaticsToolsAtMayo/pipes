@@ -25,7 +25,7 @@ import java.util.NoSuchElementException;
 public class SquishPipe extends AbstractPipe<History, History> {
     private History prev = null;
     private int n = 1;
-    SquishPipe(int numberPrevColSame){
+    public SquishPipe(int numberPrevColSame){
         n = numberPrevColSame;
     }
     
