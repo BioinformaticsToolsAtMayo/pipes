@@ -43,31 +43,31 @@ public class Delim2JSONPipeTest {
      * Test of processNextStart method, of class Tab2JSONPipe.
      */
     @Test
-    public void testProcessNextStart() {
-//        String delim = "pipe";
-//        //My Dog Objects
-//        List<String> lists = Arrays.asList(
-//        		"Rex|brown|12",
-//        		"Simon|black|2.5",
-//        		"Pillsbury|white|6"
-//        		);
-//        String[] meta = { "name", "color", "age" };
-//        
-//        // Setup the pipes and start them
-//        Delim2JSONPipe delim2json = new Delim2JSONPipe(meta, delim);
-//        Pipeline p = new Pipeline(new HistoryInPipe(), delim2json, new PrintPipe());
-//        p.setStarts(lists);
-//        
-//        String[] expected = { 
-//        	"[Rex|brown|12, {\"name\":\"Rex\",\"color\":\"brown\",\"age\":12}]",
-//        	"[Simon|black|2.5, {\"name\":\"Simon\",\"color\":\"black\",\"age\":2.5}]",
-//        	"[Pillsbury|white|6, {\"name\":\"Pillsbury\",\"color\":\"white\",\"age\":6}]",
-//        };
-//        int expIdx = 0;
-//        while(p.hasNext()){
-//            History hist = (History)(p.next());
-//            assertEquals(expected[expIdx++], hist.toString());
-//        }
+    public void testSimple() {
+        String delim = "pipe";
+        //My Dog Objects
+        List<String> lists = Arrays.asList(
+        		"Rex|brown|12",
+        		"Simon|black|2.5",
+        		"Pillsbury|white|6"
+        		);
+        String[] meta = { "name", "color", "age" };
+        
+        // Setup the pipes and start them
+        Delim2JSONPipe delim2json = new Delim2JSONPipe(meta, delim);
+        Pipeline p = new Pipeline(new HistoryInPipe(), delim2json, new PrintPipe());
+        p.setStarts(lists);
+        
+        String[] expected = { 
+        	"[Rex|brown|12, {\"name\":\"Rex\",\"color\":\"brown\",\"age\":12}]",
+        	"[Simon|black|2.5, {\"name\":\"Simon\",\"color\":\"black\",\"age\":2.5}]",
+        	"[Pillsbury|white|6, {\"name\":\"Pillsbury\",\"color\":\"white\",\"age\":6}]",
+        };
+        int expIdx = 0;
+        while(p.hasNext()){
+            History hist = (History)(p.next());
+            assertEquals(expected[expIdx++], hist.toString());
+        }
     }
     
     @Test
