@@ -20,7 +20,7 @@ public class AppendStringPipe extends AbstractPipe<String, String>{
     
     @Override
     protected String processNextStart() throws NoSuchElementException {
-        return this.next().toString() + append;
+        return this.starts.next().toString() + append;
     }
     
 }
