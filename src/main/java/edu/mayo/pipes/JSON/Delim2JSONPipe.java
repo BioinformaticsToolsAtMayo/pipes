@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.tinkerpop.pipes.AbstractPipe;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.util.DelimVocab;
+import edu.mayo.pipes.util.JSONUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -91,10 +92,10 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
         String[] split = col.split(delim);
         for(int i=0; i<split.length; i++){
             String s = split[i];
-            if(isInt(s)){
-                f.addProperty(meta[i], toInt(s));
-            }else if(isDouble(s)){
-                f.addProperty(meta[i], toDouble(s));
+            if(JSONUtil.isInt(s)){
+                f.addProperty(meta[i], JSONUtil.toInt(s));
+            }else if(JSONUtil.isDouble(s)){
+                f.addProperty(meta[i], JSONUtil.toDouble(s));
             }else {
                 f.addProperty(meta[i], s);
             }
@@ -102,33 +103,7 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
         return f.toString().trim();
     }
     
-    private boolean isInt(String s){
-        try{
-            Integer.parseInt(s);
-            return true;
-        }catch(NumberFormatException e){
-            return false;
-        }
-    }
-    
-    private int toInt(String s){
-        int p = Integer.parseInt(s);
-        return p;
-    }
-    
-    private boolean isDouble(String s){
-        try{
-            Double.parseDouble(s);
-            return true;
-        }catch(NumberFormatException e){
-            return false;
-        }
-    }
-    
-    private double toDouble(String s){
-        double p = Double.parseDouble(s);
-        return p;
-    }
+
     
     
 }
