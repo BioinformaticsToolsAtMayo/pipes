@@ -19,6 +19,8 @@ public class DelimVocab {
     public static final String PERIOD = "period";
     public static final String SPACE = "space";
     
+    /** Convert a typical delimiter character to a version suitable 
+     *  for String.split() operation (which uses Regular Expressions) */
     public static String toRegEX(String delim){
         if(delim.equals(PIPE) || "|".equals(delim)){
             return "\\|";
