@@ -69,6 +69,55 @@ public class Delim2JSONPipeTest {
             assertEquals(expected[expIdx++], hist.toString());
         }
     }
+
+    @Test
+    public void testSingleRow() {
+        String delim = "pipe";
+        //My Dog Objects
+        List<String> lists = Arrays.asList(
+        		"Rex|brown|12"
+        		);
+        String[] meta = { "name", "color", "age" };
+        
+        // Setup the pipes and start them
+        Delim2JSONPipe delim2json = new Delim2JSONPipe(meta, delim);
+        Pipeline p = new Pipeline(new HistoryInPipe(), delim2json, new PrintPipe());
+        p.setStarts(lists);
+        
+        String[] expected = { 
+        	"[Rex|brown|12, {\"name\":\"Rex\",\"color\":\"brown\",\"age\":12}]"
+        };
+        int expIdx = 0;
+        while(p.hasNext()){
+            History hist = (History)(p.next());
+            assertEquals(expected[expIdx++], hist.toString());
+        }
+    }
+
+    /** If we have a single dot in the column (meaning data was missing), 
+     *  then we should return an empty JSON object */
+    @Test
+    public void dot() {
+        String delim = "pipe";
+        List<String> lists = Arrays.asList(
+        		"."
+        		);
+        String[] meta = { "name" };
+        
+        // Setup the pipes and start them
+        Delim2JSONPipe delim2json = new Delim2JSONPipe(meta, delim);
+        Pipeline p = new Pipeline(new HistoryInPipe(), delim2json, new PrintPipe());
+        p.setStarts(lists);
+        
+        String[] expected = { 
+        	"[., {}]",
+        };
+        int expIdx = 0;
+        while(p.hasNext()){
+            History hist = (History)(p.next());
+            assertEquals(expected[expIdx++], hist.toString());
+        }
+    }
     
     @Test
     public void testVepExample() {

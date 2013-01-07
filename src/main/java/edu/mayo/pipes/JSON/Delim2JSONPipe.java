@@ -88,6 +88,10 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
     }
     
     private String computeJSON(String col){
+    	// If it's an empty column (denoted by "."), then return empty JSON string
+    	if( ".".equals(col) )
+    		return "{}";
+    	
         JsonObject f = new JsonObject();
         String[] split = col.split(delim);
         for(int i=0; i<split.length; i++){
