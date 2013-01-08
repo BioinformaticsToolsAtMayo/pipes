@@ -75,8 +75,9 @@ public class SameVariantPipe extends TabixParentPipe{
         this.comparableObject = new SameVariantLogic(isRsidCheckOnly, isAlleleCheckOnly);
     }
     
+    
 
-    private class SameVariantLogic implements ComparableObjectInterface {
+    public class SameVariantLogic implements ComparableObjectInterface {
         private boolean isRsidCheckOnly = false;//user says you can only compare on rsids...
         private boolean isAlleleCheckOnly = false; //user says you can only compare on alleles
         private JsonPath chrJsonPath = null;
