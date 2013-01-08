@@ -7,35 +7,54 @@ package edu.mayo.pipes.history;
 import com.tinkerpop.pipes.AbstractPipe;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
  * H cut works just like cut only on history objects (removing the meta data at the same time)
+ * note cut is 1-based not zero based!
  * @author m102417
  */
 public class HCutPipe extends AbstractPipe<History, History> {
-    private int[] cols;
+    private ArrayList<Integer> cols;
+    private boolean muck = true; // do we need to muck with the header?
     /**
      * 
      * @param columns - list of 
      */
     public HCutPipe(int[] columns){
-        cols = new int[columns.length];
+        cols = new ArrayList();
         Arrays.sort(columns);
-        cols = columns;
-        
+        for(int i=columns.length-1; i>=0; i--){
+            //System.out.println(columns[i]);
+            cols.add(columns[i]);
+        }
+        muck = true;
     }
+    
+    
+    @Override
+    public void reset() {
+        muck = true;
+        super.reset();
+    }
+    
     @Override
     protected History processNextStart() throws NoSuchElementException {
         History h = this.starts.next();
         List<ColumnMetaData> cmd = History.getMetaData().getColumns();
                 
-        for(int i=0; i<cols.length; i++){
-          h.remove(cols[i]);
-          cmd.remove(cols[i]);
+        //System.out.println(cmd.size());
+        for(int i=0; i<cols.size(); i++){
+          int m = cols.get(i)-1;
+          h.remove(m);
+          if(muck){
+            cmd.remove(m);
+          }
         }
-        return null;
+        muck = false;
+        return h;
     }
     
 }
