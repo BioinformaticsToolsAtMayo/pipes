@@ -8,6 +8,7 @@ import com.tinkerpop.pipes.util.Pipeline;
 import edu.mayo.pipes.MergePipe;
 import edu.mayo.pipes.PrintPipe;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -22,10 +23,19 @@ import static org.junit.Assert.*;
 public class HCutPipeTest {
     
     public HCutPipeTest() {
+
     }
     
     @BeforeClass
     public static void setUpClass() {
+//        History h = new History();
+//        HistoryMetaData metaData = h.getMetaData();
+//        List<String> originalHeader = metaData.getOriginalHeader();
+//        for(int i=0; i<originalHeader.size(); i++){
+//            //originalHeader.remove(0);
+//        }
+        //metaData.setOriginalHeader(Arrays.asList(""));
+        //h.setMetaData(metaData);
     }
     
     @AfterClass
@@ -45,6 +55,7 @@ public class HCutPipeTest {
      */
     @Test
     public void testProcessNextStart() {
+        
         System.out.println("Test HCutPipe");
         int[] cc = {2,4};
         String s1 = "A\tB\tC\tX\tW";

@@ -34,6 +34,10 @@ public class HistoryMetaData {
 	public List<String> getOriginalHeader() {
 		return mHeader;
 	}
+        
+        public void setOriginalHeader(List<String> m){
+            this.mHeader = m;
+        }
 	
 	/**
 	 * Reconstructs column header row dynamically based on ColumnMetaData.

@@ -11,6 +11,11 @@ import java.util.List;
  */
 public class History extends ArrayList<String> implements List<String>,
 		Cloneable {
+    
+        public History(){
+            sMetaData = null;
+            sMetaDataInitialized = false;
+        }
 
 	private static final long serialVersionUID = 1L;
 
@@ -59,4 +64,6 @@ public class History extends ArrayList<String> implements List<String>,
 		}
 		return sb.toString();
 	}
+        
+        
 }
