@@ -74,7 +74,12 @@ public class SameVariantPipe extends TabixParentPipe{
         	throw new IllegalArgumentException("Cannot set both rsIdOnly AND alleleOnly flags!");
         this.comparableObject = new SameVariantLogic(isRsidCheckOnly, isAlleleCheckOnly);
     }
+
+    public ComparableObjectInterface getSameVariantLogic() {
+        return comparableObject;
+    }
     
+
     
 
     public class SameVariantLogic implements ComparableObjectInterface {
