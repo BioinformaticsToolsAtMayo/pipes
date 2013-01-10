@@ -7,7 +7,10 @@ import java.util.NoSuchElementException;
 
 import com.tinkerpop.pipes.AbstractPipe;
 
+import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
+import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
+import edu.mayo.pipes.history.HistoryMetaData;
 import edu.mayo.pipes.util.JSONUtil;
 
 /**
@@ -19,13 +22,16 @@ import edu.mayo.pipes.util.JSONUtil;
 * 	1		2		100		+		{ "RefAllele":"A" }
 * And say you want to add columns 1 and 2 (Chrom and MinBP) into the JSON object.  The output would be:
 * 	Chrom	MinBP	MaxBP	Strand	JSON
-* 	1		2		100		+		{ "RefAllele":"A", "Chrom":1, "MinBP":2 }
+* 	1		2		100		+		{ "RefAllele":"A","Chrom":1,"MinBP":2 }
+* NOTE: To use the header metadata, this requires this pipe to be added to a Pipeline 
+*       and to be preceded by a HistoryInPipe so the HistoryMetadata can be tracked.
 */
 public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 
 	private int m_idxJsonCol;
-	private SimpleEntry<String,String>[]  m_colIdxAndColNamePairs;
-	private History m_colHeaders;
+	private SimpleEntry[]  m_colIdxAndColNamePairs;
+	boolean isFirst = true;
+	public static final String NEW_JSON_HEADER = "bior_injectIntoJson";
 	
 	/** 
 	 * 
@@ -34,12 +40,12 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 	 *                           NOTE: the column is 1-based
 	 *                           This takes 3 types of pairs:
 	 *                           <ul>
-	 *                             <li>columnIndex with columnHeader of null or "" - this will lookup the column header for the specified column and use that as the key.  Ex:  1 ""</li>
-	 *                             <li>columnIndex with columnHeader - this will ignore the column header and use the specified one.  Ex: 1 "Chromosome"</li>
-	 *                             <li>columnIndex is a string, in which case this will add a new key/value pair to the JSON object where the key is columnIndex and the value is columnHeader.  Ex: "_type" "Variant" </li>
+	 *                             <li>Ex: 1 null -- columnIndex with columnHeader of null or "" - this will lookup the column header for the specified column and use that as the key.  </li>
+	 *                             <li>Ex: 1 "Chromosome" -- columnIndex with columnHeader - this will ignore the column header and use the specified one.  </li>
+	 *                             <li>Ex: "_type" "Variant" -- columnIndex is a string, in which case this will add a new key/value pair to the JSON object where the key is columnIndex and the value is columnHeader.   </li>
 	 *                           </ul> 
 	 */
-	public InjectIntoJsonPipe(int indexOfJsonColumn, SimpleEntry<String,String>... colAndColNamePairs) {
+	public InjectIntoJsonPipe(int indexOfJsonColumn, SimpleEntry... colAndColNamePairs) {
 		// Throw exception if JSON column index is same as any columnIndex in colAndColNamePair 
 		if( isJsonIdxSameAsAnother(indexOfJsonColumn, colAndColNamePairs) )
 			throw new IllegalArgumentException("JSON column index cannot be the same as another column index");
@@ -52,23 +58,15 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 		History history = this.starts.next();
 		History historyOut = (History)history.clone();
 		
-		// If this is the header line (starts with "#", but NOT "##"), then get all column headers
-		if( history.get(0).startsWith("#") ) {
-			// Only save the headers if the line starts with a SINGLE #
-			if( ! history.get(0).startsWith("##") )
-				m_colHeaders = historyOut;
-			return historyOut;
-		}
-		
-		// If the JSON column does not exist, then create it
+		// If the JSON column does not exist, then create it and add to the metadata
 		if(history.size() < m_idxJsonCol) {
 			historyOut.add("{}");
-			m_colHeaders.add("NewJson");
+			addNewJsonColumnHeader();
 		}
 		
 		// Process each line - adding specified columns to the JSON object
 		String json = historyOut.get(m_idxJsonCol-1);
-		for(SimpleEntry<String,String> colAndColNamePair : m_colIdxAndColNamePairs) {
+		for(SimpleEntry colAndColNamePair : m_colIdxAndColNamePairs) {
 			SimpleEntry<String,String> keyValPair = getKeyValPairToAdd(colAndColNamePair, history);
 			json = addToJson(json, keyValPair);
 		}
@@ -76,11 +74,22 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 		return historyOut;
 	}
 	
+
 	//=========================================================================================================
 	
+	/** Only add the next header to the HistoryMetaData if the HistoryMetaData exists */
+	private void addNewJsonColumnHeader() {
+		if(isFirst) {
+			isFirst = false;
+			List<ColumnMetaData> headers = History.getMetaData().getColumns();
+			if( headers != null && headers.size() > 0 )
+				headers.add(new ColumnMetaData(NEW_JSON_HEADER));
+		}
+	}
+	
 	// We should throw an error if the JSON column is the same as a column we want to add
-	// (otherwise we will get a recursive add)
-	private boolean isJsonIdxSameAsAnother(int indexOfJsonColumn, SimpleEntry<String, String>[] colAndColNamePairs) {
+	// (otherwise we will get a recursive add into the JSON target column)
+	private boolean isJsonIdxSameAsAnother(int indexOfJsonColumn, SimpleEntry[] colAndColNamePairs) {
 		for(SimpleEntry<String,String> keyValPair : colAndColNamePairs) {
 			if( Integer.toString(indexOfJsonColumn).equals(keyValPair.getKey()) )
 				return true;
@@ -93,25 +102,25 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 		int idxOpenBrace = json.indexOf("{");
 		int idxLastBrace = json.lastIndexOf("}");
 		boolean isJsonEmpty = json.substring(idxOpenBrace, idxLastBrace).trim().length() == 1;
-		String firstSeparator = isJsonEmpty ? "" : ", ";
+		String firstSeparator = isJsonEmpty ? "" : ",";
 		String val = keyValPair.getValue();
 		// By default, quote the key and value
 		String newJson = json.substring(0,idxLastBrace) + firstSeparator + "\"" + keyValPair.getKey()
-				+ "\":\"" + keyValPair.getValue() + "\"" + json.substring(idxLastBrace);
+				+ "\":\"" + val + "\"" + json.substring(idxLastBrace);
 		// If the value is a number, then DON'T quote it
 		if( JSONUtil.isInt(val) || JSONUtil.isDouble(val) )
 			newJson = json.substring(0,idxLastBrace) + firstSeparator + "\"" + keyValPair.getKey()
-			+ "\":" + keyValPair.getValue() + "" + json.substring(idxLastBrace);
+				+ "\":" + val + "" + json.substring(idxLastBrace);
 		return newJson;
 	}
 
-	private SimpleEntry<String,String> getKeyValPairToAdd(SimpleEntry<String,String> colAndColNamePair, History history) {
+	private SimpleEntry<String,String> getKeyValPairToAdd(SimpleEntry colAndColNamePair, History history) {
 		SimpleEntry<String,String> keyValPair = null;
 		
 		// If key is an int, then user specified a column to grab
-		if( JSONUtil.isInt(colAndColNamePair.getKey()) ) {
+		if( JSONUtil.isInt("" + colAndColNamePair.getKey()) ) {
 			// Subtract one since column will be 1-based
-			int col = Integer.parseInt(colAndColNamePair.getKey()) - 1;
+			int col = Integer.parseInt("" + colAndColNamePair.getKey()) - 1;
 			// If the column header value is null or "", then use the header from the header row as key
 			if( null == colAndColNamePair.getValue() || "".equals(colAndColNamePair.getValue()) ) {
 				String key = getColumnHeader(col);
@@ -134,30 +143,13 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 		return keyValPair;
 	}
 
-	/** col should be 0-based here */
+	/** col should be 0-based when passed in here  */
 	private String getColumnHeader(int col) {
-		String colHeader = "(Unknown)";
 		// Since col will be 1-based, subtract one to access array
 		// Only assign the column header if it is not null or ""
-		if(m_colHeaders != null && col >= 0 && col < m_colHeaders.size() && m_colHeaders.get(col) != null  && m_colHeaders.get(col).length() > 0)
-			colHeader = m_colHeaders.get(col);
-		// Remove the "#" symbol off front if we are the first header column
-		while( colHeader.startsWith("#") )
-			colHeader = colHeader.substring(1);
-			
-		return colHeader;
+		if( History.getMetaData().getOriginalHeader().size() == 0 )
+			return "(Unknown)";
+		else
+			return History.getMetaData().getColumns().get(col).getColumnName();
 	}
-
-	
-	/** Assumes this is a line that starts with "#" (NOT "##") */
-	private List<String> getColumnHeaders(History history) {
-		List<String> colHeaders = new ArrayList<String>();
-		colHeaders.add(history.get(0).replace("#", "").trim());
-		for(int i=1; i < history.size(); i++) {
-			colHeaders.add(history.get(i));
-		}
-		return colHeaders;
-	}
-
-
 }
