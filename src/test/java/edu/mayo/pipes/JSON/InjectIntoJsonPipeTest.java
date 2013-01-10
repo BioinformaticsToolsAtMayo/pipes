@@ -1,7 +1,5 @@
 package edu.mayo.pipes.JSON;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -15,8 +13,6 @@ import org.junit.Test;
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
-import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
-import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
 import edu.mayo.pipes.history.HistoryOutPipe;
 

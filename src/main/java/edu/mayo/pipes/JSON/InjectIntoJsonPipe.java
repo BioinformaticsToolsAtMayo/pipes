@@ -49,6 +49,8 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 		// Throw exception if JSON column index is same as any columnIndex in colAndColNamePair 
 		if( isJsonIdxSameAsAnother(indexOfJsonColumn, colAndColNamePairs) )
 			throw new IllegalArgumentException("JSON column index cannot be the same as another column index");
+		if( isAnyColumnZero(indexOfJsonColumn, colAndColNamePairs) )
+			throw new IllegalArgumentException("Zero is not a valid column - columns begin with 1.");
 		m_idxJsonCol = indexOfJsonColumn;
 		m_colIdxAndColNamePairs = colAndColNamePairs;
 	}
@@ -76,6 +78,16 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 	
 
 	//=========================================================================================================
+	
+	private boolean isAnyColumnZero(int indexOfJsonColumn, SimpleEntry[] colAndColNamePairs) {
+		if( indexOfJsonColumn == 0 )
+			return true;
+		for(SimpleEntry keyValPair : colAndColNamePairs) {
+			if( "0".equals(keyValPair.getKey()) )
+				return true;
+		}
+		return false;
+	}
 	
 	/** Only add the next header to the HistoryMetaData if the HistoryMetaData exists */
 	private void addNewJsonColumnHeader() {
