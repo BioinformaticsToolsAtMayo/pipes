@@ -6,6 +6,7 @@ package edu.mayo.pipes.UNIX;
 
 import edu.mayo.pipes.UNIX.CatPipe;
 import com.tinkerpop.pipes.AbstractPipe;
+import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.filter.FilterPipe;
 import edu.mayo.pipes.iterators.FileLineIterator;
 import java.io.IOException;
@@ -20,18 +21,30 @@ import java.util.logging.Logger;
  * the file come out.
  * @author dquest
  */
-public class HeadPipe extends CatPipe implements FilterPipe<String> {
+public class HeadPipe extends AbstractPipe<String,String> {
     
     private int filesProcessed = 0;
     private int n = 1;
     private int linesProcessed = 0;
-    private CatPipe cat = new CatPipe();
+    private Pipe cat = new CatPipe();
     /**
     * n is the number of lines you want to pipe out for each file
     * @param n 
     */
     public HeadPipe(int n){
         this.n = n;
+    }
+    
+    public HeadPipe(int n, Pipe input) throws ClassCastException{
+        this.n = n;
+        cat = input;
+//        if(input instanceof CatPipe){
+//            cat = (CatPipe) input;
+//        }if(input instanceof CatGZPipe){
+//            cat = (CatGZPipe) input;
+//        }else{
+//            throw new ClassCastException("Head Pipe must have a CatPipe or a CatGZPipe passed to it");
+//        }
     }
     
     @Override
@@ -46,15 +59,15 @@ public class HeadPipe extends CatPipe implements FilterPipe<String> {
     @Override
     protected String processNextStart() throws NoSuchElementException {
         cat.setStarts(this.starts);
-        if(cat.getFilesProcessed() > this.filesProcessed){
-            this.filesProcessed++;
-            linesProcessed = 0;
-        }
+//        if(cat.getFilesProcessed() > this.filesProcessed){
+//            this.filesProcessed++;
+//            linesProcessed = 0;
+//        }
         linesProcessed++;
         if(linesProcessed <= n)
-            return cat.next();
+            return (String) cat.next();
         else 
-            return null;
+            throw new NoSuchElementException();
     }
 
     
