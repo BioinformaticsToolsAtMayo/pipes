@@ -4,6 +4,7 @@
  */
 package edu.mayo.pipes.bioinformatics;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.util.Arrays;
 
@@ -133,5 +134,21 @@ public class VCF2VariantPipeTest {
         json = history.get(history.size() - 1);
         assertEquals("A",			JsonPath.compile(CoreAttributes._altAlleles.toString()+"[0]").read(json));
         assertEquals("T",			JsonPath.compile(CoreAttributes._altAlleles.toString()+"[1]").read(json));
+        
+        // grab 5th row of data only, check to see if "." period is handled correctly for
+        // INTEGER and FLOAT column types
+        pipeline.hasNext();	    
+        history = pipeline.next();
+        json = history.get(history.size() - 1);
+        
+        // use JSON paths to drill out values and compare with expected
+        assertFalse(json.contains("INFO.MOCK_INTEGER"));
+        assertFalse(json.contains("INFO.MOCK_FLOAT"));
+        assertEquals(99,		JsonPath.compile("INFO.MOCK_INTEGER_MULTI[0]").read(json));
+        assertEquals(333,		JsonPath.compile("INFO.MOCK_INTEGER_MULTI[1]").read(json));
+        assertEquals(11.11,		JsonPath.compile("INFO.MOCK_FLOAT_MULTI[0]").read(json));
+        assertEquals(777.77,	JsonPath.compile("INFO.MOCK_FLOAT_MULTI[1]").read(json));
+
+        assertFalse(json.contains("INFO.MOCK_INTEGER_MULTI"));
     }
 }

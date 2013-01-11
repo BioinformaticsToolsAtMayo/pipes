@@ -28,6 +28,7 @@ import edu.mayo.pipes.util.GenomicObjectUtils;
  * <b>OUTPUT:</b>	JSON object string is appended to the end of the history as a new column.
  * 
  * @see http://www.1000genomes.org/wiki/analysis/vcf4.0
+ * @see http://phd.chnebu.ch/index.php/Variant_Call_Format_(VCF)
  * 
  */
 public class VCF2VariantPipe extends AbstractPipe<History,History> {
@@ -184,18 +185,22 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         		if (mFieldMap.containsKey(id)) {
         			meta = mFieldMap.get(id);
         		}        		
-        		
+        		        		
         		if ((meta.number == null) || (meta.number > 1)) {
 
-        			// not sure if there are 1 or more, assume array to be safe
+   	    			// not sure if there are 1 or more, assume array to be safe
         			JsonArray arr = new JsonArray();
         			for (String s: value.split(",")) {
             	    	switch (meta.type) {
             	    	case Integer:
-                			arr.add(new JsonPrimitive(Integer.parseInt(s)));
+            				if (!isMissingValue(s)) {
+            					arr.add(new JsonPrimitive(Integer.parseInt(s)));
+            				}
                 			break;
-            	    	case Float:    	    		
-            	    		arr.add(new JsonPrimitive(Float.parseFloat(s)));
+            	    	case Float:
+            				if (!isMissingValue(s)) {
+            					arr.add(new JsonPrimitive(Float.parseFloat(s)));
+            				}
             	    		break;
             	    	case Character:
             	    	case String:
@@ -203,16 +208,22 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             	    		break;
             	    	}
         			}
-        			info.add(id, arr);
+        			if (arr.size() > 0) {
+        				info.add(id, arr);
+        			}
         			
         		} else if (meta.number == 1) {
         			
         	    	switch (meta.type) {
         	    	case Integer:
-            			info.addProperty(id, Integer.parseInt(value));
+        				if (!isMissingValue(value)) {
+        					info.addProperty(id, Integer.parseInt(value));
+        				}
             			break;
         	    	case Float:    	    		
-            			info.addProperty(id, Float.parseFloat(value));
+        				if (!isMissingValue(value)) {
+        					info.addProperty(id, Float.parseFloat(value));
+        				}
         	    		break;
         	    	case Character:
         	    	case String:
@@ -230,7 +241,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     	
     	return info;
     }
-
+    	
     /**
      * Adds core attributes relevant to a variant to the given JSON object.
      * 
@@ -307,11 +318,28 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     };    
     
     /**
+     * Determines whether the given value represents a "missing" value.  It is
+     * common to use a '.' character to designate a value that is missing in
+     * structured columns such as ALT or for fields in the INFO column.
+     * 
+     * @param value The value to check
+     * @return true if the value is missing
+     */
+    private boolean isMissingValue(String value) {
+    	String trimVal = value.trim();
+		if (trimVal.equals(".")) {
+			return true;
+		} else {
+			return false;
+		}				
+    }
+    
+    /**
      * Metadata about an INFO field.
      */
     class InfoFieldMeta {
     	String id;
     	Integer number; // null if it varies, is unknown, or is unbounded
-    	INFO_TYPE type;
+    	INFO_TYPE type;    	
     }
 }
