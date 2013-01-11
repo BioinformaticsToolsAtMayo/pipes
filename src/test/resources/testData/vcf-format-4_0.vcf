@@ -11,6 +11,7 @@
 ##INFO=<ID=MOCK_STR_MULTI,Number=2,Type=String,Description="String field">
 ##INFO=<ID=MOCK_INTEGER,Number=1,Type=Integer,Description="Integer field">
 ##INFO=<ID=MOCK_INTEGER_MULTI,Number=.,Type=Integer,Description="Integer field">
+##INFO=<ID=MOCK_FLOAT_MULTI,Number=.,Type=Float,Description="Integer field">
 ##INFO=<ID=MOCK_FLOAT,Number=1,Type=Float,Description="Float field">
 ##FILTER=<ID=NC,Description="Inconsistent Genotype Submission For At Least One Sample">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
@@ -18,3 +19,4 @@
 20	9076	fake_id	AGAAA	A	AVERAGE	FAIL	MOCK_STR_MULTI=foobar1,foobar2;MOCK_INTEGER_MULTI=1,2,3
 5	110971	fake_id	AGAAA	A	AVERAGE	FAIL	UNKNOWN_FIELD=123
 17	110971	test_id	G	A,T	AVERAGE	FAIL	UNKNOWN_FIELD=123
+3	12345	fake_id	A	T	POOR	PASS	MOCK_INTEGER=.;MOCK_FLOAT=.;MOCK_INTEGER_MULTI=99,.,333;MOCK_FLOAT_MULTI=11.11,.,777.77
