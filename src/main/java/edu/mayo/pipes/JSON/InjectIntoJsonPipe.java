@@ -55,10 +55,29 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 		m_colIdxAndColNamePairs = colAndColNamePairs;
 	}
 
+	/** 
+	 * 
+	 * @param colAndColNamePair  A series of [columnIndex/columnHeader] pairs to pull from and add to the JSON object (which should be the last column).
+	 *                           NOTE: the column is 1-based
+	 *                           This takes 3 types of pairs:
+	 *                           <ul>
+	 *                             <li>Ex: 1 null -- columnIndex with columnHeader of null or "" - this will lookup the column header for the specified column and use that as the key.  </li>
+	 *                             <li>Ex: 1 "Chromosome" -- columnIndex with columnHeader - this will ignore the column header and use the specified one.  </li>
+	 *                             <li>Ex: "_type" "Variant" -- columnIndex is a string, in which case this will add a new key/value pair to the JSON object where the key is columnIndex and the value is columnHeader.   </li>
+	 *                           </ul> 
+	 */
+	public InjectIntoJsonPipe(SimpleEntry... colAndColNamePairs) {
+		m_idxJsonCol = -1;  // Convert this to last column later
+		m_colIdxAndColNamePairs = colAndColNamePairs;
+	}
+
+	
 	@Override
 	protected History processNextStart() throws NoSuchElementException {
 		History history = this.starts.next();
 		History historyOut = (History)history.clone();
+		
+		adjustJsonColIfNegativeOrNotSet(history.size());
 		
 		// If the JSON column does not exist, then create it and add to the metadata
 		if(history.size() < m_idxJsonCol) {
@@ -79,6 +98,13 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 
 	//=========================================================================================================
 	
+	private void adjustJsonColIfNegativeOrNotSet(int numHistoryColumns) {
+		if(m_idxJsonCol < 0)
+			m_idxJsonCol = numHistoryColumns + (m_idxJsonCol+1);
+		if(m_idxJsonCol == 0 )
+			throw new NoSuchElementException("JSON column cannot be zero");
+	}
+
 	private boolean isAnyColumnZero(int indexOfJsonColumn, SimpleEntry[] colAndColNamePairs) {
 		if( indexOfJsonColumn == 0 )
 			return true;

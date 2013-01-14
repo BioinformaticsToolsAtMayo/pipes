@@ -108,6 +108,20 @@ public class InjectIntoJsonPipeTest {
 	}
 	
 	@Test
+	/** User specifies both a numeric column as well as a key to use (instead of looking up the header on the header line). */
+	public void headerSpecifiedButNoHeaderLinePresent() throws Exception {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry("1","MyChromosome"));
+    	List<String> in = Arrays.asList( 
+				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
+		);
+		List<String> out = getPipeOutput(injectorPipe, in);
+		List<String> expected = Arrays.asList(
+				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
+				"chr17\t100\t101\t{\"info\":\"somejunk\",\"MyChromosome\":\"chr17\"}");
+		assertListsEqual( expected, out );
+	}
+
+	@Test
 	public void keyAndValueSpecified() throws Exception {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry("MyKey","MyValue"), new SimpleEntry("1","Chromosome"));
     	List<String> in = Arrays.asList( 
