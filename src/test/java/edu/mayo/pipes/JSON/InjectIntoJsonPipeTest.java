@@ -122,6 +122,33 @@ public class InjectIntoJsonPipeTest {
 	}
 
 	@Test
+	/** User specifies both a numeric column as well as a key to use (instead of looking up the header on the header line). */
+	public void headerSpecifiedButNoHeaderLinePresentAndCreateNewJsonCol() throws Exception {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(5, new SimpleEntry("1","MyChromosome"));
+    	List<String> in = Arrays.asList( 
+				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
+		);
+		List<String> out = getPipeOutput(injectorPipe, in);
+		List<String> expected = Arrays.asList(
+				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4\tbior_injectIntoJson",
+				"chr17\t100\t101\t{\"info\":\"somejunk\"}\t{\"MyChromosome\":\"chr17\"}");
+		assertListsEqual( expected, out );
+	}
+
+	@Test
+	public void noJsonColumnSpecified() throws Exception {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(new SimpleEntry("MyKey","MyValue"), new SimpleEntry("1","Chromosome"));
+    	List<String> in = Arrays.asList( 
+				"## Some unneeded header line",
+				"#Chrom\tMinBP\tMaxBP\tJSON",
+				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
+		);
+		List<String> out = getPipeOutput(injectorPipe, in);
+		in.set(2, "chr17\t100\t101\t{\"info\":\"somejunk\",\"MyKey\":\"MyValue\",\"Chromosome\":\"chr17\"}");
+		assertListsEqual( in, out );
+	}
+
+	@Test
 	public void keyAndValueSpecified() throws Exception {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry("MyKey","MyValue"), new SimpleEntry("1","Chromosome"));
     	List<String> in = Arrays.asList( 
