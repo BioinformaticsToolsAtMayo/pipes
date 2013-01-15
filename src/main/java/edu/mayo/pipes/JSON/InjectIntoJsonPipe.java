@@ -71,13 +71,24 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 		m_colIdxAndColNamePairs = colAndColNamePairs;
 	}
 
+	/** 
+	 * 
+	 * @param colAndColNamePair  Users specifies a series of column names for the first x columns, and values are pulled from those columns and assigned a key from the list that the user specified
+	 */
+	public InjectIntoJsonPipe(String... columnName) {
+		m_idxJsonCol = -1;  // Convert this to last column later
+		m_colIdxAndColNamePairs = new SimpleEntry[columnName.length];
+		for(int i = 0; i < columnName.length; i++) {
+			m_colIdxAndColNamePairs[i] = new SimpleEntry(i+1, columnName[i]);
+		}
+	}
 	
 	@Override
 	protected History processNextStart() throws NoSuchElementException {
 		History history = this.starts.next();
 		History historyOut = (History)history.clone();
 		
-		adjustJsonColIfNegativeOrNotSet(history.size());
+		adjustJsonColIfNegativeOrNotSet(history);
 		
 		// If the JSON column does not exist, then create it and add to the metadata
 		if(history.size() < m_idxJsonCol) {
@@ -98,11 +109,17 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 
 	//=========================================================================================================
 	
-	private void adjustJsonColIfNegativeOrNotSet(int numHistoryColumns) {
+	private void adjustJsonColIfNegativeOrNotSet(History lineIn) {
+		// If idx is negative, then wrap around to end of the line
 		if(m_idxJsonCol < 0)
-			m_idxJsonCol = numHistoryColumns + (m_idxJsonCol+1);
+			m_idxJsonCol = lineIn.size() + (m_idxJsonCol+1);
 		if(m_idxJsonCol == 0 )
 			throw new NoSuchElementException("JSON column cannot be zero");
+		
+		// If the target json column does not actually contain json, then we will add a new JSON column to the end
+		String targetJsonCol = lineIn.get(m_idxJsonCol-1);
+		if( ! targetJsonCol.startsWith("{")  &&  ! targetJsonCol.endsWith("}") )
+			m_idxJsonCol = lineIn.size() + 1;
 	}
 
 	private boolean isAnyColumnZero(int indexOfJsonColumn, SimpleEntry[] colAndColNamePairs) {
