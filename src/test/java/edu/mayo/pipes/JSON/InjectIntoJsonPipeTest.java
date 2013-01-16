@@ -244,19 +244,48 @@ public class InjectIntoJsonPipeTest {
 
 	@Test
 	/** User specifies the names of some columns, but not the JSON column index */
-	public void justRightNumColumnNamesSpecified_noHeaders() {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min", "Max", "EmptyJson");
+	public void justRightNumColumnNamesSpecified_noHeaders_addToEmptyJson() {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min", "Max");
     	List<String> in = Arrays.asList( "chr17\t100\t101\t{}" );
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
 				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
-				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":100,\"Max\":101,\"EmptyJson\":{}}" );
-		System.out.println("justRightNumColumnNamesSpecified_noHeaders()");
+				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":100,\"Max\":101}" );
+		System.out.println("\njustRightNumColumnNamesSpecified_noHeaders_addToEmptyJson()");
 		System.out.println("expected: " + expected);
 		System.out.println("actual:   " + out);
 		assertListsEqual( expected, out );
 	}
 
+	@Test
+	/** User specifies the names of some columns, but not the JSON column index */
+	public void justRightNumColumnNamesSpecified_noHeaders_addToNonEmptyJson() {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min", "Max");
+    	List<String> in = Arrays.asList( "chr17\t100\t101\t{\"key\":\"value\"}" );
+		List<String> out = getPipeOutput(injectorPipe, in);
+		List<String> expected = Arrays.asList(
+				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
+				"chr17\t100\t101\t{\"key\":\"value\",\"MyChrom\":\"chr17\",\"Min\":100,\"Max\":101}" );
+		System.out.println("\njustRightNumColumnNamesSpecified_noHeaders_addToNonEmptyJson()");
+		System.out.println("expected: " + expected);
+		System.out.println("actual:   " + out);
+		assertListsEqual( expected, out );
+	}
+
+	@Test
+	/** User specifies the names of some columns, but not the JSON column index */
+	public void justRightNumColumnNamesSpecified_noHeaders_addNewJsonCol() {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min", "Max");
+    	List<String> in = Arrays.asList( "chr17\t100\t101" );
+		List<String> out = getPipeOutput(injectorPipe, in);
+		List<String> expected = Arrays.asList(
+				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\t" + InjectIntoJsonPipe.NEW_JSON_HEADER,
+				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":100,\"Max\":101}" );
+		System.out.println("\njustRightNumColumnNamesSpecified_noHeaders_addNewJsonCol()");
+		System.out.println("expected: "); printList(expected);
+		System.out.println("actual:   "); printList(out);
+		assertListsEqual( expected, out );
+	}
 	
 	@Test
 	/** Columns that are empty or contain "." should NOT be added to the JSON column */
@@ -287,5 +316,11 @@ public class InjectIntoJsonPipeTest {
 	
 	private void assertListsEqual(List<String> expected, List<String> actual) {
 		assertTrue( "Expected: " + expected + "\n  Actual: " + actual,  expected.equals(actual) );
+	}
+	
+	private void printList(List<String> strList) {
+		for(String str : strList) {
+			System.out.println(str);
+		}
 	}
 }

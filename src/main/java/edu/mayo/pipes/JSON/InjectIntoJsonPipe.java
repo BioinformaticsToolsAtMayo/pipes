@@ -120,8 +120,17 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 		else if(m_idxJsonCol == 0 )
 			throw new NoSuchElementException("JSON column cannot be zero");
 		// If idx is negative, then wrap around to end of the line
-		else if(m_idxJsonCol < 0)
+		else if(m_idxJsonCol < 0) {
 			m_idxJsonCol = histOut.size() + (m_idxJsonCol+1);
+			// if the last col does not contain json, OR
+			// if it does but the new json index is <= the largest col # in the keyValPairs,
+			// THEN create a new json column at the end
+			boolean isLastColJson = isJsonInColumn(histOut.get(m_idxJsonCol-1));
+			if( ! isLastColJson  || (isLastColJson && m_idxJsonCol <= getHighestKeyColumn()) ) {
+				m_idxJsonCol = histOut.size() + 1;
+				addNewJsonColumnHeader();
+			}
+		}
 		// If the target json column does not actually contain json, 
 		// then we will add a new JSON column to the end
 		else if( ! isJsonInColumn(histOut.get(m_idxJsonCol-1)) ) {
@@ -219,5 +228,20 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 			return "(Unknown)";
 		else
 			return History.getMetaData().getColumns().get(col).getColumnName();
+	}
+	
+	/** Get the last column number that is referred to in the keyValuePairs.  
+	 *  We want to set the target JSON col index after this */
+	private int getHighestKeyColumn() {
+		int highestCol = 1;
+		for(SimpleEntry keyValPair : m_colIdxAndColNamePairs) {
+			// Ignore if the key is not an Integer
+			if(! JSONUtil.isInt("" + keyValPair.getKey()) )
+				continue;
+			int keyCol = Integer.parseInt("" + keyValPair.getKey());
+			if(keyCol > highestCol)
+				highestCol = keyCol;
+		}
+		return highestCol;
 	}
 }
