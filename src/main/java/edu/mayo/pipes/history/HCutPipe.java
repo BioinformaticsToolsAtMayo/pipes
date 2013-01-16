@@ -21,16 +21,30 @@ public class HCutPipe extends AbstractPipe<History, History> {
     private boolean muck = true; // do we need to muck with the header?
     /**
      * 
-     * @param columns - list of 
+     * @param columns - list of numbers for the columns we want to cut
      */
     public HCutPipe(int[] columns){
+        init(columns);
+        muck = true;
+    }
+    
+    /**
+     * 
+     * @param muck - set muck to false if you don't want it to muck with the headers
+     * this is commonly used in publishers.
+     */
+    public HCutPipe(boolean muck, int[] columns){
+        init(columns);
+        this.muck = muck;
+    }
+    
+    private void init(int[] columns){
         cols = new ArrayList();
         Arrays.sort(columns);
         for(int i=columns.length-1; i>=0; i--){
             //System.out.println(columns[i]);
             cols.add(columns[i]);
         }
-        muck = true;
     }
     
     
