@@ -88,13 +88,16 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 		History history = this.starts.next();
 		History historyOut = (History)history.clone();
 		
-		adjustJsonColIfNegativeOrNotSet(history);
-		
-		// If the JSON column does not exist, then create it and add to the metadata
-		if(history.size() < m_idxJsonCol) {
-			historyOut.add("{}");
-			addNewJsonColumnHeader();
+		// Verify that the JSON column index is correct - adjust it if needed
+		// Only call this on the first input line
+		if(isFirst) {
+			isFirst = false;
+			adjustJsonColIfNegativeOrNotSet(historyOut);
 		}
+
+		// If JSON index is > # of columns, then add a new empty JSON string to end of history
+		if(m_idxJsonCol > historyOut.size())
+			historyOut.add("{}");
 		
 		// Process each line - adding specified columns to the JSON object
 		String json = historyOut.get(m_idxJsonCol-1);
@@ -109,17 +112,26 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 
 	//=========================================================================================================
 	
-	private void adjustJsonColIfNegativeOrNotSet(History lineIn) {
-		// If idx is negative, then wrap around to end of the line
-		if(m_idxJsonCol < 0)
-			m_idxJsonCol = lineIn.size() + (m_idxJsonCol+1);
-		if(m_idxJsonCol == 0 )
+	/** Adjust the JSON column index as needed.   This will be called on every new input line, but the JSON index should only be set once */
+	private void adjustJsonColIfNegativeOrNotSet(History histOut) {
+		// If JSON column does not exist, then create it and add to the metadata
+		if(m_idxJsonCol > histOut.size())
+			addNewJsonColumnHeader();
+		else if(m_idxJsonCol == 0 )
 			throw new NoSuchElementException("JSON column cannot be zero");
-		
-		// If the target json column does not actually contain json, then we will add a new JSON column to the end
-		String targetJsonCol = lineIn.get(m_idxJsonCol-1);
-		if( ! targetJsonCol.startsWith("{")  &&  ! targetJsonCol.endsWith("}") )
-			m_idxJsonCol = lineIn.size() + 1;
+		// If idx is negative, then wrap around to end of the line
+		else if(m_idxJsonCol < 0)
+			m_idxJsonCol = histOut.size() + (m_idxJsonCol+1);
+		// If the target json column does not actually contain json, 
+		// then we will add a new JSON column to the end
+		else if( ! isJsonInColumn(histOut.get(m_idxJsonCol-1)) ) {
+			m_idxJsonCol = histOut.size() + 1;
+			addNewJsonColumnHeader();
+		}
+	}
+
+	private boolean isJsonInColumn(String possibleJson) {
+		return possibleJson.startsWith("{")  &&  possibleJson.endsWith("}");
 	}
 
 	private boolean isAnyColumnZero(int indexOfJsonColumn, SimpleEntry[] colAndColNamePairs) {
@@ -132,14 +144,12 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 		return false;
 	}
 	
-	/** Only add the next header to the HistoryMetaData if the HistoryMetaData exists */
+	/** Only add the next header to the HistoryMetaData if the HistoryMetaData exists.
+	 *  This should only be called ONCE! */
 	private void addNewJsonColumnHeader() {
-		if(isFirst) {
-			isFirst = false;
-			List<ColumnMetaData> headers = History.getMetaData().getColumns();
-			if( headers != null && headers.size() > 0 )
-				headers.add(new ColumnMetaData(NEW_JSON_HEADER));
-		}
+		List<ColumnMetaData> headers = History.getMetaData().getColumns();
+		if( headers != null && headers.size() > 0 )
+			headers.add(new ColumnMetaData(NEW_JSON_HEADER));
 	}
 	
 	// We should throw an error if the JSON column is the same as a column we want to add
@@ -154,18 +164,24 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 
 
 	private String addToJson(String json, SimpleEntry<String,String> keyValPair) {
+		String val = keyValPair.getValue();
+
+		// If value is null, empty, or ".", then just return original json (don't add to JSON)
+		if(val == null || val.length() == 0 || val.equals("."))
+			return json;
+		
 		int idxOpenBrace = json.indexOf("{");
 		int idxLastBrace = json.lastIndexOf("}");
 		boolean isJsonEmpty = json.substring(idxOpenBrace, idxLastBrace).trim().length() == 1;
 		String firstSeparator = isJsonEmpty ? "" : ",";
-		String val = keyValPair.getValue();
 		// By default, quote the key and value
 		String newJson = json.substring(0,idxLastBrace) + firstSeparator + "\"" + keyValPair.getKey()
 				+ "\":\"" + val + "\"" + json.substring(idxLastBrace);
-		// If the value is a number, then DON'T quote it
-		if( JSONUtil.isInt(val) || JSONUtil.isDouble(val) )
+		// If the value is a number, OR a JSON substring, then DON'T quote it
+		if( JSONUtil.isInt(val) || JSONUtil.isDouble(val) || isJsonInColumn(val) )
 			newJson = json.substring(0,idxLastBrace) + firstSeparator + "\"" + keyValPair.getKey()
 				+ "\":" + val + "" + json.substring(idxLastBrace);
+			
 		return newJson;
 	}
 
@@ -177,17 +193,14 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 			// Subtract one since column will be 1-based
 			int col = Integer.parseInt("" + colAndColNamePair.getKey()) - 1;
 			// If the column header value is null or "", then use the header from the header row as key
-			if( null == colAndColNamePair.getValue() || "".equals(colAndColNamePair.getValue()) ) {
-				String key = getColumnHeader(col);
-				String val = history.get(col);
-				keyValPair = new SimpleEntry<String,String>(key, val);
-			}
+			String key = "";
+			if( null == colAndColNamePair.getValue() || "".equals(colAndColNamePair.getValue()) )
+				key = getColumnHeader(col);
 			// Else, user specified the header, so use that
-			else {
-				String key = (String)(colAndColNamePair.getValue());
-				String val = history.get(col);
-				keyValPair = new SimpleEntry<String,String>(key, val);
-			}
+			else
+				key = (String)(colAndColNamePair.getValue());
+			String val = history.get(col);
+			keyValPair = new SimpleEntry<String,String>(key, val);
 		}
 		// Else, the user wants to specify a key AND value pair to add directly to the JSON (no column lookup)
 		else {

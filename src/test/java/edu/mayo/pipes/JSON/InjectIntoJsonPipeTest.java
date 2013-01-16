@@ -185,18 +185,91 @@ public class InjectIntoJsonPipeTest {
 	
 	@Test
 	/** If the JSON column that we are inserting into doesn't exist, we should create and populate it */
-	public void jsonColDoesNotExistAndNoHeaderRows() {
+	public void jsonColDoesNotExistAndNoHeaderRows_multipleInputLines() {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(5, new SimpleEntry("MyKey","MyValue"), new SimpleEntry(1,null));
     	List<String> in = Arrays.asList( 
-				"chr17\t100\t101\t{}"
+				"chr17\t100\t101\t{}",
+				"chr18\t200\t201\t{}"
 		);
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
 				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4\t" + InjectIntoJsonPipe.NEW_JSON_HEADER,
-				"chr17\t100\t101\t{}\t{\"MyKey\":\"MyValue\",\"(Unknown)\":\"chr17\"}" );
+				"chr17\t100\t101\t{}\t{\"MyKey\":\"MyValue\",\"(Unknown)\":\"chr17\"}",
+				"chr18\t200\t201\t{}\t{\"MyKey\":\"MyValue\",\"(Unknown)\":\"chr18\"}"
+				);
 		assertListsEqual( expected, out );
 	}
 	
+	@Test
+	/** User specifies the names of some columns, but not the JSON column index */
+	public void onlyColumnNamesSpecified_noHeaders() {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min", "Max");
+    	List<String> in = Arrays.asList( "chr17\t100\t101\t{}" );
+		List<String> out = getPipeOutput(injectorPipe, in);
+		List<String> expected = Arrays.asList(
+				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
+				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":100,\"Max\":101}" );
+		assertListsEqual( expected, out );
+	}
+
+	
+	@Test
+	/** User specifies the names of some columns, but not the JSON column index */
+	public void onlyTwoOfFourColumnNamesSpecified_noHeaders() {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min");
+    	List<String> in = Arrays.asList( "chr17\t100\t101\t{}" );
+		List<String> out = getPipeOutput(injectorPipe, in);
+		List<String> expected = Arrays.asList(
+				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
+				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":100}" );
+		System.out.println("expected: " + expected);
+		System.out.println("actual:   " + out);
+		assertListsEqual( expected, out );
+	}
+
+	@Test (expected = IndexOutOfBoundsException.class)
+	/** User specifies the names of some columns, but not the JSON column index */
+	public void tooManyColumnNamesSpecified_noHeaders() {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min", "Max", "EmptyJson", "JunkCol");
+    	List<String> in = Arrays.asList( "chr17\t100\t101\t{}" );
+		List<String> out = getPipeOutput(injectorPipe, in);
+		List<String> expected = Arrays.asList(
+				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
+				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":100}" );
+		System.out.println("tooManyColumnNamesSpecified_noHeaders()");
+		System.out.println("expected: " + expected);
+		System.out.println("actual:   " + out);
+		assertListsEqual( expected, out );
+	}
+
+	@Test
+	/** User specifies the names of some columns, but not the JSON column index */
+	public void justRightNumColumnNamesSpecified_noHeaders() {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min", "Max", "EmptyJson");
+    	List<String> in = Arrays.asList( "chr17\t100\t101\t{}" );
+		List<String> out = getPipeOutput(injectorPipe, in);
+		List<String> expected = Arrays.asList(
+				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
+				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":100,\"Max\":101,\"EmptyJson\":{}}" );
+		System.out.println("justRightNumColumnNamesSpecified_noHeaders()");
+		System.out.println("expected: " + expected);
+		System.out.println("actual:   " + out);
+		assertListsEqual( expected, out );
+	}
+
+	
+	@Test
+	/** Columns that are empty or contain "." should NOT be added to the JSON column */
+	public void emptyColumnsShouldNotBeAddedToJson() {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min", "Max");
+    	List<String> in = Arrays.asList( "chr17\t\t.\t{}" );
+		List<String> out = getPipeOutput(injectorPipe, in);
+		List<String> expected = Arrays.asList(
+				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
+				"chr17\t\t.\t{\"MyChrom\":\"chr17\"}" );
+		assertListsEqual( expected, out );
+		
+	}
 	
 	//=========================================================================================
 	// Helper methods
