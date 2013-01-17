@@ -13,13 +13,19 @@ import org.junit.Test;
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
+import edu.mayo.pipes.JSON.inject.ColumnInjector;
+import edu.mayo.pipes.JSON.inject.Injector;
+import edu.mayo.pipes.JSON.inject.JsonType;
+import edu.mayo.pipes.JSON.inject.LiteralInjector;
 import edu.mayo.pipes.history.HistoryInPipe;
 import edu.mayo.pipes.history.HistoryOutPipe;
 
 public class InjectIntoJsonPipeTest {
 	@Test
 	public void stringValue() throws Exception {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry("1",null));
+		
+		Injector injector = new ColumnInjector(1, JsonType.STRING);
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injector);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
 				"#Chrom\tMinBP\tMaxBP\tJSON",
@@ -32,7 +38,8 @@ public class InjectIntoJsonPipeTest {
 	
 	@Test
 	public void colAsInt() throws Exception {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry(3,null));
+		Injector injector = new ColumnInjector(3, JsonType.NUMBER);
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injector);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
 				"#Chrom\tMinBP\tMaxBP\tJSON",
@@ -45,7 +52,9 @@ public class InjectIntoJsonPipeTest {
 
 	@Test
 	public void colAsIntStr() throws Exception {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry("3",null));
+		Injector injector = new ColumnInjector(3, JsonType.NUMBER);
+		
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injector);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
 				"#Chrom\tMinBP\tMaxBP\tJSON",
@@ -59,7 +68,13 @@ public class InjectIntoJsonPipeTest {
 
 	@Test
 	public void injectMultipleColumns() throws Exception {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry("2",null), new SimpleEntry("3", ""));
+		Injector[] injectors = new Injector[]
+				{
+					new ColumnInjector(2, JsonType.NUMBER),
+					new ColumnInjector(3, JsonType.NUMBER)
+				};
+
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injectors);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
 				"#Chrom\tMinBP\tMaxBP\tJSON",
@@ -82,21 +97,23 @@ public class InjectIntoJsonPipeTest {
 	/** User specifies only the column to grab data from (no header key).
 	 *  Header should be grabbed from header line, only there is no header line present, so it should be "(Unknown)"  */
 	public void noHeaderSpecifiedAndNoHeaderLinePresent() throws Exception {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry("2",null));
+		Injector injector = new ColumnInjector(2, JsonType.NUMBER);
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injector);
     	List<String> in = Arrays.asList( 
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
 		);
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
 				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
-				"chr17\t100\t101\t{\"info\":\"somejunk\",\"(Unknown)\":100}"  );
+				"chr17\t100\t101\t{\"info\":\"somejunk\",\"UNKNOWN_2\":100}"  );
 		assertListsEqual( expected, out );
 	}
 
 	@Test
 	/** User specifies both a numeric column as well as a key to use (instead of looking up the header on the header line). */
 	public void headerSpecified() throws Exception {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry("1","MyChromosome"));
+		Injector injector = new ColumnInjector(1, "MyChromosome", JsonType.STRING);
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injector);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
 				"#Chrom\tMinBP\tMaxBP\tJSON",
@@ -110,7 +127,8 @@ public class InjectIntoJsonPipeTest {
 	@Test
 	/** User specifies both a numeric column as well as a key to use (instead of looking up the header on the header line). */
 	public void headerSpecifiedButNoHeaderLinePresent() throws Exception {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry("1","MyChromosome"));
+		Injector injector = new ColumnInjector(1, "MyChromosome", JsonType.STRING);
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injector);
     	List<String> in = Arrays.asList( 
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
 		);
@@ -124,7 +142,9 @@ public class InjectIntoJsonPipeTest {
 	@Test
 	/** User specifies both a numeric column as well as a key to use (instead of looking up the header on the header line). */
 	public void headerSpecifiedButNoHeaderLinePresentAndCreateNewJsonCol() throws Exception {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(5, new SimpleEntry("1","MyChromosome"));
+		Injector injector = new ColumnInjector(1, "MyChromosome", JsonType.STRING);
+
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(5, injector);
     	List<String> in = Arrays.asList( 
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
 		);
@@ -137,7 +157,13 @@ public class InjectIntoJsonPipeTest {
 
 	@Test
 	public void noJsonColumnSpecified() throws Exception {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(new SimpleEntry("MyKey","MyValue"), new SimpleEntry("1","Chromosome"));
+		Injector[] injectors = new Injector[]
+				{
+					new LiteralInjector("MyKey", "MyValue", JsonType.STRING),
+					new ColumnInjector(1, "Chromosome", JsonType.STRING)
+				};
+
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(injectors);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
 				"#Chrom\tMinBP\tMaxBP\tJSON",
@@ -150,7 +176,13 @@ public class InjectIntoJsonPipeTest {
 
 	@Test
 	public void keyAndValueSpecified() throws Exception {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry("MyKey","MyValue"), new SimpleEntry("1","Chromosome"));
+		Injector[] injectors = new Injector[]
+				{
+					new LiteralInjector("MyKey", "MyValue", JsonType.STRING),
+					new ColumnInjector(1, "Chromosome", JsonType.STRING)
+				};
+		
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injectors);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
 				"#Chrom\tMinBP\tMaxBP\tJSON",
@@ -164,14 +196,21 @@ public class InjectIntoJsonPipeTest {
 	
 	@Test (expected = IllegalArgumentException.class)
 	public void colAndJsonColSame() {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, new SimpleEntry("4","DuplicateJsonColShouldFail"));
+		Injector injector = new ColumnInjector(4, "DuplicateJsonColShouldFail", JsonType.STRING);
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injector);
 		fail("An exception should have been thrown on the previous line");
 	}
 	
 	@Test
 	/** If the JSON column that we are inserting into doesn't exist, we should create and populate it */
 	public void jsonColDoesNotExist() {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(5, new SimpleEntry("MyKey","MyValue"), new SimpleEntry("1","Chromosome"));
+		Injector[] injectors = new Injector[]
+				{
+					new LiteralInjector("MyKey", "MyValue", JsonType.STRING),
+					new ColumnInjector(1, "Chromosome", JsonType.STRING)
+				};
+		
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(5, injectors);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
 				"#Chrom\tMinBP\tMaxBP\tJSON",
@@ -186,7 +225,13 @@ public class InjectIntoJsonPipeTest {
 	@Test
 	/** If the JSON column that we are inserting into doesn't exist, we should create and populate it */
 	public void jsonColDoesNotExistAndNoHeaderRows_multipleInputLines() {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(5, new SimpleEntry("MyKey","MyValue"), new SimpleEntry(1,null));
+		Injector[] injectors = new Injector[]
+				{
+					new LiteralInjector("MyKey", "MyValue", JsonType.STRING),
+					new ColumnInjector(1, JsonType.STRING)
+				};
+		
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(5, injectors);
     	List<String> in = Arrays.asList( 
 				"chr17\t100\t101\t{}",
 				"chr18\t200\t201\t{}"
@@ -194,8 +239,8 @@ public class InjectIntoJsonPipeTest {
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
 				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4\t" + InjectIntoJsonPipe.NEW_JSON_HEADER,
-				"chr17\t100\t101\t{}\t{\"MyKey\":\"MyValue\",\"(Unknown)\":\"chr17\"}",
-				"chr18\t200\t201\t{}\t{\"MyKey\":\"MyValue\",\"(Unknown)\":\"chr18\"}"
+				"chr17\t100\t101\t{}\t{\"MyKey\":\"MyValue\",\"UNKNOWN_1\":\"chr17\"}",
+				"chr18\t200\t201\t{}\t{\"MyKey\":\"MyValue\",\"UNKNOWN_1\":\"chr18\"}"
 				);
 		assertListsEqual( expected, out );
 	}
@@ -208,7 +253,7 @@ public class InjectIntoJsonPipeTest {
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
 				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
-				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":100,\"Max\":101}" );
+				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":\"100\",\"Max\":\"101\"}" );
 		assertListsEqual( expected, out );
 	}
 
@@ -221,7 +266,7 @@ public class InjectIntoJsonPipeTest {
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
 				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
-				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":100}" );
+				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":\"100\"}" );
 		System.out.println("expected: " + expected);
 		System.out.println("actual:   " + out);
 		assertListsEqual( expected, out );
@@ -250,7 +295,7 @@ public class InjectIntoJsonPipeTest {
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
 				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
-				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":100,\"Max\":101}" );
+				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":\"100\",\"Max\":\"101\"}" );
 		System.out.println("\njustRightNumColumnNamesSpecified_noHeaders_addToEmptyJson()");
 		System.out.println("expected: " + expected);
 		System.out.println("actual:   " + out);
@@ -265,7 +310,7 @@ public class InjectIntoJsonPipeTest {
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
 				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
-				"chr17\t100\t101\t{\"key\":\"value\",\"MyChrom\":\"chr17\",\"Min\":100,\"Max\":101}" );
+				"chr17\t100\t101\t{\"key\":\"value\",\"MyChrom\":\"chr17\",\"Min\":\"100\",\"Max\":\"101\"}" );
 		System.out.println("\njustRightNumColumnNamesSpecified_noHeaders_addToNonEmptyJson()");
 		System.out.println("expected: " + expected);
 		System.out.println("actual:   " + out);
