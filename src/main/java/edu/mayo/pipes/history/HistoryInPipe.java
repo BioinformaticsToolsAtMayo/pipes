@@ -16,7 +16,7 @@ import com.tinkerpop.pipes.AbstractPipe;
 public class HistoryInPipe extends AbstractPipe<String, History> {
     private int expand2NumCols = -1;
     public HistoryInPipe(){
-        
+        expand2NumCols = -1;
     }
     
     public HistoryInPipe(int expand2NumCols){
