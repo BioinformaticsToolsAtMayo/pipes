@@ -7,15 +7,15 @@ import edu.mayo.pipes.history.History;
 /**
  * Extracts data from a column and injects it into a JSON object as a JSON Array.
  * 
- * NOTE: Columns that are empty or contain "." are not injected.
+ * NOTE: Columns that are empty or contain "." are injected as a JSON Array with 0 items.
  *
  */
-public class ColumnArrayInjector extends BaseInjector implements Injector {
+public class ColumnArrayInjector extends BaseInjector implements Injector, ColumnAware {
 
 	private int      mCol;
 	private String   mKey;
 	private JsonType mType;
-	private String   mDelimiter;
+	private String   mDelimiterRegex;
 	
 	/**
 	 * Constructor
@@ -24,10 +24,10 @@ public class ColumnArrayInjector extends BaseInjector implements Injector {
 	 * 
 	 * @param column Column to extract the array data from
 	 * @param type JSON primitive type to be used in JSON Array values
-	 * @param delimiter Delimiter used inside the column to delimit array values
+	 * @param delimiterRegex Delimiter Regular Expression used to split column array values
 	 */
-	public ColumnArrayInjector(int column, JsonType type, String delimiter) {
-		this(column, null, type, delimiter);
+	public ColumnArrayInjector(int column, JsonType type, String delimiterRegex) {
+		this(column, null, type, delimiterRegex);
 	}
 	
 	/**
@@ -36,9 +36,9 @@ public class ColumnArrayInjector extends BaseInjector implements Injector {
 	 * @param column Column to extract the array data from
 	 * @param key The name of the JSON Array
 	 * @param type JSON primitive type to be used in JSON Array values
-	 * @param delimiter Delimiter used inside the column to delimit array values
+	 * @param delimiterRegex Delimiter Regular Expression used to split column array values
 	 */
-	public ColumnArrayInjector(int column, String key, JsonType type, String delimiter) {
+	public ColumnArrayInjector(int column, String key, JsonType type, String delimiterRegex) {
 		if (column == 0) {
 			throw new IllegalArgumentException("Zero is not a valid column - columns begin with 1.");
 		}
@@ -46,7 +46,7 @@ public class ColumnArrayInjector extends BaseInjector implements Injector {
 		mCol = column;
 		mKey = key;
 		mType = type;
-		mDelimiter = delimiter;
+		mDelimiterRegex = delimiterRegex;
 	}
 	
 	@Override
@@ -61,12 +61,22 @@ public class ColumnArrayInjector extends BaseInjector implements Injector {
 		
 		String value = history.get(mCol - 1);
 		
-		if((value.length() > 0) && !value.equals(".")) {
-			
-			String[] values = value.split(mDelimiter);
+
+			String[] values;
+			if((value.trim().length() == 0) || value.trim().equals(".")) {
+				// there are zero values iin this case
+				values = new String[0];
+			}
+			else {
+				values = value.split(mDelimiterRegex);
+			}
 			super.injectAsArray(object, key, values, mType);
 			
-		}
+	}
+
+	@Override
+	public int getColumn() {
+		return mCol;
 	}
 
 }

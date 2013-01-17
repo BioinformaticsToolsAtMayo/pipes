@@ -10,7 +10,7 @@ import edu.mayo.pipes.history.History;
  * NOTE: Columns that are empty or contain "." are not injected.
  *
  */
-public class ColumnInjector extends BaseInjector implements Injector {
+public class ColumnInjector extends BaseInjector implements Injector, ColumnAware {
 
 	private int      mCol;
 	private String   mKey;
@@ -61,6 +61,11 @@ public class ColumnInjector extends BaseInjector implements Injector {
 			super.injectAsPrimitive(object, key, value, mType);
 			
 		}
+	}
+
+	@Override
+	public int getColumn() {
+		return mCol;
 	}
 
 }
