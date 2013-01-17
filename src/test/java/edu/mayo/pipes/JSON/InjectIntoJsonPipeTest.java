@@ -13,6 +13,7 @@ import org.junit.Test;
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
+import edu.mayo.pipes.JSON.inject.ColumnArrayInjector;
 import edu.mayo.pipes.JSON.inject.ColumnInjector;
 import edu.mayo.pipes.JSON.inject.Injector;
 import edu.mayo.pipes.JSON.inject.JsonType;
@@ -35,6 +36,21 @@ public class InjectIntoJsonPipeTest {
 		in.set(2, "chr17\t100\t101\t{\"info\":\"somejunk\",\"Chrom\":\"chr17\"}" );
 		assertListsEqual( in, out );
 	}
+
+	@Test
+	public void stringArrayValue() throws Exception {
+		
+		Injector injector = new ColumnArrayInjector(4, JsonType.STRING, ",");
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(5, injector);
+    	List<String> in = Arrays.asList( 
+				"## Some unneeded header line",
+				"#Chrom\tMinBP\tMaxBP\tARRAY_COL\tJSON",
+				"chr17\t100\t101\tA,B,C\t{\"info\":\"somejunk\"}"
+				);
+		List<String> out = getPipeOutput(injectorPipe, in);
+		in.set(2, "chr17\t100\t101\tA,B,C\t{\"info\":\"somejunk\",\"ARRAY_COL\":[\"A\",\"B\",\"C\"]}" );
+		assertListsEqual( in, out );
+	}	
 	
 	@Test
 	public void colAsInt() throws Exception {
