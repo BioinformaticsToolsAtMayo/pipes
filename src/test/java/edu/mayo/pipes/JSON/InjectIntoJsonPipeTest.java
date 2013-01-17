@@ -38,17 +38,23 @@ public class InjectIntoJsonPipeTest {
 	}
 
 	@Test
-	public void stringArrayValue() throws Exception {
+	public void arrayValues() throws Exception {
+		Injector[] injectors = new Injector[]
+				{
+					new ColumnArrayInjector(4, JsonType.STRING, ","),
+					new ColumnArrayInjector(5, JsonType.NUMBER, "\\|"),
+					new ColumnArrayInjector(6, JsonType.BOOLEAN, ","),
+					new ColumnArrayInjector(7, JsonType.STRING, ",")
+				};
 		
-		Injector injector = new ColumnArrayInjector(4, JsonType.STRING, ",");
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(5, injector);
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(8, injectors);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
-				"#Chrom\tMinBP\tMaxBP\tARRAY_COL\tJSON",
-				"chr17\t100\t101\tA,B,C\t{\"info\":\"somejunk\"}"
+				"#Chrom\tMinBP\tMaxBP\tSTR_ARRAY_COL\tINT_ARRAY_COL\tBOOL_ARRAY_COL\tEMPTY_ARRAY_COL\tJSON",
+				"chr17\t100\t101\tA,B,C\t1|2|3\ttrue,false,true\t\t{\"info\":\"somejunk\"}"
 				);
 		List<String> out = getPipeOutput(injectorPipe, in);
-		in.set(2, "chr17\t100\t101\tA,B,C\t{\"info\":\"somejunk\",\"ARRAY_COL\":[\"A\",\"B\",\"C\"]}" );
+		in.set(2, "chr17\t100\t101\tA,B,C\t1|2|3\ttrue,false,true\t\t{\"info\":\"somejunk\",\"STR_ARRAY_COL\":[\"A\",\"B\",\"C\"],\"INT_ARRAY_COL\":[1,2,3],\"BOOL_ARRAY_COL\":[true,false,true],\"EMPTY_ARRAY_COL\":[]}" );
 		assertListsEqual( in, out );
 	}	
 	
