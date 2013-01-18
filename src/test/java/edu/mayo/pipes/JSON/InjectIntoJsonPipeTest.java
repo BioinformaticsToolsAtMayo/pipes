@@ -56,7 +56,7 @@ public class InjectIntoJsonPipeTest {
 		List<String> out = getPipeOutput(injectorPipe, in);
 		in.set(2, "chr17\t100\t101\tA,B,C\t1|2|3\ttrue,false,true\t\t{\"info\":\"somejunk\",\"STR_ARRAY_COL\":[\"A\",\"B\",\"C\"],\"INT_ARRAY_COL\":[1,2,3],\"BOOL_ARRAY_COL\":[true,false,true],\"EMPTY_ARRAY_COL\":[]}" );
 		assertListsEqual( in, out );
-	}	
+	}
 	
 	@Test
 	public void colAsInt() throws Exception {
@@ -342,17 +342,26 @@ public class InjectIntoJsonPipeTest {
 	@Test
 	/** User specifies the names of some columns, but not the JSON column index */
 	public void justRightNumColumnNamesSpecified_noHeaders_addNewJsonCol() {
-		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min", "Max");
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(true, "MyChrom", "Min", "Max");
     	List<String> in = Arrays.asList( "chr17\t100\t101" );
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
 				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\t" + InjectIntoJsonPipe.NEW_JSON_HEADER,
-				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":100,\"Max\":101}" );
+				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":\"100\",\"Max\":\"101\"}" );
 		System.out.println("\njustRightNumColumnNamesSpecified_noHeaders_addNewJsonCol()");
 		System.out.println("expected: "); printList(expected);
 		System.out.println("actual:   "); printList(out);
 		assertListsEqual( expected, out );
 	}
+
+	@Test (expected = IllegalArgumentException.class)
+	/** User specifies the names of some columns, but not the JSON column index */
+	public void justRightNumColumnNamesSpecified_noHeaders_lastColNotJson() {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min", "Max");
+    	List<String> in = Arrays.asList( "chr17\t100\t101" );
+		List<String> out = getPipeOutput(injectorPipe, in);
+	}
+
 	
 	@Test
 	/** Columns that are empty or contain "." should NOT be added to the JSON column */
