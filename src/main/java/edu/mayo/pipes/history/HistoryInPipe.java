@@ -14,14 +14,24 @@ import com.tinkerpop.pipes.AbstractPipe;
  *
  */
 public class HistoryInPipe extends AbstractPipe<String, History> {
-    private int expand2NumCols = -1;
+
+	private int expand2NumCols = -1;
     public HistoryInPipe(){
+    	History.clearMetaData();
         expand2NumCols = -1;
     }
     
     public HistoryInPipe(int expand2NumCols){
+    	History.clearMetaData();
         this.expand2NumCols = expand2NumCols;
     }
+    
+    /** Allows pipeline to be reused - just call this between different pipe runs */
+    @Override
+	public void reset() {
+		super.reset();
+		History.clearMetaData();
+	}
 
 	private final String COL_DELIMITER = "\t";
 	

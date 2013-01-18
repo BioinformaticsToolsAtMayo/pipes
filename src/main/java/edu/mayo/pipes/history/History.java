@@ -1,6 +1,7 @@
 package edu.mayo.pipes.history;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -13,9 +14,10 @@ public class History extends ArrayList<String> implements List<String>,	Cloneabl
     
 	@Override
 	/** Had to override the clone method because the default ArrayList<String> clone was
-	 *  not correctly copying JSON arrays (ex: "A":["x","y"]) */
+	 *  not correctly copying JSON arrays (ex: "A":["x","y"]) 
+	 *  NOTE:  Collections.copy() does NOT work either in this case!  */
 	public Object clone() {
-		History h2 = new History(true);
+		History h2 = new History();
 		for(int i=0; i < this.size(); i++) {
 			h2.add(new String(this.get(i)));
 		}
@@ -23,13 +25,14 @@ public class History extends ArrayList<String> implements List<String>,	Cloneabl
 	}
 
     public History(){
+    }
+    
+    /** Remove all header metadata information */
+    public static void clearMetaData() {
     	sMetaData = null;
     	sMetaDataInitialized = false;
     }
 
-    /** This constructor should be used strictly by the clone() method to avoid wiping out the header metadata */
-    public History(boolean isClone) {    	
-    }
     
 	private static final long serialVersionUID = 1L;
 
