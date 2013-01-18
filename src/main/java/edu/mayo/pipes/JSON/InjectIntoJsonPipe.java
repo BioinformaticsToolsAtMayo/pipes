@@ -4,10 +4,12 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tinkerpop.pipes.AbstractPipe;
 
+import edu.mayo.pipes.JSON.inject.ColumnAware;
 import edu.mayo.pipes.JSON.inject.ColumnInjector;
 import edu.mayo.pipes.JSON.inject.Injector;
 import edu.mayo.pipes.JSON.inject.JsonType;
@@ -35,19 +37,17 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 	private Injector[] mInjectors;
 	public static final String NEW_JSON_HEADER = "bior_injectIntoJson";
 	private JsonParser mParser = new JsonParser();
+	private boolean mIsCreateNewJsonColumn = false;
 	
 	/** 
-	 * Constructor
-	 * 
+	 * Constructor - User explicitly specifies the JSON column to inject into 
 	 * @param indexOfJsonColumn  The column index (1-based) of the JSON column to modify
 	 * @param injectors	One or more injectors that will inject new content into the designated JSON 
 	 */
 	public InjectIntoJsonPipe(int indexOfJsonColumn, Injector... injectors) {
-		
-		// TODO: how to handle this with injectors?
 		// Throw exception if JSON column index is same as any columnIndex in colAndColNamePair 
-		//if( isJsonIdxSameAsAnother(indexOfJsonColumn, colAndColNamePairs) )
-		//	throw new IllegalArgumentException("JSON column index cannot be the same as another column index");
+		if( isJsonIdxSameAsAnother(indexOfJsonColumn, injectors) )
+			throw new IllegalArgumentException("JSON column index cannot be the same as another column index");
 
 		if( indexOfJsonColumn == 0)
 			throw new IllegalArgumentException("Zero is not a valid column - columns begin with 1.");
@@ -57,47 +57,65 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 	}
 
 	/** 
-	 * Constructor
-	 * 
+	 * Constructor - Allow user to create a new JSON column, or let it use the last column for JSON
 	 * @param injectors	One or more injectors that will inject new content into the designated JSON 
+	 * @param isCreateNewJsonColumn  If true, create new json column on end, else use last column.
 	 */
-	public InjectIntoJsonPipe(Injector... injectors) {
+	public InjectIntoJsonPipe(boolean isCreateNewJsonColumn, Injector... injectors) {
 		m_idxJsonCol = -1;  // Convert this to last column later
+		mIsCreateNewJsonColumn = isCreateNewJsonColumn;
 		mInjectors = injectors;
 	}
 
 	/** 
-	 * Constructor 
-	 * 
-	 * @param columnNames  Users specifies a series of column names for the first x columns, and values are pulled from those columns and assigned a key from the list that the user specified
+	 * Constructor - User injects data into the last column, which must be JSON
+	 * @param injectors	One or more injectors that will inject new content into the designated JSON 
+	 * @param isCreateNewJsonColumn  If true, create new json column on end, else use last column.
+	 */
+	public InjectIntoJsonPipe(Injector... injectors) {
+		this(false, injectors);
+	}
+
+	/** 
+	 * Constructor - User chooses multiple STRING columns to inject into the last column which must be JSON
+	 * @param columnNames	Key names to use for the first x columns that will be injected into the last column 
 	 */
 	public InjectIntoJsonPipe(String... columnNames) {
-		m_idxJsonCol = -1;  // Convert this to last column later
-		mInjectors = new Injector[columnNames.length];
-		
-		for(int i = 0; i < columnNames.length; i++) {
-			mInjectors[i] = new ColumnInjector(i+1, columnNames[i], JsonType.STRING);
-		}
+		this(false, createStringColumnInjectors(columnNames));
 	}
 	
+	/** 
+	 * Constructor - User chooses multiple STRING columns to inject into a new JSON column
+	 * @param columnNames	Key names to use for the first x columns that will be injected into the last column 
+	 * @param isCreateNewJsonColumn  If true, create new json column on end, else use last column.
+	 */
+	public InjectIntoJsonPipe(boolean isCreateNewJsonColumn, String... columnNames) {
+		this(isCreateNewJsonColumn, createStringColumnInjectors(columnNames));
+	}
+
 	@Override
 	protected History processNextStart() throws NoSuchElementException {
 		History history = this.starts.next();
 		History historyOut = (History)history.clone();
 		
-		// Verify that the JSON column index is correct - adjust it if needed
-		// Only call this on the first input line
-		if(isFirst) {
-			isFirst = false;
-			adjustJsonColIfNegativeOrNotSet(historyOut);
-		}
-
-		// If JSON index is > # of columns, then add a new empty JSON string to end of history
-		if(m_idxJsonCol > historyOut.size())
+		// If we need to create a new JSON column, OR JSON index is > # of columns, 
+		// then add a new empty JSON string to end of history
+		if(mIsCreateNewJsonColumn || (m_idxJsonCol > historyOut.size()) ) {
+			m_idxJsonCol = historyOut.size() + 1;
 			historyOut.add("{}");
+			if( isFirst ) {
+				addNewJsonColumnHeader();
+				isFirst = false;
+			}
+		}
+		else if(m_idxJsonCol == -1) {
+			m_idxJsonCol = historyOut.size();
+		}
 		
 		// Process each line - adding specified columns to the JSON object
 		String json = historyOut.get(m_idxJsonCol-1);
+		if( ! isAJsonColumn(json) )
+			throw new IllegalArgumentException("The JSON column to inject into does not contain a JSON object or valid JSON");
 		JsonObject object = mParser.parse(json).getAsJsonObject();
 		
 		for(Injector injector: mInjectors) {
@@ -110,39 +128,9 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 	
 
 	//=========================================================================================================
-	
-	/** Adjust the JSON column index as needed.   This will be called on every new input line, but the JSON index should only be set once */
-	private void adjustJsonColIfNegativeOrNotSet(History histOut) {
-		// If JSON column does not exist, then create it and add to the metadata
-		if(m_idxJsonCol > histOut.size())
-			addNewJsonColumnHeader();
-		else if(m_idxJsonCol == 0 )
-			throw new NoSuchElementException("JSON column cannot be zero");
-		// If idx is negative, then wrap around to end of the line
-		else if(m_idxJsonCol < 0) {
-			m_idxJsonCol = histOut.size() + (m_idxJsonCol+1);
-			
-			// TODO: HELP! talk to mike about this
-			
-			// if the last col does not contain json, OR
-			// if it does but the new json index is <= the largest col # in the keyValPairs,
-			// THEN create a new json column at the end
-//			boolean isLastColJson = isJsonInColumn(histOut.get(m_idxJsonCol-1));
-//			if( ! isLastColJson  || (isLastColJson && m_idxJsonCol <= getHighestKeyColumn()) ) {
-//				m_idxJsonCol = histOut.size() + 1;
-//				addNewJsonColumnHeader();
-//			}
-		}
-		// If the target json column does not actually contain json, 
-		// then we will add a new JSON column to the end
-		else if( ! isJsonInColumn(histOut.get(m_idxJsonCol-1)) ) {
-			m_idxJsonCol = histOut.size() + 1;
-			addNewJsonColumnHeader();
-		}
-	}
 
-	private boolean isJsonInColumn(String possibleJson) {
-		return possibleJson.startsWith("{")  &&  possibleJson.endsWith("}");
+	private boolean isAJsonColumn(String json) {
+		return json.startsWith("{")  &&  json.endsWith("}");
 	}
 	
 	/** Only add the next header to the HistoryMetaData if the HistoryMetaData exists.
@@ -155,70 +143,19 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 	
 	// We should throw an error if the JSON column is the same as a column we want to add
 	// (otherwise we will get a recursive add into the JSON target column)
-	private boolean isJsonIdxSameAsAnother(int indexOfJsonColumn, SimpleEntry[] colAndColNamePairs) {
-		for(SimpleEntry<String,String> keyValPair : colAndColNamePairs) {
-			if( Integer.toString(indexOfJsonColumn).equals(keyValPair.getKey()) )
+	private boolean isJsonIdxSameAsAnother(int indexOfJsonColumn, Injector[] injectors) {
+		for(Injector injector : injectors) {
+			if( (injector instanceof ColumnAware) && (indexOfJsonColumn == ((ColumnAware)injector).getColumn()) )
 				return true;
 		}
 		return false;
 	}
-
-
-	private String addToJson(String json, SimpleEntry<String,String> keyValPair) {
-		String val = keyValPair.getValue();
-
-		// If value is null, empty, or ".", then just return original json (don't add to JSON)
-		if(val == null || val.length() == 0 || val.equals("."))
-			return json;
-		
-		int idxOpenBrace = json.indexOf("{");
-		int idxLastBrace = json.lastIndexOf("}");
-		boolean isJsonEmpty = json.substring(idxOpenBrace, idxLastBrace).trim().length() == 1;
-		String firstSeparator = isJsonEmpty ? "" : ",";
-		// By default, quote the key and value
-		String newJson = json.substring(0,idxLastBrace) + firstSeparator + "\"" + keyValPair.getKey()
-				+ "\":\"" + val + "\"" + json.substring(idxLastBrace);
-		// If the value is a number, OR a JSON substring, then DON'T quote it
-		if( JSONUtil.isInt(val) || JSONUtil.isDouble(val) || isJsonInColumn(val) )
-			newJson = json.substring(0,idxLastBrace) + firstSeparator + "\"" + keyValPair.getKey()
-				+ "\":" + val + "" + json.substring(idxLastBrace);
-			
-		return newJson;
-	}
-
-	private SimpleEntry<String,String> getKeyValPairToAdd(SimpleEntry colAndColNamePair, History history) {
-		SimpleEntry<String,String> keyValPair = null;
-		
-		// If key is an int, then user specified a column to grab
-		if( JSONUtil.isInt("" + colAndColNamePair.getKey()) ) {
-			// Subtract one since column will be 1-based
-			int col = Integer.parseInt("" + colAndColNamePair.getKey()) - 1;
-			// If the column header value is null or "", then use the header from the header row as key
-			String key = "";
-			if( null == colAndColNamePair.getValue() || "".equals(colAndColNamePair.getValue()) )
-				key = getColumnHeader(col);
-			// Else, user specified the header, so use that
-			else
-				key = (String)(colAndColNamePair.getValue());
-			String val = history.get(col);
-			keyValPair = new SimpleEntry<String,String>(key, val);
+	
+	private static Injector[] createStringColumnInjectors(String[] columnNames) {
+		ColumnInjector[] injectors = new ColumnInjector[columnNames.length];
+		for(int i=0; i < injectors.length; i++) {
+			injectors[i] = new ColumnInjector(i+1, columnNames[i], JsonType.STRING);
 		}
-		// Else, the user wants to specify a key AND value pair to add directly to the JSON (no column lookup)
-		else {
-			String key = (String)(colAndColNamePair.getKey());
-			String val = (String)(colAndColNamePair.getValue());
-			keyValPair = new SimpleEntry<String,String>(key, val);
-		}
-		return keyValPair;
+		return injectors;
 	}
-
-	/** col should be 0-based when passed in here  */
-	private String getColumnHeader(int col) {
-		// Since col will be 1-based, subtract one to access array
-		// Only assign the column header if it is not null or ""
-		if( History.getMetaData().getOriginalHeader().size() == 0 )
-			return "(Unknown)";
-		else
-			return History.getMetaData().getColumns().get(col).getColumnName();
-	}	
 }
