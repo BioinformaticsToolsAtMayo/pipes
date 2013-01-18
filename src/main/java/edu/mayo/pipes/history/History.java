@@ -9,14 +9,28 @@ import java.util.List;
  * @author duffp
  * 
  */
-public class History extends ArrayList<String> implements List<String>,
-		Cloneable {
+public class History extends ArrayList<String> implements List<String>,	Cloneable {
     
-        public History(){
-            sMetaData = null;
-            sMetaDataInitialized = false;
-        }
+	@Override
+	/** Had to override the clone method because the default ArrayList<String> clone was
+	 *  not correctly copying JSON arrays (ex: "A":["x","y"]) */
+	public Object clone() {
+		History h2 = new History(true);
+		for(int i=0; i < this.size(); i++) {
+			h2.add(new String(this.get(i)));
+		}
+		return h2;
+	}
 
+    public History(){
+    	sMetaData = null;
+    	sMetaDataInitialized = false;
+    }
+
+    /** This constructor should be used strictly by the clone() method to avoid wiping out the header metadata */
+    public History(boolean isClone) {    	
+    }
+    
 	private static final long serialVersionUID = 1L;
 
 	// declared as a class variable since it will be created ONCE and used by
