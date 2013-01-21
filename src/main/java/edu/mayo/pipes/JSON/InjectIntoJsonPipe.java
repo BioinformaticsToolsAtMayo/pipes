@@ -32,8 +32,8 @@ import edu.mayo.pipes.util.JSONUtil;
 */
 public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 
-	private int m_idxJsonCol;
-	boolean isFirst = true;
+	private int mIdxJsonCol;
+	boolean mIsFirst = true;
 	private Injector[] mInjectors;
 	public static final String NEW_JSON_HEADER = "bior_injectIntoJson";
 	private JsonParser mParser = new JsonParser();
@@ -52,7 +52,7 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 		if( indexOfJsonColumn == 0)
 			throw new IllegalArgumentException("Zero is not a valid column - columns begin with 1.");
 		
-		m_idxJsonCol = indexOfJsonColumn;
+		mIdxJsonCol = indexOfJsonColumn;
 		mInjectors = injectors;
 	}
 
@@ -62,7 +62,7 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 	 * @param isCreateNewJsonColumn  If true, create new json column on end, else use last column.
 	 */
 	public InjectIntoJsonPipe(boolean isCreateNewJsonColumn, Injector... injectors) {
-		m_idxJsonCol = -1;  // Convert this to last column later
+		mIdxJsonCol = -1;  // Convert this to last column later
 		mIsCreateNewJsonColumn = isCreateNewJsonColumn;
 		mInjectors = injectors;
 	}
@@ -95,25 +95,28 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 
 	@Override
 	protected History processNextStart() throws NoSuchElementException {
+		if(! this.starts.hasNext())
+			throw new NoSuchElementException();
+		
 		History history = this.starts.next();
 		History historyOut = (History)history.clone();
 		
 		// If we need to create a new JSON column, OR JSON index is > # of columns, 
 		// then add a new empty JSON string to end of history
-		if(mIsCreateNewJsonColumn || (m_idxJsonCol > historyOut.size()) ) {
-			m_idxJsonCol = historyOut.size() + 1;
+		if(mIsCreateNewJsonColumn || (mIdxJsonCol > historyOut.size()) ) {
+			mIdxJsonCol = historyOut.size() + 1;
 			historyOut.add("{}");
-			if( isFirst ) {
+			if( mIsFirst ) {
 				addNewJsonColumnHeader();
-				isFirst = false;
+				mIsFirst = false;
 			}
 		}
-		else if(m_idxJsonCol == -1) {
-			m_idxJsonCol = historyOut.size();
+		else if(mIdxJsonCol == -1) {
+			mIdxJsonCol = historyOut.size();
 		}
 		
 		// Process each line - adding specified columns to the JSON object
-		String json = historyOut.get(m_idxJsonCol-1);
+		String json = historyOut.get(mIdxJsonCol-1);
 		if( ! isAJsonColumn(json) )
 			throw new IllegalArgumentException("The JSON column to inject into does not contain a JSON object or valid JSON");
 		JsonObject object = mParser.parse(json).getAsJsonObject();
@@ -122,7 +125,7 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 			injector.inject(object, history);
 		}
 		
-		historyOut.set(m_idxJsonCol-1, object.toString());
+		historyOut.set(mIdxJsonCol-1, object.toString());
 		return historyOut;
 	}
 	
