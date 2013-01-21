@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.mayo.pipes;
 
 import com.tinkerpop.pipes.AbstractPipe;
@@ -22,20 +18,21 @@ import java.util.logging.Logger;
 public class WritePipe extends AbstractPipe<String, String>{
     
     private BufferedWriter out = null; 
-    private boolean append = true;
+    private boolean mIsAppendToFile = true;
+    private boolean mIsAddNewLine = false;
     public WritePipe(String filename){
-        try {
-                out = new BufferedWriter(new FileWriter(filename, append));
-                //out.write("aString");
-        } catch (IOException e) {
-        }
+    	this(filename, false, false);
+    }
+
+    public WritePipe(String filename, boolean isAppendToFile) {
+    	this(filename, isAppendToFile, false);
     }
     
-    public WritePipe(String filename, boolean append){
-        this.append = append;
+    public WritePipe(String filename, boolean isAppendToFile, boolean isAddNewlines){
+        this.mIsAppendToFile = isAppendToFile;
+        this.mIsAddNewLine = isAddNewlines;
         try {
-                out = new BufferedWriter(new FileWriter(filename, append));
-                //out.write("aString");
+                out = new BufferedWriter(new FileWriter(filename, mIsAppendToFile));
         } catch (IOException e) {
         }
     }
@@ -47,16 +44,16 @@ public class WritePipe extends AbstractPipe<String, String>{
     @Override
     protected String processNextStart() throws NoSuchElementException {
         try {
-            if(!this.starts.hasNext()){out.close();}
+            if( ! this.starts.hasNext()) {
+            	out.close();
+            	throw new NoSuchElementException();
+            }
             String s = this.starts.next();
-            out.write(s);
+            out.write(s + (mIsAddNewLine ? "\n" : ""));
             return s;
         } catch (IOException ex) {
             Logger.getLogger(WritePipe.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
-
-
-    
 }
