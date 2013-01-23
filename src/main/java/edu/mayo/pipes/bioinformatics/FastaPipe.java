@@ -13,15 +13,46 @@ import java.util.NoSuchElementException;
 /**
  *
  * @author m102417
- * //This pipe is needed, but at this point it does not yet work!!!
- * I will come back and finish it when it is officially needed, right now it is just code
- * from a Saturday night wander...
+ * Fasta Pipe takes in a Fasta formated file (not fastq!) and outputs data as strings formatted as:
+ * >header\tsequence
+ * 
  */
-public class FastaPipe extends AbstractPipe<String, ArrayList<String>>{
+public class FastaPipe extends AbstractPipe<String, String>{
 
+    ArrayList<String> baggins = new ArrayList<String>();
+    
     @Override
-    protected ArrayList<String> processNextStart() throws NoSuchElementException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public String processNextStart() throws NoSuchElementException {
+        while(this.starts.hasNext()){
+            String next = this.starts.next();
+            if(next.startsWith(">") && baggins.size()>1){
+                String ret = format(baggins);
+                baggins.clear();
+                baggins.add(next);
+                return ret;
+            }else {
+                baggins.add(next);
+            }
+        }
+        if(baggins.size()>0){
+                String ret = format(baggins);
+                baggins.clear();
+                return ret;
+        }
+        throw new NoSuchElementException();
+    }
+    
+    public String format(ArrayList<String> baggins){
+        StringBuilder sb = new StringBuilder();
+        int i=0;
+        for(String line : baggins){
+            sb.append(line);
+            if(i==0){
+                sb.append("\t");
+            }
+            i++;
+        }
+        return sb.toString();
     }
     
     

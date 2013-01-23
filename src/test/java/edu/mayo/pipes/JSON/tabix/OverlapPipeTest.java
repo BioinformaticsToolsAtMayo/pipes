@@ -157,5 +157,22 @@ public class OverlapPipeTest {
 			//Assert.fail("INVALID QUERY... EXPECTED EXCEPTION!!!");
 		}
     }
+    
+    @Test
+    public void testMinBPExtend() throws IOException{
+        System.out.println("OverlapPipe: Test if extending minbp works");
+        ArrayList<String> results = new ArrayList<String>();
+        String query = "my\tfirst\tquery\t{\"_landmark\":\"1\",\"_minBP\":49482,\"_maxBP\":49482}";  //1 result
+	OverlapPipe op = new OverlapPipe(geneFile, 10000, 0);
+	Pipe p2 = new Pipeline(
+                new HistoryInPipe(), 
+                op, 
+                new MergePipe("\t"),
+                new PrintPipe());
+	p2.setStarts(Arrays.asList(query));
+        for(int i=0; p2.hasNext(); i++) {
+            results.add((String)p2.next());       	
+	} 
+    }
         
 }

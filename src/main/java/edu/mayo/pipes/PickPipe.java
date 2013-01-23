@@ -5,13 +5,14 @@
 package edu.mayo.pipes;
 
 import com.tinkerpop.pipes.AbstractPipe;
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 /**
  * A Pick Pipe selects a certain column from a String[] e.g. String[2]
  * @author dquest
  */
-public class PickPipe extends AbstractPipe<String[], String> {
+public class PickPipe extends AbstractPipe<ArrayList<String>, String> {
 
     int n;
             
@@ -20,11 +21,11 @@ public class PickPipe extends AbstractPipe<String[], String> {
     }
     @Override
     protected String processNextStart() throws NoSuchElementException {
-        String[] s = this.starts.next();
-        if(s.length < n){
+        ArrayList<String> s = this.starts.next();
+        if(s.size() < n){
             throw new NoSuchElementException();
         }
-        return s[n];
+        return s.get(n);
     }
 
 }

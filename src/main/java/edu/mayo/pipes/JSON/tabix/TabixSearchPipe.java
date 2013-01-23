@@ -54,6 +54,7 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
     public TabixSearchPipe(String tabixDataFile, int minBPExtend, int maxBPExtend) throws IOException{
         init(tabixDataFile);
         this.extendmaxbp = maxBPExtend;
+        this.extendminbp = minBPExtend;
     }
     
     public TabixSearchPipe(String tabixDataFile, int jsonpos) throws IOException{
@@ -142,6 +143,10 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
                         if(extendminbp != 0){
                            int t = Integer.parseInt(minBP);
                            minBP = String.valueOf( t - extendminbp );
+                           if(t-this.extendminbp < 0){
+                               minBP = "0";
+                           }
+                           System.out.println(minBP);
                         }
 		} else {
 			return null;
@@ -153,14 +158,16 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
 		if (o != null) {
 			maxBP = o.toString();
                         if(extendmaxbp != 0){
-                           int t = Integer.parseInt(minBP);
-                           minBP = String.valueOf( t - extendmaxbp );
+                           int t = Integer.parseInt(maxBP);
+                           maxBP = String.valueOf( t + extendmaxbp );
+                           System.out.println(maxBP);
                         }
 		} else {
 			return null;
 	    }
 		
 	    //abc123:7000-13000
+                System.out.println(landmark + ":" + minBP + "-" + maxBP);
 	    records = tquery(landmark + ":" + minBP + "-" + maxBP);
 	    
 	    return records;
