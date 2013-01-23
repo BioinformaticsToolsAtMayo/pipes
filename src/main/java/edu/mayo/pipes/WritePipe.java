@@ -21,7 +21,7 @@ public class WritePipe extends AbstractPipe<String, String>{
     private boolean mIsAppendToFile = true;
     private boolean mIsAddNewLine = false;
     public WritePipe(String filename){
-    	this(filename, false, false);
+    	this(filename, true, false);
     }
 
     public WritePipe(String filename, boolean isAppendToFile) {
