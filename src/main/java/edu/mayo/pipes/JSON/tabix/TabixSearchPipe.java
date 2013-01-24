@@ -146,7 +146,7 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
                            if(t-this.extendminbp < 0){
                                minBP = "0";
                            }
-                           System.out.println(minBP);
+                           //System.out.println(minBP);
                         }
 		} else {
 			return null;
@@ -160,14 +160,14 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
                         if(extendmaxbp != 0){
                            int t = Integer.parseInt(maxBP);
                            maxBP = String.valueOf( t + extendmaxbp );
-                           System.out.println(maxBP);
+                           //System.out.println(maxBP);
                         }
 		} else {
 			return null;
 	    }
 		
 	    //abc123:7000-13000
-                System.out.println(landmark + ":" + minBP + "-" + maxBP);
+            //System.out.println(landmark + ":" + minBP + "-" + maxBP);
 	    records = tquery(landmark + ":" + minBP + "-" + maxBP);
 	    
 	    return records;
