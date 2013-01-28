@@ -45,6 +45,24 @@ public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<S
     }
     
     /**
+     * 
+     * @param tabixDataFile
+     * @param column - the column to find _landmark _minBP and _maxBP (default 0)
+     * e.g. if the data looks like
+     * X    1234    1456    A
+     * Then you may want column = -1
+     * if the data looks like:
+     * X    1234    1456    A   {"foo":"veep"}
+     * Then you may want column = -2
+     * @throws IOException 
+     */
+    private int column = 0;
+    public Bed2SequencePipe(String tabixDataFile, int column) throws IOException {
+        search = new TabixSearchPipe(tabixDataFile);
+        this.column = column;
+    }
+    
+    /**
      * A substring for biological sequences
      * 
      * min is minbp for the interval
@@ -60,10 +78,10 @@ public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<S
      * 
      */
     public String oneBasedSubsequence(String sequence, int min, int max){
-        System.out.println(start);
-        System.out.println(end);
-        System.out.println(min);
-        System.out.println(max);
+        //System.out.println(start);
+        //System.out.println(end);
+        //System.out.println(min);
+        //System.out.println(max);
         
         return sequence.substring(min-start, max-start+1);
     }
@@ -79,13 +97,13 @@ public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<S
             ArrayList<String> al = this.starts.next();
             
             String record;
-            int x = new Integer(al.get(al.size()-2));
-            int y = new Integer(al.get(al.size()-1));
-            String query = al.get(al.size()-3) + ":" + x + "-" + y;
+            int x = new Integer(al.get(al.size()-2+this.column));
+            int y = new Integer(al.get(al.size()-1+this.column));
+            String query = al.get(al.size()-3+this.column) + ":" + x + "-" + y;
             StringBuilder subsequence = new StringBuilder();
             records = search.tquery(query);
             for(int i=1;(record = records.next()) != null; i++){
-                System.out.println(record);
+                //System.out.println(record);
                 String[] split = record.split("\t");
                 subsequence.append(split[3]);
                 if(i==1){                 
