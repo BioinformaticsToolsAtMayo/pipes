@@ -66,12 +66,12 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
 				}
 			} else {
 				int numCols = line.split(COL_DELIMITER).length;
-                                if(numCols != this.expand2NumCols && this.expand2NumCols != -1){
-                                    while(history.size() < expand2NumCols){
-                                        history.add("");
-                                    }
-                                    numCols= this.expand2NumCols;
-                                }
+				if(numCols != this.expand2NumCols && this.expand2NumCols != -1){
+					while(history.size() < expand2NumCols){
+						history.add("");
+					}
+					numCols= this.expand2NumCols;
+				}
 				// if there is no column header, just mark each column as
 				// UNKNOWN
 				for (int i = 1; i <= numCols; i++) {
