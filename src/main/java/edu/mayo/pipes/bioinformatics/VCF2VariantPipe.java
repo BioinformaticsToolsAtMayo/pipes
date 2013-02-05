@@ -141,16 +141,16 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         JsonObject root = new JsonObject();
         
         // carry forward all columns except for INFO verbatim into JSON
-        root.addProperty(COL_HEADERS[COL_CHROM],  history.get(COL_CHROM));        
-        root.addProperty(COL_HEADERS[COL_POS],    history.get(COL_POS));
-        root.addProperty(COL_HEADERS[COL_ID],     history.get(COL_ID));
-        root.addProperty(COL_HEADERS[COL_REF],    history.get(COL_REF));
-        root.addProperty(COL_HEADERS[COL_ALT],    history.get(COL_ALT));
-        root.addProperty(COL_HEADERS[COL_QUAL],   history.get(COL_QUAL));
-        root.addProperty(COL_HEADERS[COL_FILTER], history.get(COL_FILTER));
+        root.addProperty(COL_HEADERS[COL_CHROM],  history.get(COL_CHROM).trim());
+        root.addProperty(COL_HEADERS[COL_POS],    history.get(COL_POS).trim());
+        root.addProperty(COL_HEADERS[COL_ID],     history.get(COL_ID).trim());
+        root.addProperty(COL_HEADERS[COL_REF],    history.get(COL_REF).trim());
+        root.addProperty(COL_HEADERS[COL_ALT],    history.get(COL_ALT).trim());
+        root.addProperty(COL_HEADERS[COL_QUAL],   history.get(COL_QUAL).trim());
+        root.addProperty(COL_HEADERS[COL_FILTER], history.get(COL_FILTER).trim());
         
         // parse and shred INFO column
-        JsonObject info = buildInfoJSON(history.get(COL_INFO));
+        JsonObject info = buildInfoJSON(history.get(COL_INFO).trim());
         root.add(COL_HEADERS[COL_INFO], info);
         
         // add core attributes to be used by downstream pipes
@@ -198,12 +198,12 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             	    	switch (meta.type) {
             	    	case Integer:
             				if (!isMissingValue(s)) {
-            					arr.add(new JsonPrimitive(Integer.parseInt(s)));
+            					arr.add(new JsonPrimitive(Integer.parseInt(s.trim())));
             				}
                 			break;
             	    	case Float:
             				if (!isMissingValue(s)) {
-            					arr.add(new JsonPrimitive(Float.parseFloat(s)));
+            					arr.add(new JsonPrimitive(Float.parseFloat(s.trim())));
             				}
             	    		break;
             	    	case Character:
@@ -221,12 +221,12 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         	    	switch (meta.type) {
         	    	case Integer:
         				if (!isMissingValue(value)) {
-        					info.addProperty(id, Integer.parseInt(value));
+        					info.addProperty(id, Integer.parseInt(value.trim()));
         				}
             			break;
         	    	case Float:    	    		
         				if (!isMissingValue(value)) {
-        					info.addProperty(id, Float.parseFloat(value));
+        					info.addProperty(id, Float.parseFloat(value.trim()));
         				}
         	    		break;
         	    	case Character:
@@ -255,26 +255,27 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     private void addCoreAttributes(JsonObject root, List<String> history) {
 
     	//guaranteed to be unique, if no then perhaps bug
-    	String accID = history.get(COL_ID);
+    	String accID = history.get(COL_ID).trim();
     	root.addProperty(CoreAttributes._id.toString(), accID);
     	
     	root.addProperty(CoreAttributes._type.toString(), Type.VARIANT.toString());
     	
-    	String chr = GenomicObjectUtils.computechr(history.get(COL_CHROM));
+    	String chr = GenomicObjectUtils.computechr(history.get(COL_CHROM).trim());
     	root.addProperty(CoreAttributes._landmark.toString(), chr);
     	
-    	String refAllele = history.get(COL_REF);
+    	String refAllele = history.get(COL_REF).trim();
     	root.addProperty(CoreAttributes._refAllele.toString(), refAllele);
     	
     	JsonArray altAlleles = new JsonArray();
-    	for (String allele: al(history.get(COL_ALT))) {
+    	for (String allele: al(history.get(COL_ALT).trim())) {
     		altAlleles.add(new JsonPrimitive(allele));
     	}
     	root.add(CoreAttributes._altAlleles.toString(), altAlleles);
     	
         if (history.get(COL_POS) != null) {
-            int minBP = new Integer(history.get(COL_POS));        
-            int maxBP = new Integer(minBP + history.get(COL_REF).length() - 1);        	
+        	String pos = history.get(COL_POS).trim();
+            int minBP = new Integer(pos);        
+            int maxBP = new Integer(minBP + history.get(COL_REF).trim().length() - 1);        	
 
             root.addProperty(CoreAttributes._minBP.toString(), minBP);
         	root.addProperty(CoreAttributes._maxBP.toString(), maxBP);
