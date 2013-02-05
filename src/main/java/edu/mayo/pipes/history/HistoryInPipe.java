@@ -6,6 +6,8 @@ import java.util.NoSuchElementException;
 
 import com.tinkerpop.pipes.AbstractPipe;
 
+import edu.mayo.pipes.util.StringUtils;
+
 /**
  * Processes incoming String data and deserializes it into a History object.
  * 
@@ -84,7 +86,8 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
 		}
 
 		// split data row, add to history
-		String[] colDataArr = line.split(COL_DELIMITER);
+		// SAFE split is required because there may be empty fields between delimiters
+		String[] colDataArr = StringUtils.safeSplit(line, COL_DELIMITER);
 		for (String colData : colDataArr) {
 			history.add(colData);
 		}
