@@ -5,8 +5,11 @@
 package edu.mayo.pipes.bioinformatics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -49,6 +52,85 @@ public class VCF2VariantPipeTest {
     public void tearDown() {
     }
 
+//    @Test
+//    public void test() {
+//    	
+//    	// pipes
+//    	CatPipe			cat 	= new CatPipe();
+//    	HistoryInPipe historyIn = new HistoryInPipe();
+//        VCF2VariantPipe vcf 	= new VCF2VariantPipe();
+//        
+//        Pipe<String, History> pipeline = new Pipeline<String, History>
+//        	(
+//        		cat,		// read VCF line	--> String
+//        		historyIn,	// String			--> history
+//        		vcf			// history			--> add JSON to end of history
+//        	);
+//        pipeline.setStarts(Arrays.asList("/tmp/SangerPanelSnps.vcf"));
+//
+//        // grab 1st row of data
+//        pipeline.hasNext();
+//        History history = pipeline.next();
+//        String json = history.get(history.size() - 1);
+//    }    
+    
+    /**
+     * Tests for empty/NULL columns
+     */
+    @Test
+    public void testNullColumns() {
+    	
+    	List<String> vcfLines = new ArrayList<String>();
+    	 
+    		// VCF HEADER
+    	vcfLines.add("##fileformat=VCFv4.0\n");
+    	vcfLines.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
+    				
+    		// row #1 has NULL values for columns QUAL, FILTER, and INFO
+    	vcfLines.add("2\t48010558\trs1042820\tC\tA\t\t\t\t\n");
+    		
+    		// row #2 has NULL values for columns QUAL, FILTER, and INFO
+    	vcfLines.add("1\t45792936\t.\tT\tG\t\t\t\t\n");
+
+    	// pipes
+    	HistoryInPipe historyIn = new HistoryInPipe();
+        VCF2VariantPipe vcf 	= new VCF2VariantPipe();
+        
+        Pipe<String, History> pipeline = new Pipeline<String, History>
+        	(
+        		historyIn,	// String			--> history
+        		vcf			// history			--> add JSON to end of history
+        	);
+        pipeline.setStarts(vcfLines);
+
+        // grab 1st row of data
+        assertTrue(pipeline.hasNext());
+        History history = pipeline.next();
+        String json = history.get(history.size() - 1);
+        
+        // use JSON paths to drill out values and compare with expected
+        assertEquals("2",			JsonPath.compile("CHROM").read(json));
+        assertEquals("48010558",	JsonPath.compile("POS").read(json));
+        assertEquals("rs1042820",	JsonPath.compile("ID").read(json));
+        assertEquals("C",			JsonPath.compile("REF").read(json));
+        assertEquals("A",			JsonPath.compile("ALT").read(json));
+        assertEquals("",			JsonPath.compile("QUAL").read(json));
+        assertEquals("",			JsonPath.compile("FILTER").read(json));
+        assertEquals("{}",			JsonPath.compile("INFO").read(json).toString());
+        assertEquals("rs1042820",	JsonPath.compile(CoreAttributes._id.toString()).read(json));
+        assertEquals("2",			JsonPath.compile(CoreAttributes._landmark.toString()).read(json));
+        assertEquals(48010558,		JsonPath.compile(CoreAttributes._minBP.toString()).read(json));
+        assertEquals(48010558,		JsonPath.compile(CoreAttributes._maxBP.toString()).read(json));
+        assertEquals("C",			JsonPath.compile(CoreAttributes._refAllele.toString()).read(json));
+        assertEquals("A",			JsonPath.compile(CoreAttributes._altAlleles.toString()+"[0]").read(json));
+        assertEquals(Type.VARIANT.toString(),	JsonPath.compile(CoreAttributes._type.toString()).read(json));
+        
+        // grab 2nd row of data only
+        pipeline.hasNext();	    
+        history = pipeline.next();
+        json = history.get(history.size() - 1);    	
+    }    
+    
     /**
      * Test of processNextStart method, of class VCF2VariantPipe.
      */
@@ -150,5 +232,5 @@ public class VCF2VariantPipeTest {
         assertEquals(777.77,	JsonPath.compile("INFO.MOCK_FLOAT_MULTI[1]").read(json));
 
         assertFalse(json.contains("INFO.MOCK_INTEGER_MULTI"));
-    }
+    }    
 }

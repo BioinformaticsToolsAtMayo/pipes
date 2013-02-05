@@ -8,6 +8,8 @@ import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -32,6 +34,8 @@ import edu.mayo.pipes.util.GenomicObjectUtils;
  * 
  */
 public class VCF2VariantPipe extends AbstractPipe<History,History> {
+	
+	private static final Logger sLogger = Logger.getLogger(VCF2VariantPipe.class);
 	
 	// VCF column ordinals
 	private static final int COL_CHROM = 0;
@@ -115,8 +119,8 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         }
                 
         if(history.size() < COL_HEADERS.length){
-        	throw new NoSuchElementException();
-      	}        
+        	throw new RuntimeException("Invalid VCF line because it is missing the correct number of columns: " + history.getMergedData("\t"));
+      	}
 
         // transform into JSON
         String json = buildJSON(history);
@@ -232,7 +236,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         	    	}
         			
         		}        		
-    		} else {
+    		} else if (field.length() > 0) {
     			// dealing with field of type Flag
     			// there is no value
     			info.addProperty(field, true);    			
