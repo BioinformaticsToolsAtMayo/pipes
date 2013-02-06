@@ -12,10 +12,8 @@ import java.util.NoSuchElementException;
  * @author m102417
  */
 public class ComplementPipe extends AbstractPipe<String, String>{
-
-    @Override
-    protected String processNextStart() throws NoSuchElementException {
-        String s = this.starts.next();
+    
+    public String complement(String s){
         StringBuilder sb = new StringBuilder();
         for(int i=0; i<s.length(); i++){
             char c = s.charAt(i);
@@ -54,6 +52,12 @@ public class ComplementPipe extends AbstractPipe<String, String>{
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    protected String processNextStart() throws NoSuchElementException {
+        String s = this.starts.next();
+        return complement(s);
     }
     
 }
