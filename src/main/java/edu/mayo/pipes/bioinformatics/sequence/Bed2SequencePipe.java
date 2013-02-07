@@ -140,8 +140,8 @@ public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<S
     	if( mIsUseJsonCol ) {
     		String lastCol = history.get(history.size()-1);
     		String chr = mChromJsonPath.read(lastCol);
-    		int min = mMinBpJsonPath.read(lastCol);
-    		int max = mMaxBpJsonPath.read(lastCol);
+    		int min = (Integer)(mMinBpJsonPath.read(lastCol));
+    		int max = (Integer)(mMaxBpJsonPath.read(lastCol));
     		query = chr + ":" + min + "-" + max;
     	} else {
     		String chr = history.get(history.size()-3+this.mMaxBpCol);
