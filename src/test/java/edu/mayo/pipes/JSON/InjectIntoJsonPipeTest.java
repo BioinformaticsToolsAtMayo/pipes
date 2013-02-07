@@ -383,7 +383,7 @@ public class InjectIntoJsonPipeTest {
     	List<String> in = Arrays.asList( "c.571G>A\t{}" );
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
-				"#UNKNOWN_1\tUNKNOWN_2",
+				"#UNKNOWN_1\t#UNKNOWN_2",
 				"c.571G>A\t{\"ColWithGtChar\":\"c.571G>A\"}" );
 		assertListsEqual( expected, out );
 	}
