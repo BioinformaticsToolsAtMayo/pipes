@@ -3,7 +3,6 @@ package edu.mayo.pipes.JSON;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -373,8 +372,22 @@ public class InjectIntoJsonPipeTest {
 				"#UNKNOWN_1\tUNKNOWN_2\tUNKNOWN_3\tUNKNOWN_4",
 				"chr17\t\t.\t{\"MyChrom\":\"chr17\"}" );
 		assertListsEqual( expected, out );
-		
 	}
+
+	@Test
+	/** For some reason, '>' chars were converted to unicode (\u003e).  Make sure this doesn't happen */
+	public void gtCharShouldNotBeConvertedToUnicode() {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(
+				new ColumnInjector(1, "ColWithGtChar", JsonType.STRING)
+				);
+    	List<String> in = Arrays.asList( "c.571G>A\t{}" );
+		List<String> out = getPipeOutput(injectorPipe, in);
+		List<String> expected = Arrays.asList(
+				"#UNKNOWN_1\tUNKNOWN_2",
+				"c.571G>A\t{\"ColWithGtChar\":\"c.571G>A\"}" );
+		assertListsEqual( expected, out );
+	}
+
 	
 	//=========================================================================================
 	// Helper methods
