@@ -17,6 +17,8 @@ import org.junit.Test;
 
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
+import edu.mayo.pipes.MergePipe;
+import edu.mayo.pipes.PrintPipe;
 
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
@@ -100,5 +102,32 @@ public class DrillPipeTest {
         }
 
         
+    }
+    
+    @Test
+    public void testSingleColumnDrill() {
+        System.out.println("Test single column drill");
+        //note s1 does not have minBP, this will cause a drill to fail in the test, drill failure will result in return of a period '.'
+        String s1 = "{\"type\":\"gene\",\"chr\":\"17\",\"strand\":\"+\",\"maxBP\":41184058,\"gene\":\"RND2\",\"gene_synonym\":\"ARHN; RHO7; RhoN\",\"note\":\"Rho family GTPase 2; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"8153\",\"HGNC\":\"18315\",\"HPRD\":\"03332\",\"MIM\":\"601555\"}";
+        String s2 = "{\"type\":\"gene\",\"chr\":\"17\",\"strand\":\"-\",\"minBP\":41196312,\"maxBP\":41277500,\"gene\":\"BRCA1\",\"gene_synonym\":\"BRCAI; BRCC1; BROVCA1; IRIS; PNCA4; PPP1R53; PSCP; RNF53\",\"note\":\"breast cancer 1, early onset; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"672\",\"HGNC\":\"1100\",\"HPRD\":\"00218\",\"MIM\":\"113705\"}";
+        String s3 = "{\"type\":\"gene\",\"chr\":\"17\",\"strand\":\"+\",\"minBP\":41231278,\"maxBP\":41231833,\"gene\":\"RPL21P4\",\"gene_synonym\":\"RPL21_58_1548\",\"note\":\"ribosomal protein L21 pseudogene 4; Derived by automated computational analysis using gene prediction method: Curated Genomic.\",\"pseudo\":\"\",\"GeneID\":\"140660\",\"HGNC\":\"17959\"}";
+
+        String[] paths = new String[2];
+        paths[0] = "gene";
+        paths[1] = "minBP";
+        Pipe<String, String> p = new Pipeline(new HistoryInPipe(), new DrillPipe(false, paths), new MergePipe(" "));
+        p.setStarts(Arrays.asList(s1,s2, s3));
+        for(int i=0; p.hasNext(); i++){
+            String s = (String) p.next();
+            if(i==0){
+                assertEquals("RND2 .", s);
+            }
+            if(i==1){
+                assertEquals("BRCA1 41196312", s);
+            }
+            if(i==2){
+                assertEquals("RPL21P4 41231278", s);
+            }
+        }
     }
 }
