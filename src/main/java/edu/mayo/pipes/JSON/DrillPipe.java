@@ -62,6 +62,9 @@ public class DrillPipe extends AbstractPipe<History, History>{
                 //recalculate it to be negative...
                 drillColumn = drillColumn - history.size() - 1;
             }
+            if(history.size() == 1){
+                drillColumn = -1;
+            }
                         
             if (addColumnMetaData) {
             	List<ColumnMetaData> cols = History.getMetaData().getColumns();
