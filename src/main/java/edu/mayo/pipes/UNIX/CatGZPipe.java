@@ -36,6 +36,7 @@ public class CatGZPipe extends AbstractPipe<String, String>{
 	private String compressionType = "gzip"; //only supporting gzip for now...
     protected String nextLine = null;
 	
+    /** Takes the type of compression used to zip the target file (only "gzip" supported for now) */
     public CatGZPipe(String compression){
 		this.compressionType = compression;
 	}
