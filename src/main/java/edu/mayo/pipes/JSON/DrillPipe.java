@@ -87,7 +87,8 @@ public class DrillPipe extends AbstractPipe<History, History>{
             for(int i=0;i< compiledPaths.size(); i++){
                 if(!json.startsWith("{")){ //TODO: we may need a more rigourus check to see if it is json.
                     //history.add("."); 
-                    throw new InvalidJSONException("A column input to Drill that should be JSON was not JSON, I can't Drill non-JSON columns");
+                    int reportColumn = history.size() + drillColumn;
+                    throw new InvalidJSONException("A column input to Drill that should be JSON was not JSON, I can't Drill non-JSON columns: " + reportColumn + " : " + json);
                 }else {
                     try {
                         JsonPath jsonPath = compiledPaths.get(i);
