@@ -77,7 +77,12 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
 				// if there is no column header, just mark each column as
 				// UNKNOWN
 				for (int i = 1; i <= numCols; i++) {
-					ColumnMetaData cmd = new ColumnMetaData("#UNKNOWN_" + i);
+                                        ColumnMetaData cmd;
+                                        if(i==1){
+                                            cmd = new ColumnMetaData("UNKNOWN_" + i);
+                                        }else {
+                                            cmd = new ColumnMetaData("#UNKNOWN_" + i);
+                                        }
 					hMeta.getColumns().add(cmd);
 				}
 			}
