@@ -4,18 +4,14 @@
  */
 package edu.mayo.pipes.JSON.tabix;
 
-import com.jayway.jsonpath.JsonPath;
-import com.tinkerpop.pipes.AbstractPipe;
-import edu.mayo.pipes.JSON.tabix.TabixReader;
-import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import com.jayway.jsonpath.JsonPath;
+import com.tinkerpop.pipes.AbstractPipe;
+
+import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 
 /**
  *
@@ -73,19 +69,6 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
         maxBPPath = JsonPath.compile(CoreAttributes._maxBP.toString());     
     }
     
-    private void requery() throws NoSuchElementException, IOException {
-        if(records == null){
-            if(query == null){
-                if(this.starts.hasNext()){
-                    query = this.starts.next();//get the next json string
-                }else {
-                    throw new NoSuchElementException();
-                }
-            }
-            records = query(query);
-        }
-    }
-    
     public String format(String s){
         String[] split = s.split("\t");
         return split[jsonpos];
@@ -99,7 +82,8 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
             String record = null;
             requery();
             
-            record = records.next();//give you back the next query result
+            //give you back the next query result
+            record = records.next();
             if(record != null) {
                 return format(record);
             } else {
@@ -111,21 +95,19 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
                     return format(record);
                 } else {
                     throw new NoSuchElementException();
-                }                
+                }
             }
         } catch (Exception ex) {
-            //Logger.getLogger(TabixSearchPipe.class.getName()).log(Level.SEVERE, null, ex);
+        	ex.printStackTrace();
+        	//Logger.getLogger(TabixSearchPipe.class.getName()).log(Level.SEVERE, null, ex);
             //System.out.println("TabixSearchPipe.processNextStart() Failed : " + ex.getMessage());            
         }
-        throw new NoSuchElementException();
+    	throw new NoSuchElementException();
     }
     
     public TabixReader.Iterator query(String json) throws IOException {    
-        
-    	
     	Object o;
-        
-        
+
         //_landmark
         String landmark;
         o = landmarkPath.read(json);
@@ -140,14 +122,14 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
 	    o = minBPPath.read(json);
 		if (o != null) {
 			minBP = o.toString();
-                        if(extendminbp != 0){
-                           int t = Integer.parseInt(minBP);
-                           minBP = String.valueOf( t - extendminbp );
-                           if(t-this.extendminbp < 0){
-                               minBP = "0";
-                           }
-                           //System.out.println(minBP);
-                        }
+			if(extendminbp != 0){
+				int t = Integer.parseInt(minBP);
+				minBP = String.valueOf( t - extendminbp );
+				if(t-this.extendminbp < 0){
+					minBP = "0";
+				}
+				//System.out.println(minBP);
+			}
 		} else {
 			return null;
 	    }
@@ -157,21 +139,37 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
 	    o = maxBPPath.read(json);
 		if (o != null) {
 			maxBP = o.toString();
-                        if(extendmaxbp != 0){
-                           int t = Integer.parseInt(maxBP);
-                           maxBP = String.valueOf( t + extendmaxbp );
-                           //System.out.println(maxBP);
-                        }
+			if(extendmaxbp != 0){
+				int t = Integer.parseInt(maxBP);
+				maxBP = String.valueOf( t + extendmaxbp );
+				//System.out.println(maxBP);
+			}
 		} else {
 			return null;
 	    }
 		
 	    //abc123:7000-13000
-            //System.out.println(landmark + ":" + minBP + "-" + maxBP);
+		//System.out.println(landmark + ":" + minBP + "-" + maxBP);
 	    records = tquery(landmark + ":" + minBP + "-" + maxBP);
 	    
 	    return records;
     }
+    
+    private void requery() throws NoSuchElementException, IOException {
+        if(records == null){
+            if(query == null){
+                if(this.starts.hasNext()){
+                    query = this.starts.next();//get the next json string
+                }else {
+                    throw new NoSuchElementException();
+                }
+            }
+            records = query(query);
+        }
+    }
+    
+
+    
     /**
      * tquery takes a tabix style query, e.g. tabix genes.tsv.bgz 17:10000,20000
      * @param query = 17:10000,20000 
