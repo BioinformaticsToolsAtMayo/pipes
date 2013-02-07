@@ -69,7 +69,7 @@ public class HCutPipeTest {
         for(int i=0;p.hasNext();i++){
             String s = (String) p.next();
             if(i==0){
-                assertEquals("#UNKNOWN_1\tUNKNOWN_3\tUNKNOWN_5", s);
+                assertEquals("#UNKNOWN_1\t#UNKNOWN_3\t#UNKNOWN_5", s);
             }
             if(i==1){
                 assertEquals("A\tC\tW", s);
