@@ -100,7 +100,7 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
         } catch( NoSuchElementException noElemEx ) {
         	// Eat it - end of TabixSearch records
         } catch (Exception ex) {
-        	ex.printStackTrace();
+        	//ex.printStackTrace();
         	//Logger.getLogger(TabixSearchPipe.class.getName()).log(Level.SEVERE, null, ex);
             //System.out.println("TabixSearchPipe.processNextStart() Failed : " + ex.getMessage());            
         }
