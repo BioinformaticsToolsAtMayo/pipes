@@ -115,7 +115,8 @@ public class DrillPipeTest {
         String[] paths = new String[2];
         paths[0] = "gene";
         paths[1] = "minBP";
-        Pipe<String, String> p = new Pipeline(new HistoryInPipe(), new DrillPipe(false, paths), new MergePipe(" "));
+        //note the constructor uses -5... this is wrong, so we want to test that the pipe correctly re-adjusts the value
+        Pipe<String, String> p = new Pipeline(new HistoryInPipe(), new DrillPipe(false, paths,-5), new MergePipe(" "));
         p.setStarts(Arrays.asList(s1,s2, s3));
         for(int i=0; p.hasNext(); i++){
             String s = (String) p.next();
