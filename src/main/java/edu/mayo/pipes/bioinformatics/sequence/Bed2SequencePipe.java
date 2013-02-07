@@ -4,6 +4,7 @@
  */
 package edu.mayo.pipes.bioinformatics.sequence;
 
+import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.AbstractPipe;
 import edu.mayo.pipes.JSON.tabix.TabixParentPipe;
 import edu.mayo.pipes.JSON.tabix.TabixReader;
@@ -39,9 +40,17 @@ import java.util.logging.Logger;
  */
 public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<String>> {
 
-    TabixSearchPipe search;
+    TabixSearchPipe mTabixSearch;
+    private int mMaxBpCol = 0;
+    private boolean mIsUseJsonCol = false;
+    
+    private JsonPath mChromJsonPath;
+    private JsonPath mMinBpJsonPath;
+    private JsonPath mMaxBpJsonPath;
+
+    
     public Bed2SequencePipe(String tabixDataFile) throws IOException {
-        search = new TabixSearchPipe(tabixDataFile);
+        mTabixSearch = new TabixSearchPipe(tabixDataFile);
     }
     
     /**
@@ -56,36 +65,29 @@ public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<S
      * Then you may want column = -2
      * @throws IOException 
      */
-    private int column = 0;
     public Bed2SequencePipe(String tabixDataFile, int column) throws IOException {
-        search = new TabixSearchPipe(tabixDataFile);
-        this.column = column;
+        mTabixSearch = new TabixSearchPipe(tabixDataFile);
+        this.mMaxBpCol = column;
     }
     
     /**
-     * A substring for biological sequences
-     * 
-     * min is minbp for the interval
-     * max is maxbp for the interval
-     * start is the start of the genomic sequence tabix extracted
-     * end is the end of the genomic sequence tabix extracted
-     * 
-     * start < min < max < end
-     * 
-     *    start  min    max      end
-     *    |      |      |        |
-     *    ========================
-     * 
+     * Use the JSON column, which should be the last one
+     * @param tabixDataFile
+     * @param isUseJson - Use the json column.  If true, uses the last column for JSON
+     *        If false, the last column should be the maxBP column
+	 * Data should look like this:
+     *        X    1234    1456    {"_landmark":"X","_minBP":1234,"_maxBP":1456,.....}
+     * @throws IOException 
      */
-    public String oneBasedSubsequence(String sequence, int min, int max){
-        //System.out.println(start);
-        //System.out.println(end);
-        //System.out.println(min);
-        //System.out.println(max);
-        
-        return sequence.substring(min-start, max-start+1);
+    public Bed2SequencePipe(String tabixDataFile, boolean isUseJson) throws IOException {
+        mTabixSearch = new TabixSearchPipe(tabixDataFile);
+        mMaxBpCol = 0;
+        mIsUseJsonCol = isUseJson;
+        mChromJsonPath = JsonPath.compile(CoreAttributes._landmark.toString());
+        mMinBpJsonPath = JsonPath.compile(CoreAttributes._minBP.toString());
+        mMaxBpJsonPath = JsonPath.compile(CoreAttributes._maxBP.toString());
     }
-    
+
 
     int start = 0;
     int end = 0;
@@ -94,30 +96,68 @@ public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<S
     @Override
     public ArrayList<String> processNextStart() throws NoSuchElementException {
         try {
-            ArrayList<String> al = this.starts.next();
+            ArrayList<String> history = this.starts.next();
             
-            String record;
-            int x = new Integer(al.get(al.size()-2+this.column));
-            int y = new Integer(al.get(al.size()-1+this.column));
-            String query = al.get(al.size()-3+this.column) + ":" + x + "-" + y;
-            StringBuilder subsequence = new StringBuilder();
-            records = search.tquery(query);
-            for(int i=1;(record = records.next()) != null; i++){
-                //System.out.println(record);
-                String[] split = record.split("\t");
-                subsequence.append(split[3]);
-                if(i==1){                 
-                    start = new Integer(split[1]);
-                }
-                end = new Integer(split[2]);//keep updating it, eventually it will be correct.
-            }
+            String tabixQuery = getTabixQueryString(history);
+            String subsequence = getSequence(tabixQuery);
+            history.add( subsequence );
             
-            al.add( oneBasedSubsequence(subsequence.toString(), x, y) );
-            
-            return al;
+            return history;
         } catch (IOException ex) {
             throw new NoSuchElementException();//perhaps bad??
         }
+    }
+    
+    /** Get the one-based subsequence that matches the range in the query */
+    private String getSequence(String tabixQuery) throws NumberFormatException, IOException {
+    	StringBuilder subsequence = new StringBuilder();
+        records = mTabixSearch.tquery(tabixQuery);
+        String rec = null;
+        boolean isFirst = true;
+        int seqEndPos = 0;
+        // Loop thru the records that overlap the tabixQuery range and concatenate them together
+        while( (rec = records.next()) != null ) {
+            String[] split = rec.split("\t");
+            String seq = split[3];
+            // Trim off the part of the subsequence that comes before the query start
+            if(isFirst) {
+            	int numToTrimOffFront = getMin(tabixQuery) - Integer.parseInt(split[1]);
+        		seq = seq.substring(numToTrimOffFront);
+        		isFirst = false;
+        	}
+            subsequence.append(seq);
+            // Save the end position for later so we know how much to trim from end
+            seqEndPos = Integer.parseInt(split[2]);
+        }
+        // Now, trim off the last part that is past the query end
+        int numToTrimOffEnd = seqEndPos - getMax(tabixQuery);
+        return subsequence.substring(0, subsequence.length()-numToTrimOffEnd);
+    }
+    
+    /** Ex:  "17:12345-23456" */
+    private String getTabixQueryString(ArrayList<String> history) {
+    	String query = "";
+    	if( mIsUseJsonCol ) {
+    		String lastCol = history.get(history.size()-1);
+    		String chr = mChromJsonPath.read(lastCol);
+    		int min = mMinBpJsonPath.read(lastCol);
+    		int max = mMaxBpJsonPath.read(lastCol);
+    		query = chr + ":" + min + "-" + max;
+    	} else {
+    		String chr = history.get(history.size()-3+this.mMaxBpCol);
+    		String min = history.get(history.size()-2+this.mMaxBpCol);
+    		String max = history.get(history.size()-1+this.mMaxBpCol);
+    		query = chr + ":" + min + "-" + max;
+    	}
+    	return query;
+    }
+    
+    private int getMin(String query) {
+    	return Integer.parseInt(query.substring(query.indexOf(":") + 1, query.indexOf("-")));
+    }
+    
+    private int getMax(String query) {
+    	return Integer.parseInt(query.substring(query.indexOf("-") + 1));
     }
     
     
