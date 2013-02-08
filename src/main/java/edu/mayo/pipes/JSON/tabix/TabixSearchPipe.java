@@ -82,6 +82,9 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
             String record = null;
             requery();
             
+            if( records == null ) 
+            	throw new NoSuchElementException("There were no tabix search results to match the query.");
+            
             //give you back the next query result
             record = records.next();
             if(record != null) {
@@ -98,9 +101,9 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
                 }
             }
         } catch( NoSuchElementException noElemEx ) {
-        	// Eat it - end of TabixSearch records
+        	// Eat it - no TabixSearch records
         } catch (Exception ex) {
-        	//ex.printStackTrace();
+        	ex.printStackTrace();
         	//Logger.getLogger(TabixSearchPipe.class.getName()).log(Level.SEVERE, null, ex);
             //System.out.println("TabixSearchPipe.processNextStart() Failed : " + ex.getMessage());            
         }
