@@ -89,12 +89,9 @@ public class TabixSearchPipeTest {
    
     @Test 
     public void testProcessNextStart_InvalidQuery() {
-        String query = "some invalid query";
-        String[] drills = new String[1];
-        drills[0] = "gene";
-        Pipe p;
 		try {
-			p = new Pipeline(new TabixSearchPipe(geneFile), new SimpleDrillPipe(false, drills));
+			Pipe p = new Pipeline(new TabixSearchPipe(geneFile), new SimpleDrillPipe(false, new String[] { "gene" }));
+	        String query = "some invalid query";
 	        p.setStarts(Arrays.asList(query));
 	        for(int i=0; p.hasNext(); i++){
 	            p.next(); //throws an exception
