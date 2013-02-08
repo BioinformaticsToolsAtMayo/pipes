@@ -106,6 +106,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     @Override
     protected History processNextStart() throws NoSuchElementException {
         setup();
+        while(true){
         //If the search has another result, append the result to the history
         if(search.hasNext()){
             //System.out.println("Next Search Result...");
@@ -113,7 +114,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
                 qcount++;
                 return copyAppend(history, validResult);
             }else {//not a valid result, try again...
-                return processNextStart();
+                ;//return processNextStart(); --loop again
             }         
         }else {//otherwise, the search did not have any more results, get the next history
             if(qcount == 0){//we did not have any search results, append empty JSON to the history and send it along
@@ -129,6 +130,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
                 return processNextStart();
             }
             
+        }
         }
     }
     
