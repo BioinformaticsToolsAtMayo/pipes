@@ -230,7 +230,8 @@ public class TabixReader
 		String chr;
 		int colon, hyphen;
 		int[] ret = new int[3];
-		colon = reg.indexOf(':'); hyphen = reg.indexOf('-');
+		colon  = reg.indexOf(':');
+		hyphen = reg.indexOf('-');
 		chr = colon >= 0? reg.substring(0, colon) : reg;
 		ret[1] = colon >= 0? Integer.parseInt(reg.substring(colon+1, hyphen >= 0? hyphen : reg.length())) - 1 : 0;
 		ret[2] = hyphen >= 0? Integer.parseInt(reg.substring(hyphen+1)) : 0x7fffffff;
@@ -385,6 +386,10 @@ public class TabixReader
 	
 	public Iterator query(final String reg) {
 		int[] x = parseReg(reg);
+		// Return null if the chromosome is not in the tabix index
+		// (otherwise it will assign x[0] = -1)
+		if(x[0] == -1)
+			return null;
 		return query(x[0], x[1], x[2]);
 	}
 
