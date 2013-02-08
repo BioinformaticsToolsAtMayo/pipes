@@ -7,6 +7,8 @@ package edu.mayo.pipes.history;
 import com.tinkerpop.pipes.util.Pipeline;
 import edu.mayo.pipes.MergePipe;
 import edu.mayo.pipes.PrintPipe;
+import edu.mayo.pipes.util.PipeTestUtils;
+
 import java.util.Arrays;
 import java.util.List;
 import org.junit.After;
@@ -63,21 +65,15 @@ public class HCutPipeTest {
         Pipeline p = new Pipeline(new HistoryInPipe(), 
                                   new HCutPipe(cc), 
                                   //new MergePipe("\t", false), 
-                                  new HistoryOutPipe(),
-                                  new PrintPipe());
+                                  new HistoryOutPipe()
+                                  );
         p.setStarts(Arrays.asList(s1, s2));
-        for(int i=0;p.hasNext();i++){
-            String s = (String) p.next();
-            if(i==0){
-                assertEquals("#UNKNOWN_1\t#UNKNOWN_3\t#UNKNOWN_5", s);
-            }
-            if(i==1){
-                assertEquals("A\tC\tW", s);
-            }
-            if(i==2){
-                assertEquals("D\tF\tW", s);
-            }
-        }
-
+        List<String> expected = Arrays.asList(
+        		"#UNKNOWN_1\t#UNKNOWN_3\t#UNKNOWN_5",
+        		"A\tC\tW",
+        		"D\tF\tW"
+        		);
+        List<String> actual = PipeTestUtils.getResults(p);
+        PipeTestUtils.assertListsEqual(expected, actual);
     }
 }
