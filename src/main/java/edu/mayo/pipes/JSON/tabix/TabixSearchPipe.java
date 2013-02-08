@@ -102,6 +102,8 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
             }
         } catch( NoSuchElementException noElemEx ) {
         	// Eat it - no TabixSearch records
+        } catch( IllegalArgumentException illegalEx ) {
+        	System.err.println("TabixSearchPipe: JSON or query string may not be valid:  " + illegalEx.getMessage());
         } catch (Exception ex) {
         	ex.printStackTrace();
         	//Logger.getLogger(TabixSearchPipe.class.getName()).log(Level.SEVERE, null, ex);
