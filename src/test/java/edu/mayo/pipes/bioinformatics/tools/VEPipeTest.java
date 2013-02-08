@@ -63,11 +63,12 @@ public class VEPipeTest {
     public void testProcessNextStart() {
         System.out.println("processNextStart");
         vep.reset(); 
-        Pipe p = new Pipeline( new CatPipe(),new GrepEPipe("^#.*"), new SplitPipe("\t"), new PrintPipe());
+        Pipe p = new Pipeline( new CatPipe(),new GrepEPipe("^#.*"), new SplitPipe("\t"));
         p.setStarts(Arrays.asList( "src/test/resources/testData/tools/vep/example.vcf" ));
         while(p.hasNext()){
             p.next();
         }
+        // TODO: Validate the results here....
     }
     
     @Test

@@ -88,8 +88,8 @@ public class Bed2SequencePipeTest {
     public void extractSequencePipeline() throws IOException{
         System.out.println("Extract Sequence Pipeline Test.");
         Pipe p = new Pipeline(new HistoryInPipe(), 
-                              new Bed2SequencePipe(tabixGenome),
-                              new PrintPipe());
+                              new Bed2SequencePipe(tabixGenome)
+        		);
         p.setStarts(Arrays.asList(p1,p2,p3,p4,p5));
         for(int i=0; p.hasNext(); i++){
             ArrayList al = (ArrayList) p.next();
