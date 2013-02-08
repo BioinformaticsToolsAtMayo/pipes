@@ -59,16 +59,16 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     }
     
     protected void setup(){
-        //handle the case where the drill column is greater than zero...
-        if(historyPos > 0){
-            int size = history.size();
-            //recalculate it to be negative...
-            historyPos = historyPos - history.size() - 1;
-        }
-            
         //if it is the first call to the pipe... set it up
         if(isFirst){
             isFirst = false;
+
+            //handle the case where the drill column is greater than zero...
+            if(historyPos > 0){
+                //recalculate it to be negative...
+                historyPos = historyPos - history.size() - 1;
+            }
+
             //get the history
             history = this.starts.next();
             qcount = 0;
@@ -79,9 +79,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
             List<ColumnMetaData> cols = History.getMetaData().getColumns();
     		ColumnMetaData cmd = new ColumnMetaData(getClass().getSimpleName());
     		cols.add(cmd);
-            
         }
-        
     }
 
     /**
@@ -105,32 +103,33 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
      
     @Override
     protected History processNextStart() throws NoSuchElementException {
-        setup();
+    	// Setup only on first row
+    	setup();
+    	
         while(true){
-        //If the search has another result, append the result to the history
-        if(search.hasNext()){
-            //System.out.println("Next Search Result...");
-            if(valid(comparableObject)){
-                qcount++;
-                return copyAppend(history, validResult);
-            }else {//not a valid result, try again...
-                ;//return processNextStart(); --loop again
-            }         
-        }else {//otherwise, the search did not have any more results, get the next history
-            if(qcount == 0){//we did not have any search results, append empty JSON to the history and send it along
-                qcount++; //just to get the history to reset on the next call
-                return copyAppend(history,"{}");//return empty result
-            }else {//we did have at least one result (perhaps empty).. and they are all done
-                history = this.starts.next();
-                //reset the pipeline for the search query
-                search.reset(); 
-                search.setStarts(Arrays.asList(history.get(history.size()+historyPos)));
-                qcount = 0;
-                //and start pulling data again...
-                return processNextStart();
-            }
-            
-        }
+	        //If the search has another result, append the result to the history
+	        if(search.hasNext()){
+	            //System.out.println("Next Search Result...");
+	            if(valid(comparableObject)){
+	                qcount++;
+	                return copyAppend(history, validResult);
+	            }else {//not a valid result, try again...
+	                //return processNextStart(); --loop again
+	            }         
+	        }else {//otherwise, the search did not have any more results, get the next history
+	            if(qcount == 0){//we did not have any search results, append empty JSON to the history and send it along
+	                qcount++; //just to get the history to reset on the next call
+	                return copyAppend(history,"{}");//return empty result
+	            }else {//we did have at least one result (perhaps empty).. and they are all done
+	                history = this.starts.next();
+	                //reset the pipeline for the search query
+	                search.reset(); 
+	                search.setStarts(Arrays.asList(history.get(history.size()+historyPos)));
+	                qcount = 0;
+	                //and start pulling data again...
+	                //return processNextStart();
+	            }
+	        }
         }
     }
     

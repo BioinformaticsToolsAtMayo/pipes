@@ -49,24 +49,27 @@ import java.lang.StringBuffer;
 
 public class TabixReader
 {
-	private String mFn;
-	private BlockCompressedInputStream mFp;
+	protected String mFn;
+	protected BlockCompressedInputStream mFp;
 
-	private int mPreset;
-	private int mSc;
-	private int mBc;
-	private int mEc;
-	private int mMeta;
-	private int mSkip;
-	private String[] mSeq;
+	protected int mPreset;
+	protected int mSc;
+	protected int mBc;
+	protected int mEc;
+	protected int mMeta;
+	protected int mSkip;
+	protected String[] mSeq;
 
-	private HashMap<String, Integer> mChr2tid;
+	protected HashMap<String, Integer> mChr2tid;
 
-	private static int MAX_BIN = 37450;
-	private static int TAD_MIN_CHUNK_GAP = 32768;
-	private static int TAD_LIDX_SHIFT = 14;
+	protected static int MAX_BIN = 37450;
+	protected static int TAD_MIN_CHUNK_GAP = 32768;
+	protected static int TAD_LIDX_SHIFT = 14;
 
-	private class TPair64 implements Comparable<TPair64> {
+	protected TIndex[] mIndex;
+
+	
+	protected class TPair64 implements Comparable<TPair64> {
 		long u, v;
 		public TPair64(final long _u, final long _v) {
 			u = _u; v = _v;
@@ -79,14 +82,13 @@ public class TabixReader
 		}
 	};
 
-	private class TIndex {
+	protected class TIndex {
 		HashMap<Integer, TPair64[]> b; // binning index
 		long[] l; // linear index
 	};
-	private TIndex[] mIndex;
 
-	private class TIntv {
-		int tid, beg, end;
+	protected class TIntv {
+		int tid, beg, end, bin;
 	};
 
 	private static boolean less64(final long u, final long v) { // unsigned 64-bit comparison
@@ -212,7 +214,7 @@ public class TabixReader
 		return readLine(mFp);
 	}
 
-	private int chr2tid(final String chr) {
+	protected int chr2tid(final String chr) {
 		if (mChr2tid.containsKey(chr)) return mChr2tid.get(chr);
 		else return -1;
 	}
@@ -236,7 +238,7 @@ public class TabixReader
 		return ret;
 	}
 
-	private TIntv getIntv(final String s) {
+	protected TIntv getIntv(final String s) {
 		TIntv intv = new TIntv();
 		int col = 0, end = 0, beg = 0;
 		while ((end = s.indexOf('\t', beg)) >= 0 || end == -1) {
