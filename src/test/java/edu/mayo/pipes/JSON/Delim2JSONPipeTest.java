@@ -9,6 +9,9 @@ import edu.mayo.pipes.PrintPipe;
 import edu.mayo.pipes.SplitPipe;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
+import edu.mayo.pipes.history.HistoryOutPipe;
+import edu.mayo.pipes.util.PipeTestUtils;
+
 import java.util.Arrays;
 import java.util.List;
 import org.junit.*;
@@ -55,19 +58,17 @@ public class Delim2JSONPipeTest {
         
         // Setup the pipes and start them
         Delim2JSONPipe delim2json = new Delim2JSONPipe(meta, delim);
-        Pipeline p = new Pipeline(new HistoryInPipe(), delim2json, new PrintPipe());
+        Pipeline p = new Pipeline(new HistoryInPipe(), delim2json, new HistoryOutPipe());
         p.setStarts(lists);
         
-        String[] expected = { 
-        	"[Rex|brown|12, {\"name\":\"Rex\",\"color\":\"brown\",\"age\":12}]",
-        	"[Simon|black|2.5, {\"name\":\"Simon\",\"color\":\"black\",\"age\":2.5}]",
-        	"[Pillsbury|white|6, {\"name\":\"Pillsbury\",\"color\":\"white\",\"age\":6}]",
-        };
-        int expIdx = 0;
-        while(p.hasNext()){
-            History hist = (History)(p.next());
-            assertEquals(expected[expIdx++], hist.toString());
-        }
+        List<String> expected = Arrays.asList(
+        	"#UNKNOWN_1",
+        	"Rex|brown|12\t{\"name\":\"Rex\",\"color\":\"brown\",\"age\":12}",
+        	"Simon|black|2.5\t{\"name\":\"Simon\",\"color\":\"black\",\"age\":2.5}",
+        	"Pillsbury|white|6\t{\"name\":\"Pillsbury\",\"color\":\"white\",\"age\":6}"
+        );
+        List<String> actual = PipeTestUtils.getResults(p);
+        PipeTestUtils.assertListsEqual(expected, actual);
     }
 
     @Test
