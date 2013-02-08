@@ -4,11 +4,16 @@
  */
 package edu.mayo.pipes.UNIX;
 
-import edu.mayo.pipes.UNIX.*;
-
 import java.util.Arrays;
-import org.junit.*;
-import static org.junit.Assert.*;
+import java.util.List;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import edu.mayo.pipes.util.PipeTestUtils;
 
 /**
  *
@@ -41,11 +46,11 @@ public class UNIQPipeTest {
     @Test
     public void testProcessNextStart() {
         System.out.println("uniq pipe test");
-        UNIQPipe uniq = new UNIQPipe();
-        uniq.setStarts(Arrays.asList("do", "you", "like", "my", "hat", "no", "I", "do", "not", "like", "your", "hat"));
-        while(uniq.hasNext()){
-            System.out.println(uniq.next());
-        }
-        
+        UNIQPipe uniquePipe = new UNIQPipe();
+        uniquePipe.setStarts(Arrays.asList("do", "you", "like", "my", "hat", "no", "I", "do", "not", "like", "your", "hat"));
+        List<String> expected = Arrays.asList("not", "no", "your", "you", "do", "like", "I", "my", "hat");
+        List<String> actual = PipeTestUtils.getResults(uniquePipe);
+        PipeTestUtils.assertListsEqual(expected, actual);
     }
+    
 }
