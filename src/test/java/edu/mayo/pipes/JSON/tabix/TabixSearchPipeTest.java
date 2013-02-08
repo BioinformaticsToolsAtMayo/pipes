@@ -79,7 +79,6 @@ public class TabixSearchPipeTest {
 
     @Test
     public void testProcessNextStart_EmptyResults() throws Exception {
-        System.out.println("Test Tabix Search Pipe... empty query results");
         String query = "{\"_landmark\":\"17\",\"_minBP\":1,\"_maxBP\":4}";
         String[] drills = new String[1];
         drills[0] = "gene";
@@ -90,7 +89,6 @@ public class TabixSearchPipeTest {
    
     @Test 
     public void testProcessNextStart_InvalidQuery() {
-        System.out.println("Test Tabix Search Pipe... invalid query empty query results!!");
         String query = "some invalid query";
         String[] drills = new String[1];
         drills[0] = "gene";
@@ -108,7 +106,7 @@ public class TabixSearchPipeTest {
     
     @Test (expected=IOException.class) 
     public void testProcessNextStart_InvalidFile() throws Exception {
-        System.out.println("Test Tabix Search Pipe... invalid file!!");
+    	// Test for invalid file - an IOException is expected
         String query = "{\"_landmark\":\"22\",\"_minBP\":41196309,\"_maxBP\":411966310}";
         String[] drills = new String[1];
         drills[0] = "gene";
@@ -118,7 +116,6 @@ public class TabixSearchPipeTest {
     
     @Test
     public void testTQuery() throws Exception {
-        System.out.println("Test TQuery");
         String record = "";
         String r1 = "abc123\t.\tgene\t6000\t12000\t.\t+\t.\tID=gene00005";
         String r2 = "abc123\t.\tgene\t8000\t16000\t.\t+\t.\tID=gene00005";
@@ -138,7 +135,6 @@ public class TabixSearchPipeTest {
     
     @Test
     public void testQuery() throws Exception{
-        System.out.println("Test Query Based on JSON input");
         String record = "";
         TabixSearchPipe op = new TabixSearchPipe(geneFile);
         String brca1 = "{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"-\",\"_minBP\":41196312,\"_maxBP\":41277500,\"gene\":\"BRCA1\",\"gene_synonym\":\"BRCAI; BRCC1; BROVCA1; IRIS; PNCA4; PPP1R53; PSCP; RNF53\",\"note\":\"breast cancer 1, early onset; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"672\",\"HGNC\":\"1100\",\"HPRD\":\"00218\",\"MIM\":\"113705\"}";
