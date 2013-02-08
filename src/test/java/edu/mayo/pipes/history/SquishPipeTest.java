@@ -8,7 +8,11 @@ import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 import edu.mayo.pipes.MergePipe;
 import edu.mayo.pipes.PrintPipe;
+import edu.mayo.pipes.util.PipeTestUtils;
+
 import java.util.Arrays;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -53,19 +57,13 @@ public class SquishPipeTest {
         String s4 = "A\tB\tE";
         String s5 = "A\tB\tE";
         SquishPipe squish = new SquishPipe(2);
-        Pipe p = new Pipeline(new HistoryInPipe(), squish, new MergePipe("\t"), new PrintPipe());
+        Pipe p = new Pipeline(new HistoryInPipe(), squish, new MergePipe("\t"));
+        List<String> expected = Arrays.asList(
+        		"A\tB\tC",
+        		"A\tB\tD",
+        		"A\tB\tE" );
         p.setStarts(Arrays.asList(s1,s2,s3,s4,s5));
-        for(int i=0; p.hasNext(); i++){
-            String s = (String) p.next();
-            if(i==0){
-                assertEquals("A\tB\tC", s);
-            }
-            if(i==1){
-                assertEquals("A\tB\tD", s);
-            }
-            if(i==2){
-                assertEquals("A\tB\tE", s);
-            }
-        }
+        List<String> actual = PipeTestUtils.getResults(p);
+        PipeTestUtils.assertListsEqual(expected, actual);
     }
 }
