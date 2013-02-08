@@ -26,6 +26,7 @@ import edu.mayo.pipes.PrintPipe;
 import edu.mayo.pipes.SplitPipe;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
+import edu.mayo.pipes.util.PipeTestUtils;
 
 /**
  *
@@ -161,18 +162,17 @@ public class OverlapPipeTest {
     @Test
     public void testMinBPExtend() throws IOException{
         System.out.println("OverlapPipe: Test if extending minbp works");
-        ArrayList<String> results = new ArrayList<String>();
         String query = "my\tfirst\tquery\t{\"_landmark\":\"1\",\"_minBP\":49482,\"_maxBP\":49482}";  //1 result
-	OverlapPipe op = new OverlapPipe(geneFile, 10000, 0);
-	Pipe p2 = new Pipeline(
-                new HistoryInPipe(), 
-                op, 
-                new MergePipe("\t"),
-                new PrintPipe());
-	p2.setStarts(Arrays.asList(query));
-        for(int i=0; p2.hasNext(); i++) {
-            results.add((String)p2.next());       	
-	} 
+		OverlapPipe op = new OverlapPipe(geneFile, 10000, 0);
+		Pipe p2 = new Pipeline(
+	                new HistoryInPipe(), 
+	                op, 
+	                new MergePipe("\t") );
+		p2.setStarts(Arrays.asList(query));
+		List<String> expected = null;
+		List<String> actual = PipeTestUtils.getResults(p2);
+		// TODO: compare actual to expected
+		//PipeTestUtils.assertListsEqual(expected, actual);
     }
         
 }

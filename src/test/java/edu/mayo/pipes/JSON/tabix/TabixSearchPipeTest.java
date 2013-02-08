@@ -53,7 +53,7 @@ public class TabixSearchPipeTest {
         String query = "{\"_landmark\":\"17\",\"_minBP\":41196312,\"_maxBP\":41300000}";
         String[] drills = new String[1];
         drills[0] = "gene";
-        Pipe p = new Pipeline(new TabixSearchPipe(geneFile), new PrintPipe(), new SimpleDrillPipe(false, drills));
+        Pipe p = new Pipeline(new TabixSearchPipe(geneFile), new SimpleDrillPipe(false, drills));
         p.setStarts(Arrays.asList(query));
         for(int i=0; p.hasNext(); i++){
             List<String> d = (List<String>) p.next();
