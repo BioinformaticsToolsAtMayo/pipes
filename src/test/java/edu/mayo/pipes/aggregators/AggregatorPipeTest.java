@@ -72,12 +72,13 @@ public class AggregatorPipeTest {
         String result = "";
         Pipe<String,String> zip_pipe = new CatGZPipe("gzip");
         AggregatorPipe agg = new AggregatorPipe(4);
-        Pipe<String,Collection> pipeline = new Pipeline<String,Collection>(zip_pipe, new PrintPipe(), agg);
+        Pipe<String,Collection> pipeline = new Pipeline<String,Collection>(zip_pipe, agg);
         pipeline.setStarts(Arrays.asList("src/test/resources/testData/example.gff.gz", "src/test/resources/testData/example2.gff.gz"));
         
         while(pipeline.hasNext()) {
         	pipeline.next();
         }        
+        // TODO: Validate the results here
     }
     
 
