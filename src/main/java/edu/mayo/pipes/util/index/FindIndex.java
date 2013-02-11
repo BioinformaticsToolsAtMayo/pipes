@@ -67,6 +67,5 @@ public class FindIndex {
 		stmt.close();
 
 		return key2posMap;
-	}
-		
+	}		
 }
