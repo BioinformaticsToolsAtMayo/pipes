@@ -20,7 +20,11 @@ public class H2Connection {
 		}
 	}
 	
-    private Connection getConnection(File databaseFile) throws ClassNotFoundException, SQLException, IOException {
+    public Connection getConn() {
+		return this.conn;
+	}
+
+	private Connection getConnection(File databaseFile) throws ClassNotFoundException, SQLException, IOException {
     	Class.forName("org.h2.Driver");
 		String dbPath = databaseFile.getCanonicalPath().replace(".h2.db", "");
 		System.out.println("Database path: " + dbPath);
