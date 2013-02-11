@@ -112,11 +112,16 @@ public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<S
     private String getSequence(String tabixQuery) throws NumberFormatException, IOException {
     	StringBuilder subsequence = new StringBuilder();
         records = mTabixSearch.tquery(tabixQuery);
+        
+        // No matches in tabix search - so return ""
+        if(records == null)
+        	return ".";
+        
         String rec = null;
         boolean isFirst = true;
         int seqEndPos = 0;
         // Loop thru the records that overlap the tabixQuery range and concatenate them together
-        while( records != null && ((rec = records.next()) != null) ) {
+        while( (rec = records.next()) != null ) {
             String[] split = rec.split("\t");
             String seq = split[3];
             // Trim off the part of the subsequence that comes before the query start
