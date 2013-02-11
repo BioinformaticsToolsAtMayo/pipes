@@ -12,16 +12,6 @@ import java.util.List;
 import java.util.Set;
 
 public class FindIndex {
-
-	public List<String> idsToFind;
-	public boolean isKeyInteger;
-	public Connection dbConn;
-		
-	public FindIndex(List<String> idsToFind, boolean isKeyInteger, Connection dbConn) {
-		this.idsToFind = idsToFind;
-		this.isKeyInteger = isKeyInteger;
-		this.dbConn = dbConn;
-	}
 	
 	public HashMap<String, List<Long>> find(List<String> idsToFind, boolean isKeyInteger, Connection dbConn) throws SQLException {
 		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
