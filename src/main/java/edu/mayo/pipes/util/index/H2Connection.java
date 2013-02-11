@@ -10,8 +10,16 @@ import java.sql.Statement;
 public class H2Connection {
 	
 	Connection conn = null;
+        
+        public H2Connection(String s){
+            File f = new File(s);
+            init(f);
+        }
 	
 	public H2Connection(File databaseFile) {
+            init(databaseFile);
+        }
+        private void init(File databaseFile){
 		try {
 			this.conn = getConnection(databaseFile);
 		} catch (Exception e) {
