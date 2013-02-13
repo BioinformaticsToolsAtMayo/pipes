@@ -1,13 +1,15 @@
 package edu.mayo.pipes.util.index;
 
+import java.io.File;
 import java.sql.Connection;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import org.junit.Test;
 
 public class LookupPipeTest {
-	
+
 	@Test
 	public void test() throws Exception {
 		// the last entry, after json string is the lookup-id. here i used hgnc-id
@@ -21,21 +23,47 @@ public class LookupPipeTest {
 		boolean isKeyInteger = true;
 		
 		String databaseFile = "/src/test/resources/testData/tabix/index/genes.HGNC.idx.h2.db";
+		
+		File bgzipFile = new File("resources/ALL.chr22.phase1_release_v3.20101123.snps_indels_svs.genotypes.vcf.gz");
+		File tmpTxt = new File("resources/tmp.txt");
+	
 		H2Connection h2 = new H2Connection(databaseFile);
 		Connection dbConn = h2.getConn();
-		System.out.println(dbConn.isValid(5));
+		//System.out.println(dbConn.isValid(5));
 		
-		FindIndex findIndex = new FindIndex();
+		// 1. Create table
+		//h2.createTable(false, 200, dbConn);
+		
+		// 2. 
+	    //utils.zipIndexesToTextFile(bgzipFile, "\t", 3, null, tmpTxt);
+
+		// 3. 
+		// textIndexesToDb(dbConn, false, tmpTxt);
+
+		// 4. 
+		//createDbTableIndex(dbConn);
+
+		// 5. find index
 		/*
-		HashMap<String,List<Long>> key2posMap = findIndex.find(idToFind, isKeyInteger, dbConn);
-		
+		FindIndex findIndex = new FindIndex();		
+		HashMap<String,List<Long>> key2posMap = findIndex.find(idToFind, isKeyInteger, dbConn);		
 		System.out.println(key2posMap.size());
 		
 		for (String name: key2posMap.keySet()){
             String key = name.toString();
             //String value = key2posMap.get(name).toString();  
-            System.out.println(key);  
-		} */		
+            System.out.println(key);
+            System.out.println(Arrays.asList(key2posMap.get(name)));
+		} */
+				
+		// 6. 
+		// For each row-number retrieved from the above findIndex.find, get the row from the tabix-catalog-file
+		
+		// 7.
+		// HashMap<String,List<String>> key2LinesMap = utils.getZipLinesByIndex(bgzipFile, key2posMap);
+		
+		dbConn.close();		
+		h2.closeConn();
 	}
 	
 }
