@@ -75,10 +75,11 @@ public class IndexUtils {
 	 * @param keyColumn
 	 * @param jsonPathToKey  Example: $.store.book[0].title   (If this is null or "", then the whole column will be used as the index key)
 	 * @param txtIndexOut
+	 * @return Maximum size of the key (this is used in creating the database table to set the key field length)
 	 * @throws SQLException
 	 * @throws IOException
 	 */
-	public void zipIndexesToTextFile(File bgzipFile, String delimiter, int keyColumn, String jsonPathToKey, File txtIndexOut) throws SQLException, IOException {
+	public int zipIndexesToTextFile(File bgzipFile, String delimiter, int keyColumn, String jsonPathToKey, File txtIndexOut) throws SQLException, IOException {
 		BlockCompressedInputStream instr = new BlockCompressedInputStream(bgzipFile);
 		
 		// Compile the JsonPath to make it faster and more reusable
@@ -93,6 +94,7 @@ public class IndexUtils {
 		final int MB = 1024*1024;
 		int numObjects = 0;
 		System.out.println("numObjs\tMem_MBs\tkey");
+		int maxKeyLen = 0;
 		do {
 			if(! isFirstLine ) 
 				pos = instr.getFilePointer();
@@ -104,9 +106,18 @@ public class IndexUtils {
 			String[] cols = line.split(delimiter);
 			String key = cols[keyColumn-1];
 			
-			if(jsonPathToKey != null && jsonPathToKey.length() > 0)
-				key = jsonPath.read(key);
+			// If the jsonPath was specified, then look it up
+			if(jsonPathToKey != null && jsonPathToKey.length() > 0) {
+				// If the json does not contain the key, then loop
+				if( key.contains(jsonPathToKey) )
+					key = jsonPath.read(key);
+				else 
+					continue;
+			}
 
+			if( key.length() > maxKeyLen )
+				maxKeyLen = key.length();
+			
 			fout.write( (key + "\t" + pos + "\n").getBytes() );
 
 			if( numObjects % 10000 == 0 ) {
@@ -115,6 +126,8 @@ public class IndexUtils {
 		} while( line != null );
 		fout.close();
 		System.out.println("Num objects read: " + numObjects);
+		System.out.println("Max key length: " + maxKeyLen);
+		return maxKeyLen;
 	}
 
 
