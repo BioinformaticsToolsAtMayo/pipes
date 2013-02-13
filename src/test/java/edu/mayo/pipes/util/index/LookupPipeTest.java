@@ -29,9 +29,9 @@ public class LookupPipeTest {
 		// if the lookup if found, the related data is appened to the end of json. here, "hgnc=18315"
 		String EXPECTED_OUTPUT = "";	
 	
-		//String idToFind = "715"; //gene-id - a duplicate (2 rows)
-		//String idToFind = "1";  //GeneID - only 1
-		String idToFind = "4";
+		String idTwoRows = "715"; //gene-id - a duplicate (2 rows)
+		String idOneRow  = "1";  //GeneID - only 1
+		String idZeroRows= "4";
 		
 		boolean isKeyInteger = true;
 		
@@ -55,14 +55,14 @@ public class LookupPipeTest {
 
 		// 5. find index
 		FindIndex findIndex = new FindIndex();		
-		HashMap<String,List<Long>> key2posMap = findIndex.find(idToFind, isKeyInteger, dbConn);		
+		List<Long> pos0rows = findIndex.find(idZeroRows, true, dbConn);		
+		List<Long> pos1row  = findIndex.find(idOneRow,   true, dbConn);		
+		List<Long> pos2rows = findIndex.find(idTwoRows,  true, dbConn);		
 		
-		for (String name: key2posMap.keySet()){
-            String key = name.toString();
-            //String value = key2posMap.get(name).toString();  
-            System.out.println(key);
-            System.out.println(Arrays.asList(key2posMap.get(name)));
-		} 
+		assertEquals(Arrays.asList(), pos0rows);
+		assertEquals(Arrays.asList(72805499555L), pos1row);
+		assertEquals(Arrays.asList(28950243673L, 28950243981L), pos2rows);
+		
 
 		// 6. 
 		// For each row-number retrieved from the above findIndex.find, get the row from the tabix-catalog-file
@@ -73,8 +73,6 @@ public class LookupPipeTest {
 		dbConn.close();		
 		dbConn = null;
 		h2 = null;
-		
-		fail("not checking anything yet");
 	}
 	
 }
