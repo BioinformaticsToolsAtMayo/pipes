@@ -164,6 +164,31 @@ public class IndexUtils {
 		instr.close();
 		return linesOut;
 	}
+
+	/** Get the lines from the bgzip file that match the indexes.
+	 * Return a HashMap that maps the key to the list of lines returned
+	 * @throws IOException */
+	public HashMap<String,List<String>> getZipLinesByIndex(File bgzipFile, String idToFind, List<Long> indexes) throws IOException {
+		BlockCompressedInputStream instr = new BlockCompressedInputStream(bgzipFile);
+		HashMap<String,List<String>> linesOut = new HashMap<String,List<String>>();
+		String line = null;
+			
+		List<String> linesForId = new ArrayList<String>();
+
+		for(Long pos : indexes) {			
+			instr.seek(pos);
+			line = instr.readLine();
+			if(line != null) {
+				linesForId.add(line);
+			}
+		}
+
+		linesOut.put(idToFind, linesForId);
+		
+		instr.close();
+		return linesOut;
+	}
+
 	
 	public void writeLines(HashMap<String,List<String>> keyToLinesMap, File txtOutFile) throws IOException {
 		FileOutputStream fout = new FileOutputStream(txtOutFile);
