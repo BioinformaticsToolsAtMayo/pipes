@@ -1,5 +1,7 @@
 package edu.mayo.pipes.util.index;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -27,11 +29,13 @@ public class LookupPipeTest {
 		// if the lookup if found, the related data is appened to the end of json. here, "hgnc=18315"
 		String EXPECTED_OUTPUT = "";	
 	
-		String idToFind = "750"; //gene-id
+		//String idToFind = "715"; //gene-id - a duplicate (2 rows)
+		//String idToFind = "1";  //GeneID - only 1
+		String idToFind = "4";
 		
 		boolean isKeyInteger = true;
 		
-		String databaseFile = "/src/test/resources/testData/tabix/index/genes.GeneID.idx.h2.db";
+		String databaseFile = "src/test/resources/testData/tabix/index/genes.GeneID.idx.h2.db";
 	
 		H2Connection h2 = new H2Connection(databaseFile);
 		Connection dbConn = h2.getConn();
@@ -50,10 +54,8 @@ public class LookupPipeTest {
 		//createDbTableIndex(dbConn);
 
 		// 5. find index
-		/*
 		FindIndex findIndex = new FindIndex();		
 		HashMap<String,List<Long>> key2posMap = findIndex.find(idToFind, isKeyInteger, dbConn);		
-		System.out.println(key2posMap.size());
 		
 		for (String name: key2posMap.keySet()){
             String key = name.toString();
@@ -61,7 +63,7 @@ public class LookupPipeTest {
             System.out.println(key);
             System.out.println(Arrays.asList(key2posMap.get(name)));
 		} 
-			*/	
+
 		// 6. 
 		// For each row-number retrieved from the above findIndex.find, get the row from the tabix-catalog-file
 		
@@ -69,9 +71,10 @@ public class LookupPipeTest {
 		// HashMap<String,List<String>> key2LinesMap = utils.getZipLinesByIndex(bgzipFile, key2posMap);
 		
 		dbConn.close();		
-		h2.closeConn();
 		dbConn = null;
 		h2 = null;
+		
+		fail("not checking anything yet");
 	}
 	
 }
