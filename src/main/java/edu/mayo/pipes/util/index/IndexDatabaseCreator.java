@@ -1,0 +1,143 @@
+package edu.mayo.pipes.util.index;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
+
+public class IndexDatabaseCreator {
+	/** Reads a bgzip catalog, getting a key from col and jsonPath, then creating an H2 database/index 
+	 * @param bgzipPath  Full path to bgzip catalog file
+	 * @param keyCol 1-based column where the json is located
+	 * @param jsonPath  The json path to get the id that we will index (ex: "HGNC" for HGNC Id within the Genes catalog)
+	 * @param isKeyAnInteger  Is the key an integer or a string
+	 * @param outH2DbFile  The name of the H2 database that will be created
+	 * @throws IOException 
+	 * @throws SQLException 
+	 * @throws ClassNotFoundException */ 
+	public void buildIndexH2(String bgzipPath, int keyCol, String jsonPath, boolean isKeyAnInteger, String outH2DbPath) throws SQLException, IOException, ClassNotFoundException {
+		Connection dbConn = null;
+		try {
+			// First remove the database file
+			File h2DbFile = new File(outH2DbPath);
+			if(h2DbFile.exists()) {
+				System.out.println("Deleting file: " + h2DbFile.getCanonicalPath());
+				h2DbFile.delete();
+			}
+			
+		    // NOTE: Indexes are saved to a text file first to avoid the huge memory locking issue
+		    // (this occurred when reading from a bgzip file and trying to load directly to memory or a database
+		    // but saving to files worked ok).
+			
+			// Save indexes to text file
+		    System.out.println("Saving indexes to temp text file...");
+			//addZipIndexesToDb(bgzipFile, 3, false, "\t", dbConn);
+		    File tempTxtOut = new File(h2DbFile.getParentFile().getCanonicalPath() + "/tempIndex.txt");
+		    IndexUtils indexUtils = new IndexUtils();
+		    int maxKeyLen = indexUtils.zipIndexesToTextFile(new File(bgzipPath), "\t", keyCol, jsonPath, tempTxtOut);
+	
+		    // Throw exception if maxKeyLen is 0, because then it didn't index anything
+		    if( 0 == maxKeyLen ) {
+		    	throw new IllegalArgumentException("There were no keys indexed!  Check your inputs and try again.");
+		    }
+		    
+		    // Read all data from text and put into H2 database
+		    H2Connection h2Conn = new H2Connection(h2DbFile);
+		    dbConn = h2Conn.getConn();
+		    System.out.println("Create database table...");
+		    h2Conn.createTable(isKeyAnInteger, maxKeyLen, dbConn);
+		    System.out.println("Add rows from text file to database...");
+		    textIndexesToDb(dbConn, false, tempTxtOut);
+		    countDatabaseRows(h2DbFile);
+			System.out.println("Creating index on database...");
+			h2Conn.createTableIndex(dbConn);
+	
+			// Remove the temp text file
+			tempTxtOut.delete();
+			
+			// Print the database
+			//sprintDatabase(h2DbFile, isKeyAnInteger);
+		} finally {
+			if(dbConn != null && ! dbConn.isClosed())
+				dbConn.close();
+		}
+	}
+		
+
+	/** Prints all rows in the database */
+	private void printDatabase(File h2DbFile, boolean isKeyAnInteger) throws SQLException, ClassNotFoundException, IOException {
+		System.out.println("\n\nPrinting table Indexer...");
+		Connection dbConn = new H2Connection(h2DbFile).getConn();
+	    Statement stmt = dbConn.createStatement();
+	    ResultSet rs = stmt.executeQuery("SELECT * FROM Indexer ORDER BY Key");
+	    int row = 0;
+	    while(rs.next()) {
+	    	String key = isKeyAnInteger  ?  "" + rs.getInt(1)  :  rs.getString(1);
+	    	long pos = rs.getLong(2);
+	    	System.out.println(++row + ")\t" + key + "\t" + pos);
+	    }
+	    rs.close();
+	    stmt.close();
+	    dbConn.close();
+	}
+
+	private void countDatabaseRows(File h2DbFile) throws SQLException, ClassNotFoundException, IOException {
+		Connection dbConn = new H2Connection(h2DbFile).getConn();
+	    Statement stmt = dbConn.createStatement();
+	    ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM Indexer");
+	    int count = 0;
+	    while(rs.next()) {
+	    	count = rs.getInt(1);
+	    }
+    	System.out.println("# of rows in database = " + count);
+	    rs.close();
+	    stmt.close();
+	    dbConn.close();
+	}
+
+	private void textIndexesToDb(Connection dbConn, boolean isKeyInteger, File tmpTxt) throws NumberFormatException, SQLException, IOException {
+		long numObjects = 0;
+		long numBytesRead = 0;
+		long MB = 1024L * 1024L;
+
+		BufferedReader fin = new BufferedReader(new FileReader(tmpTxt));
+		
+		final String SQL = "INSERT INTO Indexer (Key, FilePos) VALUES (?, ?)";
+		PreparedStatement stmt = dbConn.prepareStatement(SQL);
+		dbConn.setAutoCommit(true);
+
+		String line = null;
+		while( (line = fin.readLine()) != null ) {
+			numObjects++;
+			String[] cols = line.split("\t");
+			String key = cols[0];
+			String pos = cols[1];
+			if(isKeyInteger)
+				stmt.setLong(1, Integer.valueOf(key));
+			else
+				stmt.setString(1, key);
+			stmt.setLong(2, Long.valueOf(pos));
+			stmt.execute();
+			dbConn.commit();
+
+			if( numObjects % 10000 == 0 ) {
+				System.out.println(key + "    " + numObjects 
+						+ ", avgBytesPerItem: " + (numBytesRead / numObjects) 
+						+ ", MBs read: " + (numBytesRead/MB) + ", Mem (MBs): " + (new IndexUtils().getMemoryUse()/MB));
+			}
+		} while( line != null );
+
+		fin.close();
+		stmt.close();
+		
+		System.out.println("Num objects read: " + numObjects);
+	}
+
+}
