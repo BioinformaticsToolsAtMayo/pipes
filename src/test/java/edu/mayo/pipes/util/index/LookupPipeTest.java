@@ -11,6 +11,9 @@ import java.util.List;
 
 import org.junit.Test;
 
+import edu.mayo.pipes.util.CatalogUtils;
+import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
+
 public class LookupPipeTest {
 	
 	/**
@@ -20,40 +23,19 @@ public class LookupPipeTest {
 	 * Not Found: 4, 5, 6
 	 * 
 	 */
-
 	@Test
-	public void test() throws Exception {
-		// the last entry, after json string is the lookup-id. here i used hgnc-id
-		String INPUT = "chr\t41177258\t41184058\t750\t{\"type\":\"gene\",\"chr\":\"17\",\"strand\":\"+\",\"minBP\":41177258,\"maxBP\":41184058,\"gene\":\"RND2\",\"gene_synonym\":\"ARHN; RHO7; RhoN\",\"note\":\"Rho family GTPase 2\",\"GeneID\":\"8153\",\"HPRD\":\"03332\",\"MIM\":\"601555\"}";
-	
-		// if the lookup if found, the related data is appened to the end of json. here, "hgnc=18315"
-		String EXPECTED_OUTPUT = "";	
+	public void testFindIndex() throws Exception {
+		System.out.println("Testing LookupPipeTest.testFindIndex()..");
 	
 		String idTwoRows = "715"; //gene-id - a duplicate (2 rows)
 		String idOneRow  = "1";  //GeneID - only 1
 		String idZeroRows= "4";
 		
-		boolean isKeyInteger = true;
-		
 		String databaseFile = "src/test/resources/testData/tabix/index/genes.GeneID.idx.h2.db";
-	
 		H2Connection h2 = new H2Connection(databaseFile);
 		Connection dbConn = h2.getConn();
-		System.out.println(dbConn.isValid(5));
 		
-		// 1. Create table
-		//h2.createTable(false, 200, dbConn);
-		
-		// 2. 
-	    //utils.zipIndexesToTextFile(bgzipFile, "\t", 3, null, tmpTxt);
-
-		// 3. 
-		// textIndexesToDb(dbConn, false, tmpTxt);
-
-		// 4. 
-		//createDbTableIndex(dbConn);
-
-		// 5. find index
+		// Find index
 		FindIndex findIndex = new FindIndex();		
 		List<Long> pos0rows = findIndex.find(idZeroRows, true, dbConn);		
 		List<Long> pos1row  = findIndex.find(idOneRow,   true, dbConn);		
@@ -62,17 +44,51 @@ public class LookupPipeTest {
 		assertEquals(Arrays.asList(), pos0rows);
 		assertEquals(Arrays.asList(72805499555L), pos1row);
 		assertEquals(Arrays.asList(28950243673L, 28950243981L), pos2rows);
-		
 
-		// 6. 
-		// For each row-number retrieved from the above findIndex.find, get the row from the tabix-catalog-file
-		
-		// 7.
-		// HashMap<String,List<String>> key2LinesMap = utils.getZipLinesByIndex(bgzipFile, key2posMap);
-		
 		dbConn.close();		
 		dbConn = null;
 		h2 = null;
 	}
+	
+	@Test
+	public void testLinesByIndex() throws Exception {
+		System.out.println("Testing LookupPipeTest.testLinexByIndex()..");
+		
+		IndexUtils utils = new IndexUtils();
+		File bgzipFile = new File("src/test/resources/testData/tabix/genes.tsv.bgz");
+		File queryResultTxt = new File("src/test/resources/testData/tmpOut/queryResults.lookup.fromDb.txt");
+		
+		final String EXPECTED_RESULTS="src/test/resources/testData/tabix/expected.results.lookup.txt";
+		final String QUERY_RESULTS = "src/test/resources/testData/tmpOut/queryResults.lookup.fromDb.txt";
+		
+		// the last entry, after json string is the lookup-id. here i used hgnc-id
+		String INPUT = "chr\t41177258\t41184058\t750\t{\"type\":\"gene\",\"chr\":\"17\",\"strand\":\"+\",\"minBP\":41177258,\"maxBP\":41184058,\"gene\":\"RND2\",\"gene_synonym\":\"ARHN; RHO7; RhoN\",\"note\":\"Rho family GTPase 2\",\"GeneID\":\"8153\",\"HPRD\":\"03332\",\"MIM\":\"601555\"}";
+	
+		// if the lookup if found, the related data is appened to the end of json. here, "hgnc=18315"
+		String EXPECTED_OUTPUT = "";	
+	
+		String idTwoRows = "715"; //gene-id - a duplicate (2 rows)
+		
+		String databaseFile = "src/test/resources/testData/tabix/index/genes.GeneID.idx.h2.db";
+		H2Connection h2 = new H2Connection(databaseFile);
+		Connection dbConn = h2.getConn();
+		
+		// Find index
+		FindIndex findIndex = new FindIndex();		
+		List<Long> pos2rows = findIndex.find(idTwoRows,  true, dbConn);				
+		//System.out.println("Postions:"+Arrays.asList(pos2rows));
+		
+		HashMap<String,List<String>> key2LinesMap = utils.getZipLinesByIndex(bgzipFile, idTwoRows, pos2rows);		
+		//System.out.println("Values from catalog:\n"+Arrays.asList(key2LinesMap.get(idTwoRows)));
+		
+		utils.writeLines(key2LinesMap, queryResultTxt);
+		
+		CatalogUtils.assertFileEquals(EXPECTED_RESULTS, QUERY_RESULTS);
+
+		dbConn.close();		
+		dbConn = null;
+		h2 = null;
+	}
+	
 	
 }
