@@ -4,22 +4,26 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class H2Connection {
 	
 	Connection conn = null;
         
-        public H2Connection(String s){
-            File f = new File(s);
-            init(f);
-        }
+	
+	public H2Connection(String databasePath){
+		init(new File(databasePath));
+	}
 	
 	public H2Connection(File databaseFile) {
-            init(databaseFile);
-        }
-        private void init(File databaseFile){
+		init(databaseFile);
+	}
+  
+	private void init(File databaseFile){
 		try {
 			this.conn = getConnection(databaseFile);
 		} catch (Exception e) {
@@ -45,6 +49,19 @@ public class H2Connection {
         return conn;
     }
     
+	public List<String> getTables(Connection dbConn) throws SQLException {
+		List<String> tableNames = new ArrayList<String>();
+		String query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE'";
+		Statement stmt = dbConn.createStatement();
+		ResultSet rs = stmt.executeQuery(query);
+		while(rs.next()) {
+			tableNames.add(rs.getString("TABLE_NAME"));
+		}
+		rs.close();
+		stmt.close();
+		return tableNames;
+	}
+	
     public void createTable(boolean isKeyInteger, int maxKeyLength, Connection dbConn) throws SQLException {
         final String SQL = "CREATE TABLE Indexer " 
         		+ "("
@@ -55,5 +72,13 @@ public class H2Connection {
         stmt.execute(SQL);
         stmt.close();
 	}
+    
+	public void createTableIndex(Connection dbConn) throws SQLException {
+		 final String SQL = "CREATE INDEX keyIndex ON Indexer (Key);";
+		 Statement stmt = dbConn.createStatement();
+		 stmt.execute(SQL);
+		 stmt.close();
+	}
+
     
 }
