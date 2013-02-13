@@ -68,4 +68,35 @@ public class FindIndex {
 
 		return key2posMap;
 	}		
+	
+
+	public HashMap<String, List<Long>> find(String idToFind, boolean isKeyInteger, Connection dbConn) throws SQLException {
+		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
+		PreparedStatement stmt = dbConn.prepareStatement(SQL);
+
+		HashMap<String,List<Long>> key2posMap = new HashMap<String,List<Long>>();
+			
+		List<Long> positions = key2posMap.get(idToFind);
+		if(positions == null) {
+			positions = new ArrayList<Long>();
+			key2posMap.put(idToFind, positions);
+		}
+		
+		if(isKeyInteger)
+			stmt.setLong(1, Long.valueOf(idToFind));
+		else
+			stmt.setString(1, idToFind);
+				
+		ResultSet rs = stmt.executeQuery();
+		System.out.println(rs);
+		while(rs.next()) {
+			Long pos = rs.getLong("FilePos");
+			positions.add(pos);
+		}
+		rs.close();		
+		stmt.close();
+
+		return key2posMap;
+	}		
+
 }
