@@ -22,6 +22,16 @@ import net.sf.samtools.util.BlockCompressedOutputStream;
 import com.jayway.jsonpath.JsonPath;
 
 public class IndexUtils {
+	
+	private File bgzipFile;
+
+	public IndexUtils() {
+	}
+
+	
+	public IndexUtils(File bgzipfile) {
+		this.bgzipFile = bgzipfile;
+	}
 
 	
 	/** 
@@ -46,7 +56,7 @@ public class IndexUtils {
 			String jsonPath = args[3];
 			String indexOutFile = args[4];
 			
-			IndexUtils utils = new IndexUtils();
+			IndexUtils utils = new IndexUtils(new File(""));
 			// Bgzip 4M lines: 986MB mem, 12.75s
 			//utils.loadIndexBgzip(new File("/Users/m054457/Downloads/UcscDbSnp135/chr1.index.rsId.sorted.txt.bgz"));
 			// Gzip 4M lines: 1000MB mem, 12.2s
@@ -188,6 +198,30 @@ public class IndexUtils {
 		instr.close();
 		return linesOut;
 	}
+	
+	/**
+	 * 
+	 * @param position
+	 * @return
+	 * @throws IOException
+	 */
+	public String getZipLinesByPostion(Long position) throws IOException {
+		BlockCompressedInputStream instr = new BlockCompressedInputStream(this.bgzipFile);
+		
+		String linesOut = null;
+			
+		instr.seek(position);
+		linesOut = instr.readLine();
+		
+		if (linesOut == null) {
+			linesOut = "";
+		}
+		
+		instr.close();
+		
+		return linesOut;
+	}
+	
 
 	
 	public void writeLines(HashMap<String,List<String>> keyToLinesMap, File txtOutFile) throws IOException {
