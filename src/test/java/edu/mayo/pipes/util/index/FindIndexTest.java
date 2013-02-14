@@ -49,5 +49,26 @@ public class FindIndexTest {
 		dbConn = null;
 		h2 = null;
 	}	
+
+	@Test
+	public void testFindIndex_IdAsString() throws Exception {
+		System.out.println("Testing LookupPipeTest.testFindIndex_IdAsString()..");
 	
+		String idOneRow  = "1";  //GeneID - only 1
+		
+		String databaseFile = "src/test/resources/testData/tabix/index/genes.GeneID.idx.h2.db";
+		H2Connection h2 = new H2Connection(databaseFile);
+		Connection dbConn = h2.getConn();
+		
+		// Find index
+		FindIndex findIndex = new FindIndex();		
+		List<Long> pos1row  = findIndex.find(idOneRow, dbConn);		
+		
+		assertEquals(Arrays.asList(72805499555L), pos1row);
+
+		dbConn.close();		
+		dbConn = null;
+		h2 = null;
+	}	
+
 }
