@@ -35,13 +35,14 @@ import java.util.logging.Logger;
 public class LookupPipe extends AbstractPipe<History,History> {
     private IndexUtils utils = new IndexUtils();
     private Connection dbConn;
-    private LinkedList<Integer> posqueue = new LinkedList<Integer>();
     protected History history = null;
     protected int qcount;
     protected boolean isFirst = true;
     protected ComparableObjectInterface comparableObject;
     protected int historyPos = -1; //position in the history to look for the input to the transform (default the last column)
     private File bgzipFile;
+    /** the column for the json in the catalog (usually 3 if it is a bed-like-file) */
+    private int jsonpos = 3;
     
     /**
      * 
@@ -58,6 +59,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
         //String truncate = dbIndexFile.replace("h2.db", "");
         H2Connection c = new H2Connection(dbIndexFile);
         dbConn = c.getConn();
+        iutil = new IndexUtils(bgzipFile);
     }
     
     public List<String> getIDs(List<History> hs, int col){
@@ -70,34 +72,79 @@ public class LookupPipe extends AbstractPipe<History,History> {
     }
     
      
-
-    FindIndex fi = new FindIndex();
-    IndexUtils iutil = new IndexUtils();
-    List<History> histQueue = new LinkedList<History>();
+//        History h = null;
+//        while(this.starts.hasNext()){
+//            h = this.starts.next();
+//            histQueue.add(h);
+//        }
+//        try {        
+//            
+//            String id = h.get(0);
+//            HashMap<String,List<Long>> idxMap = fi.find(Arrays.asList(id), true, dbConn);
+//            HashMap<String, List<String>> zipLinesByIndex = iutil.getZipLinesByIndex(bgzipFile,idxMap);
+//            h.add(zipLinesByIndex.toString());
+//        } catch (IOException e) {
+//            Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, e);
+//        } catch (SQLException ex) {
+//            Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    //    throw new UnsupportedOperationException("Not supported yet.");
+//        //1. get the ID from the history
+//        //2. use the ID to find the positions in h2 where the ID exists
+//        //3. for each index in the file, get the data and return it. fan out.
+//        //HashMap<String,List<String>> key2LinesMap = utils.getZipLinesByIndex(bgzipFile, key2posMap);
+//        return h;
+        //    	// Setup only on first row
+    private FindIndex fi = new FindIndex();
+    private IndexUtils iutil = null;
+    /** this holds the indexes we need to get data for */
+    private LinkedList<Long> posqueue = new LinkedList<Long>();
     @Override
     public History processNextStart() throws NoSuchElementException {
-        History h = null;
-        while(this.starts.hasNext()){
-            h = this.starts.next();
-            histQueue.add(h);
+    	setup();
+    	
+        while(true){
+	        //If the queue has another result, append the result to the history
+	        if(posqueue.size() > 0){
+                    qcount++;
+                    Long next = posqueue.poll();
+                    String line;                       
+                    String json = "{}";
+                    try {
+                        line = iutil.getZipLinesByPostion(next);
+                        if(line.length() > 2){//have to have {} at the least
+                            String[] split = line.split("\t");
+                            json = split[jsonpos];
+                        }
+                    } catch (IOException ex) {
+                        Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    return copyAppend(history, json);   
+	        }else {//otherwise, the search did not have any more results, get the next history
+	            if(qcount == 0){//we did not have any search results, append empty JSON to the history and send it along
+	                qcount++; //just to get the history to reset on the next call
+	                return copyAppend(history,"{}");//return empty result
+	            }else {//we did have at least one result (perhaps empty).. and they are all done
+	                history = this.starts.next();
+	                //reset the pipeline for the search query
+	                posqueue = new LinkedList<Long>();
+                        //get the ID we need to search with out of it...
+                        String id = history.get(history.size() + historyPos);
+                        try {
+                            //query the index...
+                            List<Long> find = fi.find(id, isFirst, dbConn);
+                            //build the posqueue
+                            posqueue = (LinkedList<Long>) find;
+                        } catch (SQLException ex) {
+                            Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+	                
+	                qcount = 0;
+	                //and start pulling data again...
+	                //return processNextStart();
+	            }
+	        }
         }
-        try {        
-            
-            String id = h.get(0);
-            HashMap<String,List<Long>> idxMap = fi.find(Arrays.asList(id), true, dbConn);
-            HashMap<String, List<String>> zipLinesByIndex = iutil.getZipLinesByIndex(bgzipFile,idxMap);
-            h.add(zipLinesByIndex.toString());
-        } catch (IOException e) {
-            Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, e);
-        } catch (SQLException ex) {
-            Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    //    throw new UnsupportedOperationException("Not supported yet.");
-        //1. get the ID from the history
-        //2. use the ID to find the positions in h2 where the ID exists
-        //3. for each index in the file, get the data and return it. fan out.
-        //HashMap<String,List<String>> key2LinesMap = utils.getZipLinesByIndex(bgzipFile, key2posMap);
-        return h;
     }
     
     public static void main(String[] args){
@@ -116,6 +163,12 @@ public class LookupPipe extends AbstractPipe<History,History> {
             p.next();
         }
         return;
+    }
+    
+    protected History copyAppend(History history, String result){
+		History clone = (History) history.clone();
+		clone.add(result);    	
+		return clone;    
     }
     
     protected void setup(){
@@ -142,6 +195,8 @@ public class LookupPipe extends AbstractPipe<History,History> {
     		cols.add(cmd);
         }
     }
+    
+    
     
 //    @Override
 //    protected History processNextStart() throws NoSuchElementException {
@@ -192,5 +247,13 @@ public class LookupPipe extends AbstractPipe<History,History> {
 //		System.out.println("  Num matching keys: " + idxMap.size());
 //		//System.out.println("  Mem use (MBs):  " + memUse);
 //	}
+
+    public int getJsonpos() {
+        return jsonpos;
+    }
+
+    public void setJsonpos(int jsonpos) {
+        this.jsonpos = jsonpos;
+    }
     
 }
