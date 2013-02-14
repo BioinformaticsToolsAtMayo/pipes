@@ -224,6 +224,7 @@ public class IndexUtils {
 	
 
 	
+        
 	public void writeLines(HashMap<String,List<String>> keyToLinesMap, File txtOutFile) throws IOException {
 		FileOutputStream fout = new FileOutputStream(txtOutFile);
 		SortedSet<String> sortedKeys = new TreeSet<String>(keyToLinesMap.keySet());
