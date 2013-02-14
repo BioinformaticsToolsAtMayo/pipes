@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 public class FindIndex {
+    
 	
 	public HashMap<String, List<Long>> find(List<String> idsToFind, boolean isKeyInteger, Connection dbConn) throws SQLException {
 		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
@@ -25,8 +26,8 @@ public class FindIndex {
 		Set<String> idSet = new HashSet<String>(idsToFind);
 		Iterator<String> it = idSet.iterator();		
 		double end = System.currentTimeMillis();		
-		System.out.println("Time to create set from list: " + (end-start)/1000.0);
-		System.out.println("Set size: " + idSet.size());
+		//System.out.println("Time to create set from list: " + (end-start)/1000.0);
+		//System.out.println("Set size: " + idSet.size());
 		
 		//IndexUtils utils = new IndexUtils();
 		long maxMem = 0;
@@ -63,7 +64,7 @@ public class FindIndex {
 			}
 			rs.close();
 		}
-		System.out.println("Max memory: " + maxMem);
+		//System.out.println("Max memory: " + maxMem);
 		stmt.close();
 
 		return key2posMap;
