@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.util.HashMap;
 import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
