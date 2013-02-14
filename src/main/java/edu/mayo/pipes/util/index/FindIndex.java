@@ -83,7 +83,7 @@ public class FindIndex {
 			stmt.setString(1, idToFind);
 				
 		ResultSet rs = stmt.executeQuery();
-		System.out.println(rs);
+		
 		while(rs.next()) {
 			Long pos = rs.getLong("FilePos");
 			positions.add(pos);
@@ -94,4 +94,31 @@ public class FindIndex {
 		return positions;
 	}		
 
+	/**
+	 * 
+	 * @param idToFind
+	 * @param dbConn
+	 * @return
+	 * @throws SQLException
+	 */
+	public List<Long> find(String idToFind, Connection dbConn) throws SQLException {
+		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
+		PreparedStatement stmt = dbConn.prepareStatement(SQL);
+		stmt.setString(1, idToFind);
+
+		List<Long> positions = new ArrayList<Long>();
+				
+		ResultSet rs = stmt.executeQuery();
+
+		while(rs.next()) {
+			Long pos = rs.getLong("FilePos");
+			positions.add(pos);
+		}
+		rs.close();		
+		stmt.close();
+
+		return positions;
+	}		
+
+	
 }
