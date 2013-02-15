@@ -11,8 +11,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
+
 public class FindIndex {
     
+	private Connection mDbConn;
+	private boolean mIsKeyAnInteger = false;
+	
+	public FindIndex(Connection dbConn) {
+		mDbConn = dbConn;
+		mIsKeyAnInteger = IndexUtils.isKeyAnInteger(dbConn);
+	}
+		
 	/**
 	 * From a specified set of Ids, find all id-filePosition pairs in the index
 	 * @param idsToFind
@@ -21,9 +31,9 @@ public class FindIndex {
 	 * @return
 	 * @throws SQLException
 	 */
-	public HashMap<String, List<Long>> find(List<String> idsToFind, boolean isKeyInteger, Connection dbConn) throws SQLException {
+	public HashMap<String, List<Long>> find(List<String> idsToFind) throws SQLException {
 		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
-		PreparedStatement stmt = dbConn.prepareStatement(SQL);
+		PreparedStatement stmt = mDbConn.prepareStatement(SQL);
 
 		HashMap<String,List<Long>> key2posMap = new HashMap<String,List<Long>>();
 		int count = 0;
@@ -59,7 +69,7 @@ public class FindIndex {
 				key2posMap.put(id, positions);
 			}
 			
-			if(isKeyInteger)
+			if(mIsKeyAnInteger)
 				stmt.setLong(1, Long.valueOf(id));
 			else
 				stmt.setString(1, id);
@@ -86,12 +96,12 @@ public class FindIndex {
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<Long> find(String idToFind, boolean isKeyAnInteger, Connection dbConn) throws SQLException {
+	public List<Long> find(String idToFind) throws SQLException {
 		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
-		PreparedStatement stmt = dbConn.prepareStatement(SQL);
+		PreparedStatement stmt = mDbConn.prepareStatement(SQL);
 		List<Long> positions = new ArrayList<Long>();
 		
-		if(isKeyAnInteger)
+		if(mIsKeyAnInteger)
 			stmt.setLong(1, Long.valueOf(idToFind));
 		else
 			stmt.setString(1, idToFind);
