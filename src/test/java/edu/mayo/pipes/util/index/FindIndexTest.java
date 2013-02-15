@@ -37,10 +37,10 @@ public class FindIndexTest {
 		Connection dbConn = h2.getConn();
 		
 		// Find index
-		FindIndex findIndex = new FindIndex();		
-		List<Long> pos0rows = findIndex.find(idZeroRows, true, dbConn);		
-		List<Long> pos1row  = findIndex.find(idOneRow,   true, dbConn);		
-		List<Long> pos2rows = findIndex.find(idTwoRows,  true, dbConn);		
+		FindIndex findIndex = new FindIndex(dbConn);		
+		List<Long> pos0rows = findIndex.find(idZeroRows);		
+		List<Long> pos1row  = findIndex.find(idOneRow);		
+		List<Long> pos2rows = findIndex.find(idTwoRows);		
 		
 		assertEquals(Arrays.asList(), pos0rows);
 		assertEquals(Arrays.asList(72805499555L), pos1row);
@@ -62,8 +62,8 @@ public class FindIndexTest {
 		Connection dbConn = h2.getConn();
 		
 		// Find index
-		FindIndex findIndex = new FindIndex();		
-		LinkedList<Long> pos1row  = findIndex.find(idOneRow, dbConn);		
+		FindIndex findIndex = new FindIndex(dbConn);		
+		List<Long> pos1row  = findIndex.find(idOneRow);		
 		
 		assertEquals(Arrays.asList(72805499555L), pos1row);
 

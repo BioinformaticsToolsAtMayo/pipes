@@ -32,11 +32,11 @@ public class IndexUtilsTest {
 		Connection dbConn = h2.getConn();
 		
 		// Find index
-		FindIndex findIndex = new FindIndex();		
-		List<Long> pos2rows = findIndex.find(idTwoRows,  true, dbConn);				
+		FindIndex findIndex = new FindIndex(dbConn);		
+		List<Long> pos2rows = findIndex.find(idTwoRows);				
 		//System.out.println("Postions:"+Arrays.asList(pos2rows));
 		
-		HashMap<String,List<String>> key2LinesMap = utils.getZipLinesByIndex(bgzipFile, idTwoRows, pos2rows);		
+		HashMap<String,List<String>> key2LinesMap = utils.getBgzipLinesByIndex(bgzipFile, idTwoRows, pos2rows);		
 		//System.out.println("Values from catalog:\n"+Arrays.asList(key2LinesMap.get(idTwoRows)));
 		
 		utils.writeLines(key2LinesMap, queryResultTxt);
@@ -68,13 +68,13 @@ public class IndexUtilsTest {
 		Connection dbConn = h2.getConn();
 		
 		// Find index
-		FindIndex findIndex = new FindIndex();		
-		List<Long> pos2rows = findIndex.find(idTwoRows,  true, dbConn);				
+		FindIndex findIndex = new FindIndex(dbConn);		
+		List<Long> pos2rows = findIndex.find(idTwoRows);				
 		//System.out.println("Postions:"+Arrays.asList(pos2rows));
 		
 		String line = "";
 		for (Long pos : pos2rows) {
-			line = utils.getZipLinesByPostion(pos);
+			line = utils.getBgzipLineByPosition(pos);
 			//System.out.println("Line=\n"+line);
 			assertEquals(EXPECTED_RESULT, line);
 		}
