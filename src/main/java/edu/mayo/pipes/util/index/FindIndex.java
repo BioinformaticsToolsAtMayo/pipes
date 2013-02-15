@@ -8,14 +8,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 public class FindIndex {
     
 	/**
-	 * 
+	 * From a specified set of Ids, find all id-filePosition pairs in the index
 	 * @param idsToFind
 	 * @param isKeyInteger
 	 * @param dbConn
@@ -80,44 +79,24 @@ public class FindIndex {
 	
 
 	/**
-	 * 
+	 * Given an Id, find a list of positions within the Bgzip file that correspond to that Id 
+	 * @param idToFind
+	 * @param isKeyAnInteger
+	 * @param dbConn
+	 * @return
+	 * @throws SQLException
 	 */
-	public List<Long> find(String idToFind, boolean isKeyInteger, Connection dbConn) throws SQLException {
+	public List<Long> find(String idToFind, boolean isKeyAnInteger, Connection dbConn) throws SQLException {
 		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
 		PreparedStatement stmt = dbConn.prepareStatement(SQL);
-
 		List<Long> positions = new ArrayList<Long>();
 		
-		if(isKeyInteger)
+		if(isKeyAnInteger)
 			stmt.setLong(1, Long.valueOf(idToFind));
 		else
 			stmt.setString(1, idToFind);
 				
 		ResultSet rs = stmt.executeQuery();
-		
-		while(rs.next()) {
-			Long pos = rs.getLong("FilePos");
-			positions.add(pos);
-		}
-		rs.close();		
-		stmt.close();
-
-		return positions;
-	}		
-
-
-	/**
-	 * 
-	 */
-	public LinkedList<Long> find(String idToFind, Connection dbConn) throws SQLException {
-		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
-		PreparedStatement stmt = dbConn.prepareStatement(SQL);
-		stmt.setString(1, idToFind);
-
-		LinkedList<Long> positions = new LinkedList<Long>();
-				
-		ResultSet rs = stmt.executeQuery();
-
 		while(rs.next()) {
 			Long pos = rs.getLong("FilePos");
 			positions.add(pos);
