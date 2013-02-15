@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Test;
@@ -62,7 +63,7 @@ public class FindIndexTest {
 		
 		// Find index
 		FindIndex findIndex = new FindIndex();		
-		List<Long> pos1row  = findIndex.find(idOneRow, dbConn);		
+		LinkedList<Long> pos1row  = findIndex.find(idOneRow, dbConn);		
 		
 		assertEquals(Arrays.asList(72805499555L), pos1row);
 

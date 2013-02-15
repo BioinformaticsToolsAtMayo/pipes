@@ -8,12 +8,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 public class FindIndex {
     
-	
+	/**
+	 * 
+	 * @param idsToFind
+	 * @param isKeyInteger
+	 * @param dbConn
+	 * @return
+	 * @throws SQLException
+	 */
 	public HashMap<String, List<Long>> find(List<String> idsToFind, boolean isKeyInteger, Connection dbConn) throws SQLException {
 		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
 		PreparedStatement stmt = dbConn.prepareStatement(SQL);
@@ -71,6 +79,9 @@ public class FindIndex {
 	}		
 	
 
+	/**
+	 * 
+	 */
 	public List<Long> find(String idToFind, boolean isKeyInteger, Connection dbConn) throws SQLException {
 		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
 		PreparedStatement stmt = dbConn.prepareStatement(SQL);
@@ -94,19 +105,16 @@ public class FindIndex {
 		return positions;
 	}		
 
+
 	/**
 	 * 
-	 * @param idToFind
-	 * @param dbConn
-	 * @return
-	 * @throws SQLException
 	 */
-	public List<Long> find(String idToFind, Connection dbConn) throws SQLException {
+	public LinkedList<Long> find(String idToFind, Connection dbConn) throws SQLException {
 		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
 		PreparedStatement stmt = dbConn.prepareStatement(SQL);
 		stmt.setString(1, idToFind);
 
-		List<Long> positions = new ArrayList<Long>();
+		LinkedList<Long> positions = new LinkedList<Long>();
 				
 		ResultSet rs = stmt.executeQuery();
 
@@ -120,5 +128,4 @@ public class FindIndex {
 		return positions;
 	}		
 
-	
 }
