@@ -167,10 +167,10 @@ public class IndexUtils {
 		return s + (new String(sp));
 	}
 
-	/** Get the lines from the bgzip file that match the indexes.
+	/** Get the lines from the bgzip file that match the indexes (which are passed in as HashMap of Key/List<Position> pairs)
 	 * Return a HashMap that maps the key to the list of lines returned
 	 * @throws IOException */
-	public HashMap<String,List<String>> getZipLinesByIndex(File bgzipFile, HashMap<String,List<Long>> indexes) throws IOException {
+	public HashMap<String,List<String>> getBgzipLinesByIndex(File bgzipFile, HashMap<String,List<Long>> indexes) throws IOException {
 		BlockCompressedInputStream instr = new BlockCompressedInputStream(bgzipFile);
 		HashMap<String,List<String>> linesOut = new HashMap<String,List<String>>();
 		String line = null;
