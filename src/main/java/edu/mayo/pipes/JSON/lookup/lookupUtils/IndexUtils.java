@@ -445,10 +445,10 @@ public class IndexUtils {
     	}catch(Exception e) {
     	} finally {
     		try {
-	    		if(stmt != null)
-	    			stmt.close();
 	    		if(rs != null)
 	    			rs.close();
+	    		if(stmt != null)
+	    			stmt.close();
     		}catch(Exception e) {
     		}
     	}
