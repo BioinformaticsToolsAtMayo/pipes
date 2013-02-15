@@ -7,11 +7,16 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
@@ -19,20 +24,22 @@ import java.util.zip.GZIPInputStream;
 import net.sf.samtools.util.BlockCompressedInputStream;
 import net.sf.samtools.util.BlockCompressedOutputStream;
 
+import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
 
 public class IndexUtils {
 	
-	private File bgzipFile;
+	private File mBgzipFile;
 
+	public enum IndexBuilderPropKeys { MaxKeyLen, IsKeyColAnInt };
+	
 	public IndexUtils() {
 	}
 
 	
 	public IndexUtils(File bgzipfile) {
-		this.bgzipFile = bgzipfile;
+		mBgzipFile = bgzipfile;
 	}
-
 	
 	/** 
 	 * 
@@ -89,7 +96,7 @@ public class IndexUtils {
 	 * @throws SQLException
 	 * @throws IOException
 	 */
-	public int zipIndexesToTextFile(File bgzipFile, String delimiter, int keyColumn, String jsonPathToKey, File txtIndexOut) throws SQLException, IOException {
+	public Properties zipIndexesToTextFile(File bgzipFile, String delimiter, int keyColumn, String jsonPathToKey, File txtIndexOut) throws SQLException, IOException {
 		BlockCompressedInputStream instr = new BlockCompressedInputStream(bgzipFile);
 		
 		// Compile the JsonPath to make it faster and more reusable
@@ -105,6 +112,7 @@ public class IndexUtils {
 		int numObjects = 0;
 		System.out.println("numObjs\tMem_MBs\tkey");
 		int maxKeyLen = 0;
+		boolean areAllKeysInts = true;
 		do {
 			if(! isFirstLine ) 
 				pos = instr.getFilePointer();
@@ -114,19 +122,27 @@ public class IndexUtils {
 				continue;
 			numObjects++;
 			String[] cols = line.split(delimiter);
+			// If keyColumn is negative, then wrap it back around to end
+			if( keyColumn == -1 )
+				keyColumn = cols.length;
 			String key = cols[keyColumn-1];
 			
 			// If the jsonPath was specified, then look it up
 			if(jsonPathToKey != null && jsonPathToKey.length() > 0) {
-				// If the json does not contain the key, then loop
-				if( key.contains(jsonPathToKey) )
-					key = jsonPath.read(key);
-				else 
+				try {
+					key = "" + jsonPath.read(key);
+				}catch(InvalidPathException e) {
+					// If the json does not contain the key, then loop
 					continue;
+				}
 			}
 
 			if( key.length() > maxKeyLen )
 				maxKeyLen = key.length();
+
+			// Check if the key is an integer
+			if( ! isInteger(key) )
+				areAllKeysInts = false;
 			
 			fout.write( (key + "\t" + pos + "\n").getBytes() );
 
@@ -137,7 +153,11 @@ public class IndexUtils {
 		fout.close();
 		System.out.println("Num objects read: " + numObjects);
 		System.out.println("Max key length: " + maxKeyLen);
-		return maxKeyLen;
+		
+		Properties props = new Properties();
+		props.put(IndexBuilderPropKeys.MaxKeyLen, maxKeyLen);
+		props.put(IndexBuilderPropKeys.IsKeyColAnInt, areAllKeysInts);
+		return props;
 	}
 
 
@@ -178,7 +198,7 @@ public class IndexUtils {
 	/** Get the lines from the bgzip file that match the indexes.
 	 * Return a HashMap that maps the key to the list of lines returned
 	 * @throws IOException */
-	public HashMap<String,List<String>> getZipLinesByIndex(File bgzipFile, String idToFind, List<Long> indexes) throws IOException {
+	public HashMap<String,List<String>> getBgzipLinesByIndex(File bgzipFile, String idToFind, List<Long> indexes) throws IOException {
 		BlockCompressedInputStream instr = new BlockCompressedInputStream(bgzipFile);
 		HashMap<String,List<String>> linesOut = new HashMap<String,List<String>>();
 		String line = null;
@@ -205,8 +225,8 @@ public class IndexUtils {
 	 * @return
 	 * @throws IOException
 	 */
-	public String getZipLinesByPostion(Long position) throws IOException {
-		BlockCompressedInputStream instr = new BlockCompressedInputStream(this.bgzipFile);
+	public String getBgzipLineByPosition(Long position) throws IOException {
+		BlockCompressedInputStream instr = new BlockCompressedInputStream(mBgzipFile);
 		
 		String linesOut = null;
 			
@@ -225,6 +245,7 @@ public class IndexUtils {
 
 	
         
+
 	public void writeLines(HashMap<String,List<String>> keyToLinesMap, File txtOutFile) throws IOException {
 		FileOutputStream fout = new FileOutputStream(txtOutFile);
 		SortedSet<String> sortedKeys = new TreeSet<String>(keyToLinesMap.keySet());
@@ -411,6 +432,29 @@ public class IndexUtils {
 		}catch(Exception e) { }
 		return false;
 	}
+	
+    public static boolean isKeyAnInteger(Connection dbConn)  {
+    	Statement stmt = null;
+    	ResultSet rs = null;
+    	boolean isInt = false;
+    	try {
+    		stmt = dbConn.createStatement();
+    		rs = stmt.executeQuery("SELECT Key FROM Indexer LIMIT 1");
+    		int type = rs.getMetaData().getColumnType(1);
+    		isInt = type == Types.BIGINT;
+    	}catch(Exception e) {
+    	} finally {
+    		try {
+	    		if(stmt != null)
+	    			stmt.close();
+	    		if(rs != null)
+	    			rs.close();
+    		}catch(Exception e) {
+    		}
+    	}
+    	return isInt;
+    }
+
 	
 
 	/** Get the delimiter from command line arguments, converting them as necessary 
