@@ -18,7 +18,10 @@ import edu.mayo.pipes.util.index.H2Connection;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,21 +36,20 @@ import java.util.logging.Logger;
  * @author m102417
  */
 public class LookupPipe extends AbstractPipe<History,History> {
-    private IndexUtils utils = new IndexUtils();
-    private Connection dbConn;
-    protected History history = null;
-    protected int qcount;
-    protected boolean isFirst = true;
-    protected ComparableObjectInterface comparableObject;
-    protected int historyPos = -1; //position in the history to look for the input to the transform (default the last column)
-    private File bgzipFile;
+    private IndexUtils mUtils = new IndexUtils();
+    private Connection mDbConn;
+    protected History mHistory = null;
+    protected int mQcount;
+    protected boolean mIsFirst = true;
+    protected ComparableObjectInterface mComparableObject;
+    protected int mHistoryPos = -1; //position in the history to look for the input to the transform (default the last column)
+    private File mBgzipFile;
     /** the column for the json in the catalog (usually 3 if it is a bed-like-file) */
-    private int jsonpos = 3;
-    private FindIndex fi = new FindIndex();
-    private IndexUtils iutil = null;
-    
+    private int mJsonpos = 3;
+    private FindIndex mFindIndex = new FindIndex();
+    private boolean mIsKeyAnInteger = false;
     /** this holds the indexes we need to get data for */
-    private LinkedList<Long> posqueue = new LinkedList<Long>();
+    private LinkedList<Long> mPosqueue = new LinkedList<Long>();
     
 
     /**
@@ -82,13 +84,15 @@ public class LookupPipe extends AbstractPipe<History,History> {
      * These index files will be named:
      * <catalog_name>.<json_path>.idx.<index_type>
      * E.g. For genes.tsv.bgz we could have genes.HGNC.idx.h2.db
+     * @throws SQLException 
      */
-    public LookupPipe(String dbIndexFile, String catalog){
-        bgzipFile = new File(catalog);
+    public LookupPipe(String dbIndexFile, String catalog) {
+        mBgzipFile = new File(catalog);
         //String truncate = dbIndexFile.replace("h2.db", "");
         H2Connection c = new H2Connection(dbIndexFile);
-        dbConn = c.getConn();
-        iutil = new IndexUtils(bgzipFile);
+        mDbConn = c.getConn();
+        mUtils = new IndexUtils(mBgzipFile);
+        mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
     }
     
     public List<String> getIDs(List<History> hs, int col){
@@ -102,18 +106,18 @@ public class LookupPipe extends AbstractPipe<History,History> {
 
     protected void setup(){
         //if it is the first call to the pipe... set it up
-        if(isFirst){
-            isFirst = false;
+        if(mIsFirst){
+            mIsFirst = false;
 
             //handle the case where the drill column is greater than zero...
-            if(historyPos > 0){
+            if(mHistoryPos > 0){
                 //recalculate it to be negative...
-                historyPos = historyPos - history.size() - 1;
+                mHistoryPos = mHistoryPos - mHistory.size() - 1;
             }
 
             //get the history
-            history = this.starts.next();
-            qcount = 0;
+            mHistory = this.starts.next();
+            mQcount = 0;
             //if we had a dependent pipe, which I don't think we do
             //search.reset();
             //search.setStarts(Arrays.asList(history.get(history.size() + historyPos)));
@@ -131,43 +135,39 @@ public class LookupPipe extends AbstractPipe<History,History> {
     	
         while(true){
 	        //If the queue has another result, append the result to the history
-	        if(posqueue.size() > 0) {
-	        	qcount++;
-                Long next = posqueue.poll();
+	        if(mPosqueue.size() > 0) {
+	        	mQcount++;
+                Long next = mPosqueue.poll();
                 String line;                       
                 String json = "{}";
                 try {
-                    line = iutil.getZipLinesByPostion(next);
+                    line = mUtils.getBgzipLineByPosition(next);
                     if(line.length() > 2){//have to have {} at the least
                         String[] split = line.split("\t");
-                        json = split[jsonpos];
+                        json = split[mJsonpos];
                     }
                 } catch (Exception ex) {
                     Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                return copyAppend(history, json);   
+                return copyAppend(mHistory, json);   
 	        } else {//otherwise, the search did not have any more results, get the next history
-	            if(qcount == 0){//we did not have any search results, append empty JSON to the history and send it along
-	                qcount++; //just to get the history to reset on the next call
-	                return copyAppend(history,"{}");//return empty result
+	            if(mQcount == 0){//we did not have any search results, append empty JSON to the history and send it along
+	                mQcount++; //just to get the history to reset on the next call
+	                return copyAppend(mHistory,"{}");//return empty result
 	            } else {//we did have at least one result (perhaps empty).. and they are all done
-	                history = this.starts.next();
+	                mHistory = this.starts.next();
 	                //reset the pipeline for the search query
-	                posqueue = new LinkedList<Long>();
-                        //get the ID we need to search with out of it...
-                        String id = history.get(history.size() + historyPos);
-                        try {
-                            //query the index...
-                        	LinkedList<Long> find = fi.find(id, dbConn);
-                        	
-                            //build the posqueue                            
-                            posqueue = (LinkedList<Long>) find;
-                            
-                        } catch (SQLException ex) {
-                            Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+	                mPosqueue = new LinkedList<Long>();
+	                //From history, get the ID we need to search for...
+	                String id = mHistory.get(mHistory.size() + mHistoryPos);
+	                try {
+	                	//query the index and build the posqueue
+	                	mPosqueue = (LinkedList<Long>)mFindIndex.find(id, mIsKeyAnInteger, mDbConn);
+ 	                } catch (SQLException ex) {
+	                	Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+	                }
 	                
-	                qcount = 0;
+	                mQcount = 0;
 	            }
 	        }
         }
@@ -181,11 +181,12 @@ public class LookupPipe extends AbstractPipe<History,History> {
     
     
     public int getJsonpos() {
-        return jsonpos;
+        return mJsonpos;
     }
 
     public void setJsonpos(int jsonpos) {
-        this.jsonpos = jsonpos;
+        this.mJsonpos = jsonpos;
     }
+    
     
 }
