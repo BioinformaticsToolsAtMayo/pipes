@@ -119,9 +119,14 @@ public class LookupPipe extends AbstractPipe<History,History> {
             //get the history
             mHistory = this.starts.next();
             mQcount = 0;
-            //if we had a dependent pipe, which I don't think we do
-            //search.reset();
-            //search.setStarts(Arrays.asList(history.get(history.size() + historyPos)));
+            //now we have to put the stuff in the queue...
+            String id = mHistory.get(mHistory.size() + mHistoryPos);
+            try {
+                    //query the index and build the posqueue
+                    mPosqueue = (LinkedList<Long>)mFindIndex.find(id);
+            } catch (SQLException ex) {
+                    Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+            }
             
             // add column meta data
             List<ColumnMetaData> cols = History.getMetaData().getColumns();
