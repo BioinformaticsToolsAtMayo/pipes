@@ -25,7 +25,7 @@ public class IndexDatabaseCreatorTest {
 		String dir = "src/test/resources/testData/tabix";
 		String bgzipPath = dir + "/genes.tsv.bgz";
 		String h2DbPath  = dir + "/index/genes.HGNC.idx.h2.db";
-		indexH2.buildIndexH2(bgzipPath, 4, "HGNC", true, h2DbPath);
+		indexH2.buildIndexH2(bgzipPath, 4, "HGNC", h2DbPath);
 		
 		int rowCount = getRowCount(h2DbPath, "Indexer");
 		assertEquals(30628, rowCount); 
@@ -46,7 +46,7 @@ public class IndexDatabaseCreatorTest {
 		String dir = "src/test/resources/testData/tabix";
 		String bgzipPath = dir + "/genes.tsv.bgz";
 		String h2DbPath  = dir + "/index/genes.GeneID.idx.h2.db";
-		indexH2.buildIndexH2(bgzipPath, 4, "GeneID", true, h2DbPath);
+		indexH2.buildIndexH2(bgzipPath, 4, "GeneID", h2DbPath);
 		
 		int rowCount = getRowCount(h2DbPath, "Indexer");
 		assertEquals(37301, rowCount); 
