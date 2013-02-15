@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 
 import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
 
@@ -22,9 +23,12 @@ public class IndexDatabaseCreator {
 	 * @throws IOException 
 	 * @throws SQLException 
 	 * @throws ClassNotFoundException */ 
-	public void buildIndexH2(String bgzipPath, int keyCol, String jsonPath, boolean isKeyAnInteger, String outH2DbPath) throws SQLException, IOException, ClassNotFoundException {
+	public void buildIndexH2(String bgzipPath, int keyCol, String jsonPath, String outH2DbPath) throws SQLException, IOException, ClassNotFoundException {
 		Connection dbConn = null;
+		File tempTxtOut = null;
 		try {
+			System.out.println("-------------- Building Index --------------");
+			
 			// First remove the database file
 			File h2DbFile = new File(outH2DbPath);
 			if(h2DbFile.exists()) {
@@ -39,11 +43,12 @@ public class IndexDatabaseCreator {
 			// Save indexes to text file
 		    System.out.println("Saving indexes to temp text file...");
 			//addZipIndexesToDb(bgzipFile, 3, false, "\t", dbConn);
-		    File tempTxtOut = new File(h2DbFile.getParentFile().getCanonicalPath() + "/tempIndex.txt");
+		    tempTxtOut = new File(h2DbFile.getParentFile().getCanonicalPath() + "/tempIndex.txt");
 		    IndexUtils indexUtils = new IndexUtils();
-		    int maxKeyLen = indexUtils.zipIndexesToTextFile(new File(bgzipPath), "\t", keyCol, jsonPath, tempTxtOut);
+		    Properties props = indexUtils.zipIndexesToTextFile(new File(bgzipPath), "\t", keyCol, jsonPath, tempTxtOut);
 	
 		    // Throw exception if maxKeyLen is 0, because then it didn't index anything
+		    int maxKeyLen = (Integer)(props.get(IndexUtils.IndexBuilderPropKeys.MaxKeyLen));
 		    if( 0 == maxKeyLen ) {
 		    	throw new IllegalArgumentException("There were no keys indexed!  Check your inputs and try again.");
 		    }
@@ -52,6 +57,7 @@ public class IndexDatabaseCreator {
 		    H2Connection h2Conn = new H2Connection(h2DbFile);
 		    dbConn = h2Conn.getConn();
 		    System.out.println("Create database table...");
+		    boolean isKeyAnInteger = (Boolean)(props.get(IndexUtils.IndexBuilderPropKeys.IsKeyColAnInt));
 		    h2Conn.createTable(isKeyAnInteger, maxKeyLen, dbConn);
 		    System.out.println("Add rows from text file to database...");
 		    textIndexesToDb(dbConn, false, tempTxtOut);
@@ -59,24 +65,30 @@ public class IndexDatabaseCreator {
 			System.out.println("Creating index on database...");
 			h2Conn.createTableIndex(dbConn);
 	
-			// Remove the temp text file
-			tempTxtOut.delete();
-			
 			// Print the database
-			//sprintDatabase(h2DbFile, isKeyAnInteger);
+			//printDatabase(h2DbFile, isKeyAnInteger);
 		} finally {
 			if(dbConn != null && ! dbConn.isClosed())
 				dbConn.close();
+			// Remove the temp text file
+			tempTxtOut.delete();
 		}
 	}
 		
 
 	/** Prints all rows in the database */
-	private void printDatabase(File h2DbFile, boolean isKeyAnInteger) throws SQLException, ClassNotFoundException, IOException {
+	public static void printDatabase(File h2DbFile, boolean isKeyAnInteger) throws SQLException, ClassNotFoundException, IOException {
 		System.out.println("\n\nPrinting table Indexer...");
 		Connection dbConn = new H2Connection(h2DbFile).getConn();
 	    Statement stmt = dbConn.createStatement();
 	    ResultSet rs = stmt.executeQuery("SELECT * FROM Indexer ORDER BY Key");
+	    
+	    // Print the column names
+	    int numCols = rs.getMetaData().getColumnCount();
+	    for(int i=1; i <= numCols; i++)
+	    	System.out.print("\t" + rs.getMetaData().getColumnName(i));
+	    System.out.println();
+	    
 	    int row = 0;
 	    while(rs.next()) {
 	    	String key = isKeyAnInteger  ?  "" + rs.getInt(1)  :  rs.getString(1);
@@ -88,7 +100,7 @@ public class IndexDatabaseCreator {
 	    dbConn.close();
 	}
 
-	private void countDatabaseRows(File h2DbFile) throws SQLException, ClassNotFoundException, IOException {
+	public static int countDatabaseRows(File h2DbFile) throws SQLException, ClassNotFoundException, IOException {
 		Connection dbConn = new H2Connection(h2DbFile).getConn();
 	    Statement stmt = dbConn.createStatement();
 	    ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM Indexer");
@@ -100,6 +112,7 @@ public class IndexDatabaseCreator {
 	    rs.close();
 	    stmt.close();
 	    dbConn.close();
+	    return count;
 	}
 
 	private void textIndexesToDb(Connection dbConn, boolean isKeyInteger, File tmpTxt) throws NumberFormatException, SQLException, IOException {
