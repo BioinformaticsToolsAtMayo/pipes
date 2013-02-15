@@ -4,32 +4,28 @@
  */
 package edu.mayo.pipes.JSON.lookup;
 
+import java.io.File;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.tinkerpop.pipes.AbstractPipe;
-import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
-import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
+
 import edu.mayo.pipes.PrintPipe;
+import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
 import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
 import edu.mayo.pipes.util.index.FindIndex;
 import edu.mayo.pipes.util.index.H2Connection;
-import java.io.File;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *

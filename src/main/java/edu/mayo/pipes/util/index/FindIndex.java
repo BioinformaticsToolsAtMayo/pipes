@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -17,6 +18,9 @@ public class FindIndex {
     
 	private Connection mDbConn;
 	private boolean mIsKeyAnInteger = false;
+	
+	public FindIndex() {
+	}
 	
 	public FindIndex(Connection dbConn) {
 		mDbConn = dbConn;
@@ -96,10 +100,10 @@ public class FindIndex {
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<Long> find(String idToFind) throws SQLException {
+	public LinkedList<Long> find(String idToFind) throws SQLException {
 		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
 		PreparedStatement stmt = mDbConn.prepareStatement(SQL);
-		List<Long> positions = new ArrayList<Long>();
+		LinkedList<Long> positions = new LinkedList<Long>();
 		
 		if(mIsKeyAnInteger)
 			stmt.setLong(1, Long.valueOf(idToFind));
