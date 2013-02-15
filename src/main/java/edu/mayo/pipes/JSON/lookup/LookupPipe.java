@@ -46,7 +46,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
     private File mBgzipFile;
     /** the column for the json in the catalog (usually 3 if it is a bed-like-file) */
     private int mJsonpos = 3;
-    private FindIndex mFindIndex = new FindIndex();
+    private FindIndex mFindIndex;
     private boolean mIsKeyAnInteger = false;
     /** this holds the indexes we need to get data for */
     private LinkedList<Long> mPosqueue = new LinkedList<Long>();
@@ -93,6 +93,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
         mDbConn = c.getConn();
         mUtils = new IndexUtils(mBgzipFile);
         mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
+        mFindIndex = new FindIndex(mDbConn);
     }
     
     public List<String> getIDs(List<History> hs, int col){
@@ -162,7 +163,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
 	                String id = mHistory.get(mHistory.size() + mHistoryPos);
 	                try {
 	                	//query the index and build the posqueue
-	                	mPosqueue = (LinkedList<Long>)mFindIndex.find(id, mIsKeyAnInteger, mDbConn);
+	                	mPosqueue = (LinkedList<Long>)mFindIndex.find(id);
  	                } catch (SQLException ex) {
 	                	Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
 	                }
