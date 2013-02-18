@@ -46,31 +46,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
     private boolean mIsKeyAnInteger = false;
     /** this holds the indexes we need to get data for */
     private LinkedList<Long> mPosqueue = new LinkedList<Long>();
-    
-
-    /**
-     * 
-     * @param args
-     */
-    public static void main(String[] args){
-        String dataFile = "src/test/resources/testData/tabix/genes.tsv.bgz";
-        String indexFile = "src/test/resources/testData/tabix/index/genes.HGNC.idx.h2.db";
-        LookupPipe lookup = new LookupPipe(indexFile, dataFile);
-        String s1 = "5";
-        String s2 = "7";
-        String s3 = "8";
-        Pipeline p = new Pipeline(new HistoryInPipe(), 
-                                    lookup,
-                                    new PrintPipe()
-                                );
-        p.setStarts(Arrays.asList(s1,s2,s3));
-        for(int i=0; p.hasNext(); i++){
-            p.next();
-        }
-        return;
-    }
-    
-    
+     
     /**
      * 
      * @param h2db - the index file we want to use to do the lookup
@@ -90,9 +66,9 @@ public class LookupPipe extends AbstractPipe<History,History> {
         mUtils = new IndexUtils(mBgzipFile);
         mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
         mFindIndex = new FindIndex(mDbConn);
-    }
-    
-    public List<String> getIDs(List<History> hs, int col){
+    }   
+
+	public List<String> getIDs(List<History> hs, int col){
         List<String> ids = new ArrayList<String>();
         for(int i=0; i<hs.size(); i++){
             History h = hs.get(i);
