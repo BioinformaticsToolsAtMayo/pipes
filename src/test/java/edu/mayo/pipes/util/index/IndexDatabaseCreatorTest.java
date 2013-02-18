@@ -44,14 +44,14 @@ public class IndexDatabaseCreatorTest {
 		IndexDatabaseCreator indexH2 = new IndexDatabaseCreator();
 		
 		// Create an index based on Gene "HGNC" json path
-		String dir = "src/test/resources/testData/tabix";
-		String bgzipPath = dir + "/genes.tsv.bgz";
-		String h2DbPath  = dir + "/index/genes.GeneID.idx.h2.db";
-		indexH2.buildIndexH2(bgzipPath, 4, "GeneID", h2DbPath);
-		
-		int rowCount = getRowCount(h2DbPath, "Indexer");
-		assertEquals(37301, rowCount); 
-		System.out.println("\n----------------------\n");
+//		String dir = "src/test/resources/testData/tabix";
+//		String bgzipPath = dir + "/genes.tsv.bgz";
+//		String h2DbPath  = dir + "/index/genes.GeneID.idx.h2.db";
+//		indexH2.buildIndexH2(bgzipPath, 4, "GeneID", h2DbPath);
+//		
+//		int rowCount = getRowCount(h2DbPath, "Indexer");
+//		assertEquals(37301, rowCount); 
+//		System.out.println("\n----------------------\n");
 
 	}
 
