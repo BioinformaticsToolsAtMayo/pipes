@@ -93,11 +93,13 @@ public class LookupPipe extends AbstractPipe<History,History> {
             mQcount = 0;
             //now we have to put the stuff in the queue...
             String id = mHistory.get(mHistory.size() + mHistoryPos);
-            try {
-                    //query the index and build the posqueue
-                    mPosqueue = (LinkedList<Long>)mFindIndex.find(id);
-            } catch (SQLException ex) {
-                    Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+            if (validateIdToFind(id)) {
+	            try {
+	                    //query the index and build the posqueue
+	                    mPosqueue = (LinkedList<Long>)mFindIndex.find(id);
+	            } catch (SQLException ex) {
+	                    Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+	            }
             }
             
             // add column meta data
@@ -138,17 +140,33 @@ public class LookupPipe extends AbstractPipe<History,History> {
 	                mPosqueue = new LinkedList<Long>();
 	                //From history, get the ID we need to search for...
 	                String id = mHistory.get(mHistory.size() + mHistoryPos);
-	                try {
-	                	//query the index and build the posqueue
-	                	mPosqueue = (LinkedList<Long>)mFindIndex.find(id);
- 	                } catch (SQLException ex) {
-	                	Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+	                if (validateIdToFind(id)) {
+		                try {
+		                	//query the index and build the posqueue
+		                	mPosqueue = (LinkedList<Long>)mFindIndex.find(id);
+	 	                } catch (SQLException ex) {
+		                	Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+		                }
 	                }
 	                
 	                mQcount = 0;
 	            }
 	        }
         }
+    }
+    
+    /**
+     * ID to lookup cannot be EMPTY or "."(JSON DEFAULT) 
+     * @param idToFind
+     * @return
+     */
+    private boolean validateIdToFind(String idToFind) {
+    	boolean result = false;
+    	if (idToFind!=null && !idToFind.equals(".") && !idToFind.equals("")) {
+    		result = true;
+    	}
+    	
+    	return result;
     }
     
     protected History copyAppend(History history, String result){

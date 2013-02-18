@@ -36,4 +36,28 @@ public class LookupPipeTest {
 	    
 	    assertEquals(EXPECTED_RESULT, RESULT);
 	}
+	
+	@Test
+	public void testLookupPipe_Empty() throws Exception {
+		String dataFile = "src/test/resources/testData/tabix/genes.tsv.bgz";
+	    String indexFile = "src/test/resources/testData/tabix/index/genes.HGNC.idx.h2.db";
+	    
+	    LookupPipe lookup = new LookupPipe(indexFile, dataFile);
+	    
+	    String hgncid = ".";
+	    
+	    String EXPECTED_RESULT = "{}";
+	    String RESULT="";
+	    
+	    Pipe<String, History> p = new Pipeline(new HistoryInPipe(), lookup);
+	    p.setStarts(Arrays.asList(hgncid));
+	    
+	    for(int i=0; p.hasNext(); i++) {	    	
+	    	History history = (History) p.next();            
+	    	RESULT= history.get(1);
+	    }	
+	    
+	    assertEquals(EXPECTED_RESULT, RESULT);
+	}
+
 }

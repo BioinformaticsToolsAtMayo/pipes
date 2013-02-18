@@ -105,19 +105,23 @@ public class FindIndex {
 		PreparedStatement stmt = mDbConn.prepareStatement(SQL);
 		LinkedList<Long> positions = new LinkedList<Long>();
 		
-		if(mIsKeyAnInteger)
-			stmt.setLong(1, Long.valueOf(idToFind));
-		else
-			stmt.setString(1, idToFind);
-				
-		ResultSet rs = stmt.executeQuery();
-		while(rs.next()) {
-			Long pos = rs.getLong("FilePos");
-			positions.add(pos);
-		}
-		rs.close();		
-		stmt.close();
-
+		try {
+			if(mIsKeyAnInteger)
+				stmt.setLong(1, Long.valueOf(idToFind));
+			else
+				stmt.setString(1, idToFind);
+					
+			ResultSet rs = stmt.executeQuery();
+			while(rs.next()) {
+				Long pos = rs.getLong("FilePos");
+				positions.add(pos);
+			}
+			rs.close();		
+			stmt.close();		
+		} catch (Exception ex) {
+			throw new SQLException("Exception in FindIndex.find(idToFind). " + ex.getMessage(), ex);
+		} 
+		
 		return positions;
 	}		
 
