@@ -39,7 +39,7 @@ public class H2Connection {
 	private Connection getConnection(File databaseFile) throws ClassNotFoundException, SQLException, IOException {
     	Class.forName("org.h2.Driver");
 		String dbPath = databaseFile.getCanonicalPath().replace(".h2.db", "");
-		System.out.println("Database path: " + dbPath);
+		//System.out.println("Database path: " + dbPath);
         String url = "jdbc:h2:file:" + dbPath + ";FILE_LOCK=SERIALIZED";
         //double start = System.currentTimeMillis();
         Connection conn = DriverManager.getConnection(url, "sa", "");
@@ -78,7 +78,5 @@ public class H2Connection {
 		 Statement stmt = dbConn.createStatement();
 		 stmt.execute(SQL);
 		 stmt.close();
-	}
-
-    
+	}    
 }
