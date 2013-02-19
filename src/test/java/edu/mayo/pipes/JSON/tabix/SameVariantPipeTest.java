@@ -8,12 +8,15 @@ import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 import edu.mayo.pipes.PrintPipe;
+import edu.mayo.pipes.JSON.DrillPipe;
+import edu.mayo.pipes.JSON.SimpleDrillPipe;
 import edu.mayo.pipes.UNIX.CatPipe;
 import edu.mayo.pipes.bioinformatics.VCF2VariantPipe;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.*;
@@ -490,4 +493,35 @@ public class SameVariantPipeTest {
         assertEquals(2, resultCount);        	
     }    
 
+    /**
+     * 
+     * Test case based on error found by Greg.  1st data row has no match, 2nd row has a match.
+     * 
+     * @throws IOException
+     */
+    @Test
+    public void testNoMatchFollowedByMatch() throws IOException{
+        String variantNoMatch	= "99	00000000	rs?????????	G	A	.	.	.";
+        String variantOneMatch	= "21	26960070	rs116645811	G	A	.	.	.";
+
+        Pipeline<String, History> p = new Pipeline<String, History>
+        (
+        		new HistoryInPipe(), 
+        		new VCF2VariantPipe(), 
+        		new SameVariantPipe(catalogFile),
+        		new DrillPipe(false, new String[] {"_id"})
+        );
+        
+        p.setStarts(Arrays.asList(variantNoMatch, variantOneMatch));
+        
+        History history;
+        
+        assertTrue(p.hasNext());
+        history = p.next();
+        assertEquals(".",			history.get(history.size() - 1));
+        
+        assertTrue(p.hasNext());
+        history = p.next();
+        assertEquals("rs116645811",	history.get(history.size() - 1));
+    }    
 }

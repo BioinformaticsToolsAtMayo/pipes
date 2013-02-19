@@ -82,8 +82,13 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
             String record = null;
             requery();
             
-            if( records == null ) 
+            if( records == null ) {
+            	// no results from TABIX search            	
+            	// reset "query" to NULL so that requery() method will pull the next JSON
+            	query = null;
+            	
             	throw new NoSuchElementException("There were no tabix search results to match the query, or chromosome not found in tabix index.");
+            }
             
             //give you back the next query result
             record = records.next();
