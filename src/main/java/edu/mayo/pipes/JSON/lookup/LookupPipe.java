@@ -46,6 +46,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
     private boolean mIsKeyAnInteger = false;
     /** this holds the indexes we need to get data for */
     private LinkedList<Long> mPosqueue = new LinkedList<Long>();
+    private int drillColumn = -1; //negative value... how many columns to go back (default -1).
      
     /**
      * 
@@ -67,6 +68,25 @@ public class LookupPipe extends AbstractPipe<History,History> {
         mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
         mFindIndex = new FindIndex(mDbConn);
     }   
+    
+    /**
+     * 
+     * @param catalogFile - actual catalog file
+     * @param indexFile - h2 index file path
+     * @param jsonPath - 
+     * @param drillColumn - column number
+     */
+    public LookupPipe(String catalogFile, String indexFile, String jsonPath, int drillColumn) {
+        mBgzipFile = new File(catalogFile);
+        //String truncate = dbIndexFile.replace("h2.db", "");
+        H2Connection c = new H2Connection(indexFile);
+        mDbConn = c.getConn();
+        mUtils = new IndexUtils(mBgzipFile);
+        mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
+        mFindIndex = new FindIndex(mDbConn);        
+        this.drillColumn = drillColumn;
+    }   
+    
 
 	public List<String> getIDs(List<History> hs, int col){
         List<String> ids = new ArrayList<String>();
