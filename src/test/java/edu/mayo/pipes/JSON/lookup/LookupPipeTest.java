@@ -19,9 +19,10 @@ public class LookupPipeTest {
 		String dataFile = "src/test/resources/testData/tabix/genes.tsv.bgz";
 	    String indexFile = "src/test/resources/testData/tabix/index/genes.HGNC.idx.h2.db";
 	    
-	    LookupPipe lookup = new LookupPipe(indexFile, dataFile);
+	    LookupPipe lookup = new LookupPipe(dataFile, indexFile, "", 3);
 	    
-	    String hgncid = "8";
+	    String hgncid = "ABC\tDEF\t8";
+	    //String hgncid2 = "GHI\tJKL\t7";
 	    
 	    String EXPECTED_RESULT = "{\"_type\":\"gene\",\"_landmark\":\"12\",\"_strand\":\"-\",\"_minBP\":9381129,\"_maxBP\":9386803,\"gene\":\"A2MP1\",\"gene_synonym\":\"A2MP\",\"note\":\"alpha-2-macroglobulin pseudogene 1; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"pseudo\":\"\",\"GeneID\":\"3\",\"HGNC\":\"8\"}";
 	    String RESULT="";
@@ -30,8 +31,8 @@ public class LookupPipeTest {
 	    p.setStarts(Arrays.asList(hgncid));
 	    
 	    for(int i=0; p.hasNext(); i++) {	    	
-	    	History history = (History) p.next();            
-	    	RESULT= history.get(1);
+	    	History history = (History) p.next();
+	    	RESULT= history.get(3);
 	    }	
 	    
 	    assertEquals(EXPECTED_RESULT, RESULT);
@@ -42,7 +43,7 @@ public class LookupPipeTest {
 		String dataFile = "src/test/resources/testData/tabix/genes.tsv.bgz";
 	    String indexFile = "src/test/resources/testData/tabix/index/genes.HGNC.idx.h2.db";
 	    
-	    LookupPipe lookup = new LookupPipe(indexFile, dataFile);
+	    LookupPipe lookup = new LookupPipe(dataFile, indexFile, "", 1);
 	    
 	    String hgncid = ".";
 	    

@@ -59,15 +59,15 @@ public class LookupPipe extends AbstractPipe<History,History> {
      * E.g. For genes.tsv.bgz we could have genes.HGNC.idx.h2.db
      * @throws SQLException 
      */
-    public LookupPipe(String dbIndexFile, String catalog) {
-        mBgzipFile = new File(catalog);
-        //String truncate = dbIndexFile.replace("h2.db", "");
-        H2Connection c = new H2Connection(dbIndexFile);
-        mDbConn = c.getConn();
-        mUtils = new IndexUtils(mBgzipFile);
-        mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
-        mFindIndex = new FindIndex(mDbConn);
-    }   
+    //public LookupPipe(String dbIndexFile, String catalog) {
+    //    mBgzipFile = new File(catalog);
+    //    //String truncate = dbIndexFile.replace("h2.db", "");
+    //    H2Connection c = new H2Connection(dbIndexFile);
+    //    mDbConn = c.getConn();
+    //    mUtils = new IndexUtils(mBgzipFile);
+    //    mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
+    //    mFindIndex = new FindIndex(mDbConn);        
+    //}   
     
     /**
      * 
@@ -85,8 +85,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
         mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
         mFindIndex = new FindIndex(mDbConn);        
         this.drillColumn = drillColumn;
-    }   
-    
+    }       
 
 	public List<String> getIDs(List<History> hs, int col){
         List<String> ids = new ArrayList<String>();
@@ -103,16 +102,29 @@ public class LookupPipe extends AbstractPipe<History,History> {
             mIsFirst = false;
 
             //handle the case where the drill column is greater than zero...
-            if(mHistoryPos > 0){
+            /*if(mHistoryPos > 0){
                 //recalculate it to be negative...
                 mHistoryPos = mHistoryPos - mHistory.size() - 1;
-            }
-
+            }*/
+ 
             //get the history
             mHistory = this.starts.next();
+            
+            if(drillColumn > 0){
+                int size = mHistory.size();
+                //recalculate it to be negative...
+                drillColumn = drillColumn - mHistory.size() - 1;
+            }
+            
+            if(mHistory.size() == 1){
+                drillColumn = -1;
+            }
+            
             mQcount = 0;
             //now we have to put the stuff in the queue...
-            String id = mHistory.get(mHistory.size() + mHistoryPos);
+            //String id = mHistory.get(mHistory.size() + mHistoryPos);
+            String id = mHistory.get(mHistory.size() + drillColumn);
+            System.out.println("ID 1="+id);
             if (validateIdToFind(id)) {
 	            try {
 	                    //query the index and build the posqueue
@@ -159,7 +171,10 @@ public class LookupPipe extends AbstractPipe<History,History> {
 	                //reset the pipeline for the search query
 	                mPosqueue = new LinkedList<Long>();
 	                //From history, get the ID we need to search for...
-	                String id = mHistory.get(mHistory.size() + mHistoryPos);
+	                
+	                //String id = mHistory.get(mHistory.size() + mHistoryPos);
+	                String id = mHistory.get(mHistory.size() + drillColumn);
+	                System.out.println("ID 2="+id);
 	                if (validateIdToFind(id)) {
 		                try {
 		                	//query the index and build the posqueue
