@@ -19,7 +19,7 @@ public class LookupPipeTest {
 		String dataFile = "src/test/resources/testData/tabix/genes.tsv.bgz";
 	    String indexFile = "src/test/resources/testData/tabix/index/genes.HGNC.idx.h2.db";
 	    
-	    LookupPipe lookup = new LookupPipe(dataFile, indexFile, "", 3);
+	    LookupPipe lookup = new LookupPipe(dataFile, indexFile, 3);
 	    
 	    String hgncid = "ABC\tDEF\t8";
 	    //String hgncid2 = "GHI\tJKL\t7";
@@ -43,7 +43,7 @@ public class LookupPipeTest {
 		String dataFile = "src/test/resources/testData/tabix/genes.tsv.bgz";
 	    String indexFile = "src/test/resources/testData/tabix/index/genes.HGNC.idx.h2.db";
 	    
-	    LookupPipe lookup = new LookupPipe(dataFile, indexFile, "", 1);
+	    LookupPipe lookup = new LookupPipe(dataFile, indexFile, 1);
 	    
 	    String hgncid = ".";
 	    
