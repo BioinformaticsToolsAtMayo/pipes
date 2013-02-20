@@ -59,15 +59,15 @@ public class LookupPipe extends AbstractPipe<History,History> {
      * E.g. For genes.tsv.bgz we could have genes.HGNC.idx.h2.db
      * @throws SQLException 
      */
-    //public LookupPipe(String dbIndexFile, String catalog) {
-    //    mBgzipFile = new File(catalog);
-    //    //String truncate = dbIndexFile.replace("h2.db", "");
-    //    H2Connection c = new H2Connection(dbIndexFile);
-    //    mDbConn = c.getConn();
-    //    mUtils = new IndexUtils(mBgzipFile);
-    //    mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
-    //    mFindIndex = new FindIndex(mDbConn);        
-    //}   
+    public LookupPipe(String dbIndexFile, String catalog) {
+        mBgzipFile = new File(catalog);
+        //String truncate = dbIndexFile.replace("h2.db", "");
+        H2Connection c = new H2Connection(dbIndexFile);
+        mDbConn = c.getConn();
+        mUtils = new IndexUtils(mBgzipFile);
+        mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
+        mFindIndex = new FindIndex(mDbConn);        
+    }   
     
     /**
      * 
@@ -76,7 +76,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
      * @param jsonPath - 
      * @param drillColumn - column number
      */
-    public LookupPipe(String catalogFile, String indexFile, String jsonPath, int drillColumn) {
+    public LookupPipe(String catalogFile, String indexFile, int drillColumn) {
         mBgzipFile = new File(catalogFile);
         //String truncate = dbIndexFile.replace("h2.db", "");
         H2Connection h2DbConn = new H2Connection(indexFile);
