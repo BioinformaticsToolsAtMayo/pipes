@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
@@ -77,27 +78,59 @@ public class IndexDatabaseCreator {
 		
 
 	/** Prints all rows in the database */
-	public static void printDatabase(File h2DbFile, boolean isKeyAnInteger) throws SQLException, ClassNotFoundException, IOException {
+	public static void printDatabase(File h2DbFile) throws SQLException, ClassNotFoundException, IOException {
 		System.out.println("\n\nPrinting table Indexer...");
-		Connection dbConn = new H2Connection(h2DbFile).getConn();
-	    Statement stmt = dbConn.createStatement();
-	    ResultSet rs = stmt.executeQuery("SELECT * FROM Indexer ORDER BY Key");
+		System.out.println(getTableAsString(h2DbFile));
+	}
+	
+	public static String getTableAsString(File h2DbFile) throws SQLException {
+		ArrayList<ArrayList<String>> table = getDatabaseTable(h2DbFile);
+		StringBuilder str = new StringBuilder();
+		for(int i=0; i < table.size(); i++) {
+			str.append( (i==0 ? "" : i+")") );
+			for(String col : table.get(i)) 
+				str.append("\t" + col);
+			str.append("\n");
+		}
+		return str.toString();
+	}
+	
+	/** Return database key-pos table (including header row) 
+	 * @throws SQLException */
+	public static ArrayList<ArrayList<String>> getDatabaseTable(File h2DbFile) throws SQLException {
+		ArrayList<ArrayList<String>> rows = new ArrayList<ArrayList<String>>();
+		Connection dbConn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			dbConn = new H2Connection(h2DbFile).getConn();
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery("SELECT * FROM Indexer ORDER BY Key");
 	    
-	    // Print the column names
-	    int numCols = rs.getMetaData().getColumnCount();
-	    for(int i=1; i <= numCols; i++)
-	    	System.out.print("\t" + rs.getMetaData().getColumnName(i));
-	    System.out.println();
-	    
-	    int row = 0;
-	    while(rs.next()) {
-	    	String key = isKeyAnInteger  ?  "" + rs.getInt(1)  :  rs.getString(1);
-	    	long pos = rs.getLong(2);
-	    	System.out.println(++row + ")\t" + key + "\t" + pos);
-	    }
-	    rs.close();
-	    stmt.close();
-	    dbConn.close();
+			// Print the column names
+			int numCols = rs.getMetaData().getColumnCount();
+			ArrayList<String> headerRow = new ArrayList<String>();
+			for(int i=1; i <= numCols; i++)
+				headerRow.add(rs.getMetaData().getColumnName(i));
+			rows.add(headerRow);
+			
+			while(rs.next()) {
+				ArrayList<String> row = new ArrayList<String>();
+		    	String key = "" + rs.getObject(1);
+		    	Long pos = rs.getLong(2);
+		    	row.add(key);
+		    	row.add("" + pos);
+		    	rows.add(row);
+		    }
+		} finally {
+			if( rs != null )
+				rs.close();
+			if( stmt != null )
+				stmt.close();
+			if( dbConn != null )
+				dbConn.close();
+		}
+		return rows;
 	}
 
 	public static int countDatabaseRows(File h2DbFile) throws SQLException, ClassNotFoundException, IOException {
