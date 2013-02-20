@@ -124,7 +124,6 @@ public class LookupPipe extends AbstractPipe<History,History> {
             //now we have to put the stuff in the queue...
             //String id = mHistory.get(mHistory.size() + mHistoryPos);
             String id = mHistory.get(mHistory.size() + drillColumn);
-            System.out.println("ID 1="+id);
             if (validateIdToFind(id)) {
 	            try {
 	                    //query the index and build the posqueue
@@ -174,7 +173,6 @@ public class LookupPipe extends AbstractPipe<History,History> {
 	                
 	                //String id = mHistory.get(mHistory.size() + mHistoryPos);
 	                String id = mHistory.get(mHistory.size() + drillColumn);
-	                System.out.println("ID 2="+id);
 	                if (validateIdToFind(id)) {
 		                try {
 		                	//query the index and build the posqueue
