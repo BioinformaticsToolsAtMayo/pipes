@@ -105,28 +105,34 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
                     throw new NoSuchElementException();
                 }
             }
-        } catch( NoSuchElementException noElemEx ) {
-        	// Eat it - no TabixSearch records
-        } catch( IllegalArgumentException illegalEx ) {
-        	//System.err.println("TabixSearchPipe: JSON or query string may not be valid:  " + illegalEx.getMessage());
-        } catch (Exception ex) {
-        	//ex.printStackTrace();
+        }catch (Exception e){
+            records = null;
+            throw new NoSuchElementException();
+//        } catch( NoSuchElementException noElemEx ) {
+//        	// Eat it - no TabixSearch records
+//        } catch( IllegalArgumentException illegalEx ) {
+//        	System.err.println("TabixSearchPipe: JSON or query string may not be valid:  " + illegalEx.getMessage());
+//        } catch (Exception ex) {
+//        	ex.printStackTrace();
         	//Logger.getLogger(TabixSearchPipe.class.getName()).log(Level.SEVERE, null, ex);
             //System.out.println("TabixSearchPipe.processNextStart() Failed : " + ex.getMessage());            
         }
-    	throw new NoSuchElementException();
+    	
     }
     
     public TabixReader.Iterator query(String json) throws IOException {    
     	Object o;
 
+        if(json.equalsIgnoreCase("{}")){
+            return null;
+        }
         //_landmark
         String landmark;
         o = landmarkPath.read(json);
 		if (o != null) {
 			landmark = o.toString();
 		} else {
-	        return null;
+	        return null; //never going to get null
 	    }
 	    
 		//_minBP
