@@ -8,22 +8,19 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import com.tinkerpop.pipes.AbstractPipe;
-import com.tinkerpop.pipes.util.Pipeline;
 
-import edu.mayo.pipes.PrintPipe;
 import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
 import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
-import edu.mayo.pipes.history.HistoryInPipe;
 import edu.mayo.pipes.util.index.FindIndex;
 import edu.mayo.pipes.util.index.H2Connection;
 
@@ -129,7 +126,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
 	                    //query the index and build the posqueue
 	                    mPosqueue = (LinkedList<Long>)mFindIndex.find(id);
 	            } catch (SQLException ex) {
-	                    Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+	                    Logger.getLogger(LookupPipe.class.getName()).log(Level.ERROR, null, ex);
 	            }
             }
             
@@ -158,7 +155,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
                         json = split[mJsonpos];
                     }
                 } catch (Exception ex) {
-                    Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(LookupPipe.class.getName()).log(Level.ERROR, null, ex);
                 }
                 return copyAppend(mHistory, json);   
 	        } else {//otherwise, the search did not have any more results, get the next history
@@ -178,7 +175,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
 		                	//query the index and build the posqueue
 		                	mPosqueue = (LinkedList<Long>)mFindIndex.find(id);
 	 	                } catch (SQLException ex) {
-		                	Logger.getLogger(LookupPipe.class.getName()).log(Level.SEVERE, null, ex);
+		                	Logger.getLogger(LookupPipe.class.getName()).log(Level.ERROR, null, ex);
 		                }
 	                }
 	                

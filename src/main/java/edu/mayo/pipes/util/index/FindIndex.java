@@ -11,8 +11,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 
 import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
 
@@ -121,7 +123,7 @@ public class FindIndex {
 			rs.close();		
 			stmt.close();		
 		} catch (NumberFormatException nfe) {
-			Logger.getLogger(FindIndex.class.getName()).log(Level.WARNING, "Invalid search ID. ID needs to be a number.", nfe);			
+			Logger.getLogger(FindIndex.class.getName()).log(Level.DEBUG, "Invalid search ID. ID needs to be a number.", nfe);			
 		} catch (Exception ex) {
 			throw new SQLException("Exception in FindIndex.find(idToFind). " + ex.getMessage());
 		} 
