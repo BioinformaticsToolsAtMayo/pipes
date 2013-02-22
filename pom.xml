@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.mayo</groupId>
   <artifactId>pipes</artifactId>
-  <version>0.0.3</version>
+  <version>0.0.3-SNAPSHOT</version>
   <name>pipes</name>
 
   <build>
@@ -94,13 +94,15 @@
 			<artifactId>commons-compress</artifactId>
 			<version>1.4.1</version>
 		</dependency>
-	 <dependency>
+<!--
+                <dependency>
 	  <groupId>edu.mayo</groupId>
 	  <artifactId>pipes</artifactId>
-	  <version>0.0.1-SNAPSHOT</version>
+	  <version>0.0.3-SNAPSHOT</version>
 	  <scope>test</scope>
 	  <type>jar</type>
 	 </dependency>
+-->
 	 <dependency>
          <groupId>com.h2database</groupId>
          <artifactId>h2</artifactId>
