@@ -134,7 +134,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         	sb.append("Invalid VCF data line at data line # %s.\n");
         	sb.append("The VCF format requires %s fixed fields per data line, but found only %s field(s).\n");
         	sb.append("Make sure the VCF file has the necessary %s VCF fields delimited by TAB characters.\n");
-        	sb.append("Invalid VCF Line content: \"%s\"");
+        	sb.append("Invalid VCF line content: \"%s\"");
         	
         	String errorMesg = String.format(
         							sb.toString(),
