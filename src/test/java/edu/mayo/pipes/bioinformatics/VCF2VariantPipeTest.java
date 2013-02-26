@@ -6,6 +6,7 @@ package edu.mayo.pipes.bioinformatics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +74,53 @@ public class VCF2VariantPipeTest {
 //        History history = pipeline.next();
 //        String json = history.get(history.size() - 1);
 //    }    
+    
+    /**
+     * Tests for malformed VCF file.
+     */
+    @Test
+    public void testBadVCF() {
+    	// VCF file where required TAB delimiter is a whitespace char instead
+    	List<String> vcfLinesNoTabs = new ArrayList<String>();
+		vcfLinesNoTabs.add("##fileformat=VCFv4.0\n");
+		vcfLinesNoTabs.add("#CHROM POS ID REF ALT QUAL FILTER INFO\n");
+		vcfLinesNoTabs.add("2 48010558 rs1042820 C A . . \n");    	
+    	checkBadVCF(vcfLinesNoTabs);
+    	
+    	// VCF file with only 1 column
+    	List<String> vcfLinesOneColumn = new ArrayList<String>();
+		vcfLinesOneColumn.add("##fileformat=VCFv4.0\n");
+		vcfLinesOneColumn.add("#CHROM\n");
+		vcfLinesOneColumn.add("2\n");    	
+    	checkBadVCF(vcfLinesOneColumn);    	
+    }
+    
+    /**
+     * Helper method to process a malformed VCF and checks for expected exception.
+     */
+    private void checkBadVCF(List<String> vcfLines) {		
+    	// pipes
+    	HistoryInPipe historyIn = new HistoryInPipe();
+        VCF2VariantPipe vcf 	= new VCF2VariantPipe();
+        
+        Pipe<String, History> pipeline = new Pipeline<String, History>
+        	(
+        		historyIn,	// String			--> history
+        		vcf			// history			--> add JSON to end of history
+        	);
+        pipeline.setStarts(vcfLines);
+
+        // attempt to grab 1st row of data
+        try {
+            assertTrue(pipeline.hasNext());        	
+            pipeline.next();
+            
+            // expected an Exception
+            fail("");
+        } catch (RuntimeException re) {
+        	//expected
+        }
+    }
     
     /**
      * Tests for empty/NULL columns

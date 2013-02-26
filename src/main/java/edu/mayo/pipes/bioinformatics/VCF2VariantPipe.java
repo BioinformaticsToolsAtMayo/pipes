@@ -47,6 +47,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
 	private static final int COL_FILTER = 6;
 	private static final int COL_INFO = 7;
 	
+	// 8 required fixed fields.  all VCF 4.0+ files should have these
 	private static final String[] COL_HEADERS = 
 		{"CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO"};
     
@@ -75,6 +76,9 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     private Map<String, InfoFieldMeta> mFieldMap = new HashMap<String, InfoFieldMeta>();
     
     private boolean isHeaderProcessed = false;
+    
+    // number of data line (does not include header lines)
+    private int mDataLineNumber = 0;
     
     public VCF2VariantPipe() {    	
     }
@@ -108,6 +112,9 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         
         History history = this.starts.next();
 
+        // record the data line we are going to process
+        mDataLineNumber++;
+        
         // initialize header only once, on the 1st time through this method
         if (isHeaderProcessed == false) {
         	processHeader(History.getMetaData().getOriginalHeader());
@@ -117,9 +124,28 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         	
         	isHeaderProcessed = true;
         }
-                
+
+        // check to make sure we have the required minimum # of columns
         if(history.size() < COL_HEADERS.length){
-        	throw new RuntimeException("Invalid VCF line because it is missing the correct number of columns: " + history.getMergedData("\t"));
+        	final int requiredColCount = COL_HEADERS.length;
+        	final int actualColCount = history.size();
+        	
+        	StringBuilder sb = new StringBuilder();
+        	sb.append("Invalid VCF data line at data line # %s.\n");
+        	sb.append("The VCF format requires %s fixed fields per data line, but found only %s field(s).\n");
+        	sb.append("Make sure the VCF file has the necessary %s VCF fields delimited by TAB characters.\n");
+        	sb.append("Invalid VCF Line content: \"%s\"");
+        	
+        	String errorMesg = String.format(
+        							sb.toString(),
+        							String.valueOf(mDataLineNumber),
+        							requiredColCount,
+        							actualColCount,
+        							requiredColCount,
+        							history.getMergedData("\t")
+        						);
+        	
+        	throw new RuntimeException(errorMesg);
       	}
 
         // transform into JSON
