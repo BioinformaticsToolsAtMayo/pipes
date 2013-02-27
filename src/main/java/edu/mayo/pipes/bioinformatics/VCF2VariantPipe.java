@@ -17,6 +17,7 @@ import com.tinkerpop.pipes.AbstractPipe;
 
 import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 import edu.mayo.pipes.bioinformatics.vocab.Type;
+import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.util.GenomicObjectUtils;
@@ -108,7 +109,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     }
 
     @Override
-    protected History processNextStart() throws NoSuchElementException {
+    protected History processNextStart() throws NoSuchElementException, InvalidPipeInputException {
         
         History history = this.starts.next();
 
@@ -145,7 +146,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         							history.getMergedData("\t")
         						);
         	
-        	throw new RuntimeException(errorMesg);
+        	throw new InvalidPipeInputException(errorMesg, this);
       	}
 
         // transform into JSON
@@ -153,7 +154,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         
         history.add(json);
         
-        return history;
+        return history;        
     }    
         
     /**
