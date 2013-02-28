@@ -455,6 +455,26 @@ public class IndexUtils {
     	return isInt;
     }
 
+	public static String buildIndexPath(String bgzipPath, String jsonPath) throws IOException {
+		File bgzipFile = new File(bgzipPath);
+		
+		// Get the catalog prefix up to the first dot
+		String bgzipPrefix = bgzipFile.getName();
+		int idxFirstDot = bgzipPrefix.indexOf(".");
+		if(idxFirstDot != -1)
+			bgzipPrefix = bgzipPrefix.substring(0, idxFirstDot);
+		
+		File bgzipParentDir = bgzipFile.getParentFile();
+		String fullIndexPath = bgzipParentDir.getCanonicalPath() + "/index/" + bgzipPrefix + "." + jsonPath + ".idx.h2.db";
+		return fullIndexPath;
+	}
+
+	
+	public static void createParentDirectories(String path) {
+		File indexOutFile = new File(path);
+		if( ! indexOutFile.getParentFile().exists())
+			indexOutFile.getParentFile().mkdirs();
+	}
 	
 
 	/** Get the delimiter from command line arguments, converting them as necessary 
