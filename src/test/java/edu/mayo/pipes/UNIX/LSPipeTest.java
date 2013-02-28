@@ -4,11 +4,21 @@
  */
 package edu.mayo.pipes.UNIX;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
-import java.util.Arrays;
-import org.junit.*;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -40,17 +50,23 @@ public class LSPipeTest {
      */
     @Test
     public void testProcessNextStart() {
-        //System.out.println("lsPipeTest");
-        String result = "";
-        String expectedResult = "bar.txt\nbaz.txt\nfoo.txt\n";
+        
+        List<String> expected = new ArrayList<String>();
+        expected.add("bar.txt");
+        expected.add("baz.txt");
+        expected.add("foo.txt");
+        Collections.sort(expected);
+        
+        List<String> actual = new ArrayList<String>();        
         LSPipe ls = new LSPipe(false);
         Pipe<String,String> pipeline = new Pipeline<String,String>(ls);
         pipeline.setStarts(Arrays.asList("./src/test/resources/testData/lsFolderDontADDSTUFFINHERE"));
         while(pipeline.hasNext()) {
 		  String s = pipeline.next();
-		  result += s + "\n";	  
+		  actual.add(s);
         }
-        //System.out.println(result + "*");
-        assertEquals(expectedResult, result);        
+        Collections.sort(actual);
+        
+        assertEquals(expected, actual);        
     }
 }
