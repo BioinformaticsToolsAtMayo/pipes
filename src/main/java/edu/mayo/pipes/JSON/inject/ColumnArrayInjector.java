@@ -30,6 +30,22 @@ public class ColumnArrayInjector extends BaseInjector implements Injector, Colum
 		this(column, null, type, delimiterRegex);
 	}
 	
+        /**
+	 * Constructor
+	 * 
+	 * @param column Column to extract the array data from
+	 * @param key The name of the JSON Array
+	 * @param type JSON primitive type to be used in JSON Array values
+	 * @param delimiterRegex Delimiter Regular Expression used to split column array values
+         * @param delimiterRegex strip the whitespace out of the injected values before injecting them.
+	 */
+        private boolean strip = false;
+        public ColumnArrayInjector(int column, String key, JsonType type, String delimiterRegex, boolean stripWhitespace) {          
+            init( column,  key,  type,  delimiterRegex);
+            this.strip = stripWhitespace;
+        }
+        
+        
 	/**
 	 * Constructor
 	 * 
@@ -39,6 +55,10 @@ public class ColumnArrayInjector extends BaseInjector implements Injector, Colum
 	 * @param delimiterRegex Delimiter Regular Expression used to split column array values
 	 */
 	public ColumnArrayInjector(int column, String key, JsonType type, String delimiterRegex) {
+            init( column,  key,  type,  delimiterRegex);
+        }
+        
+        private void init(int column, String key, JsonType type, String delimiterRegex){
 		if (column == 0) {
 			throw new IllegalArgumentException("Zero is not a valid column - columns begin with 1.");
 		}
@@ -70,6 +90,13 @@ public class ColumnArrayInjector extends BaseInjector implements Injector, Colum
 			else {
 				values = value.split(mDelimiterRegex);
 			}
+                        
+                        if(strip == true){
+                            for(int i=0; i< values.length; i++){
+                                values[i] = values[i].trim();
+                            }
+                        }
+                        
 			super.injectAsArray(object, key, values, mType);
 			
 	}
