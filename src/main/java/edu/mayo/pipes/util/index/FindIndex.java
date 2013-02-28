@@ -107,26 +107,35 @@ public class FindIndex {
 	public LinkedList<Long> find(String idToFind) throws SQLException {
 		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
 		PreparedStatement stmt = mDbConn.prepareStatement(SQL);
+		ResultSet rs = null;
 		LinkedList<Long> positions = new LinkedList<Long>();
 		
 		try {
-			if(mIsKeyAnInteger) 
+			if(mIsKeyAnInteger) {
+				// If the key is an integer but the idToFind is a string, there will be no match
+				// so return an empty list of positions
+				if( ! IndexUtils.isInteger(idToFind) )
+					return positions;
 				stmt.setLong(1, Long.valueOf(idToFind));
+			}
 			else
 				stmt.setString(1, idToFind);
 					
-			ResultSet rs = stmt.executeQuery();
+			rs = stmt.executeQuery();
 			while(rs.next()) {
 				Long pos = rs.getLong("FilePos");
 				positions.add(pos);
 			}
-			rs.close();		
-			stmt.close();		
 		} catch (NumberFormatException nfe) {
 			Logger.getLogger(FindIndex.class.getName()).log(Level.DEBUG, "Invalid search ID. ID needs to be a number.", nfe);			
 		} catch (Exception ex) {
 			throw new SQLException("Exception in FindIndex.find(idToFind). " + ex.getMessage());
-		} 
+		} finally {
+			if( rs != null )
+				rs.close();
+			if( stmt != null )
+				stmt.close();
+		}
 		
 		return positions;
 	}		
