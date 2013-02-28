@@ -68,4 +68,18 @@ public class ColumnInjector extends BaseInjector implements Injector, ColumnAwar
 		return mCol;
 	}
 
+    public int getmCol() {
+        return mCol;
+    }
+
+    public String getmKey() {
+        return mKey;
+    }
+
+    public JsonType getmType() {
+        return mType;
+    }
+        
+        
+
 }
