@@ -141,7 +141,7 @@ public class IndexDatabaseCreator {
 	    while(rs.next()) {
 	    	count = rs.getInt(1);
 	    }
-    	System.out.println("# of rows in database = " + count);
+    	//System.out.println("# of rows in database = " + count);
 	    rs.close();
 	    stmt.close();
 	    dbConn.close();
