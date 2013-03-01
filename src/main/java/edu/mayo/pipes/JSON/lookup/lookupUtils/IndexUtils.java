@@ -3,6 +3,7 @@ package edu.mayo.pipes.JSON.lookup.lookupUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -474,6 +475,12 @@ public class IndexUtils {
 		File indexOutFile = new File(path);
 		if( ! indexOutFile.getParentFile().exists())
 			indexOutFile.getParentFile().mkdirs();
+	}
+	
+	public static void writeToFile(String txt, String filePath) throws IOException {
+		FileOutputStream fout = new FileOutputStream(filePath);
+		fout.write(txt.getBytes());
+		fout.close();
 	}
 	
 
