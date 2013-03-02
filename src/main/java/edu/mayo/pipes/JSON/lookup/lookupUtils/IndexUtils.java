@@ -465,8 +465,11 @@ public class IndexUtils {
 		if(idxFirstDot != -1)
 			bgzipPrefix = bgzipPrefix.substring(0, idxFirstDot);
 		
-		File bgzipParentDir = bgzipFile.getParentFile();
-		String fullIndexPath = bgzipParentDir.getCanonicalPath() + "/index/" + bgzipPrefix + "." + jsonPath + ".idx.h2.db";
+		// When getting the parent, make sure to use File.getCanonicalFile() FIRST, 
+		// otherwise the parent will come back null if you are working with a file
+		// in the same directory where the command is run.
+		String parentDirPath = bgzipFile.getCanonicalFile().getParentFile().getCanonicalPath();
+		String fullIndexPath = parentDirPath + "/index/" + bgzipPrefix + "." + jsonPath + ".idx.h2.db";
 		return fullIndexPath;
 	}
 
