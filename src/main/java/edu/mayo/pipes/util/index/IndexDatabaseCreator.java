@@ -65,9 +65,12 @@ public class IndexDatabaseCreator {
 		    countDatabaseRows(h2DbFile);
 			System.out.println("Creating index on database...");
 			h2Conn.createTableIndex(dbConn);
-	
 			// Print the database
 			//printDatabase(h2DbFile, isKeyAnInteger);
+
+			System.out.println("Num rows in database index: " + countDatabaseRows(h2DbFile));
+			
+			System.out.println("Done.");
 		} finally {
 			if(dbConn != null && ! dbConn.isClosed())
 				dbConn.close();
