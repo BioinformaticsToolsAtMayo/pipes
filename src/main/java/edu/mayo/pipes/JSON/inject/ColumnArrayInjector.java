@@ -55,10 +55,10 @@ public class ColumnArrayInjector extends BaseInjector implements Injector, Colum
 	 * @param delimiterRegex Delimiter Regular Expression used to split column array values
 	 */
 	public ColumnArrayInjector(int column, String key, JsonType type, String delimiterRegex) {
-            init( column,  key,  type,  delimiterRegex);
-        }
+		init( column,  key,  type,  delimiterRegex);
+	}
         
-        private void init(int column, String key, JsonType type, String delimiterRegex){
+	private void init(int column, String key, JsonType type, String delimiterRegex){
 		if (column == 0) {
 			throw new IllegalArgumentException("Zero is not a valid column - columns begin with 1.");
 		}
@@ -81,23 +81,22 @@ public class ColumnArrayInjector extends BaseInjector implements Injector, Colum
 		
 		String value = history.get(mCol - 1);
 		
-
-			String[] values;
-			if((value.trim().length() == 0) || value.trim().equals(".")) {
-				// there are zero values iin this case
-				values = new String[0];
-			}
-			else {
-				values = value.split(mDelimiterRegex);
-			}
+		String[] values;
+		if(isNull(value)) {
+			// there are zero values in this case
+			values = new String[0];
+		}
+		else {
+			values = value.split(mDelimiterRegex);
+		}
                         
-                        if(strip == true){
-                            for(int i=0; i< values.length; i++){
-                                values[i] = values[i].trim();
-                            }
-                        }
+		if(strip == true){
+			for(int i=0; i< values.length; i++){
+				values[i] = values[i].trim();
+			}
+		}
                         
-			super.injectAsArray(object, key, values, mType);
+		super.injectAsArray(object, key, values, mType);
 			
 	}
 

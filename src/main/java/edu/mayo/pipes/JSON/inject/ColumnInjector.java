@@ -56,10 +56,8 @@ public class ColumnInjector extends BaseInjector implements Injector, ColumnAwar
 		
 		String value = history.get(mCol - 1);
 		
-		if((value.length() > 0) && !value.equals(".")) {
-			
+		if( ! isNull(value) ) {
 			super.injectAsPrimitive(object, key, value, mType);
-			
 		}
 	}
 

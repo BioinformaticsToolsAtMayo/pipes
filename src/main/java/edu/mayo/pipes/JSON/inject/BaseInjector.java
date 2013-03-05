@@ -71,4 +71,12 @@ public abstract class BaseInjector implements Injector {
 		return new Double(s);
 	}
 
+	
+	protected boolean isNull(String value) {
+		if( value == null )
+			return true;
+		value = value.trim();
+		return  value.length() == 0  || value.equals(".")  
+			|| value.equalsIgnoreCase("null")  || value.equalsIgnoreCase("\\N");
+	}
 }

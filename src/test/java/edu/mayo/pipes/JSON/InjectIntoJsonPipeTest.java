@@ -364,7 +364,7 @@ public class InjectIntoJsonPipeTest {
 	
 	@Test
 	/** Columns that are empty or contain "." should NOT be added to the JSON column */
-	public void emptyColumnsShouldNotBeAddedToJson() {
+	public void emptyColumnsNotAddedToJson() {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe("MyChrom", "Min", "Max");
     	List<String> in = Arrays.asList( "chr17\t\t.\t{}" );
 		List<String> out = getPipeOutput(injectorPipe, in);
@@ -374,6 +374,32 @@ public class InjectIntoJsonPipeTest {
 		assertListsEqual( expected, out );
 	}
 
+	@Test
+	/** Columns that are "null", "NULL", etc, or "\N", or "\n" should NOT be added to the JSON column 
+	 *  This holds whether the column is a string or a number  */
+	public void nullColumnsNotAddedToJson() {
+		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe( true,
+				new ColumnInjector(1, "Chr", JsonType.STRING),
+				new ColumnInjector(2, "Min", JsonType.NUMBER),
+				new ColumnInjector(3, "Max", JsonType.NUMBER)   );
+    	List<String> in = Arrays.asList( 
+    			"chr17\t1\t2",
+    			"NULL\tnull\tNull",
+    			"\\n\t\\N\t",
+    			"chrY\t\\N\t100"
+    			);
+		List<String> out = getPipeOutput(injectorPipe, in);
+		List<String> expected = Arrays.asList(
+				"#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\tbior_injectIntoJson",
+				"chr17\t1\t2\t{\"Chr\":\"chr17\",\"Min\":1,\"Max\":2}",
+				"NULL\tnull\tNull\t{}",
+				"\\n\t\\N\t\t{}",
+				"chrY\t\\N\t100\t{\"Chr\":\"chrY\",\"Max\":100}"
+				);
+		assertListsEqual( expected, out );
+	}
+
+	
 	@Test
 	/** For some reason, '>' chars were converted to unicode (\u003e).  Make sure this doesn't happen */
 	public void gtCharShouldNotBeConvertedToUnicode() {
