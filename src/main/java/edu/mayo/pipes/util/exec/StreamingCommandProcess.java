@@ -9,6 +9,16 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Helper class built on top of the java.lang.Runtime.exec() API to make it
+ * easier to stream data TO and FROM the child process that is spawned. 
+ * 
+ * @see java.lang.Runtime
+ * @see java.lang.Process
+ * 
+ * @author duffp
+ *
+ */
 public class StreamingCommandProcess extends BaseCommandProcess {
 
 	private static final Logger sLogger = Logger.getLogger(StreamingCommandProcess.class);
@@ -30,11 +40,24 @@ public class StreamingCommandProcess extends BaseCommandProcess {
 	/**
 	 * Constructor
 	 * 
-	 * @param command 
-	 * 			The command to run.  Note that by default no shell is used
+	 * NOTE: By default no shell is used, which means resolution of environment
+	 * variables, back ticks ``, piping |, etc... will not work.  To get a shell 
+	 * on UNIX systems, do the following:
+	 * 
+	 * 	<code>command="/bin/sh"</code>
+	 * 	<code>commandArgs = { "-c", "/bin/echo $MYVAR" } </code>
+	 * 
+	 * @param command
+	 * 			The command to run.  
 	 * @param commandArgs
-	 * @param customEnv
+	 * 			The command arguments.
+	 * @param customEnv 
+	 * 			A String,String Map that contains custom environment variables.
+	 * 			Note that these will overwrite variables of the same name from
+	 * 			the parent environment if useParentEnv=true.
 	 * @param useParentEnv
+	 * 			Indicates that the parent shell environment that invoked this JVM
+	 * 			should carry forward to the child process.
 	 */
 	public StreamingCommandProcess(
 			String command,
