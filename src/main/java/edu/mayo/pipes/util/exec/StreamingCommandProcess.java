@@ -1,13 +1,9 @@
 package edu.mayo.pipes.util.exec;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -17,40 +13,36 @@ public class StreamingCommandProcess extends BaseCommandProcess {
 
 	private static final Logger sLogger = Logger.getLogger(StreamingCommandProcess.class);
 	
+	// child process that is launched
 	private Process mProcess;
 	
+	// consumes STDERR
 	private Thread mStderrThread;	
-	private ByteArrayOutputStream mStderrOutputStream = new ByteArrayOutputStream();
+	private StreamGobbler mStderrGobbler;
 	
+	// consumes STDOUT
+	private Thread mStdoutThread;	
+	private StreamGobbler mStdoutGobbler;
+
 	// used to write data to STDIN of the child process
 	private PrintWriter mStdinWriter;
-	
-	// used to read data from STDOUT of the child process
-	private BufferedReader mStdoutReader;
-	
-	// default buffer is 1KB
-	public static final int DEFAULT_BUFFER_SIZE = 1024;
-	
-	private int mStreamBufferSize;
-		
+
+	/**
+	 * Constructor
+	 * 
+	 * @param command 
+	 * 			The command to run.  Note that by default no shell is used
+	 * @param commandArgs
+	 * @param customEnv
+	 * @param useParentEnv
+	 */
 	public StreamingCommandProcess(
 			String command,
 			String[] commandArgs,
 			Map<String, String> customEnv,
-			boolean useParentEnv) {		
-		this(command, commandArgs, customEnv, useParentEnv, DEFAULT_BUFFER_SIZE);
-	}
+			boolean useParentEnv) {
 
-	public StreamingCommandProcess(
-			String command,
-			String[] commandArgs,
-			Map<String, String> customEnv,
-			boolean useParentEnv,			
-			int streamBufferSize) {
-
-		super(command, commandArgs, customEnv, useParentEnv);
-		
-		mStreamBufferSize = streamBufferSize;
+		super(command, commandArgs, customEnv, useParentEnv);		
 	}
 	
 	public void start() throws IOException {
@@ -60,40 +52,39 @@ public class StreamingCommandProcess extends BaseCommandProcess {
 		// construct a Writer that allows us to write to STDIN of the child process
 		mStdinWriter = new PrintWriter(new OutputStreamWriter(mProcess.getOutputStream()));
 		
-		// construct a Reader that allows us to read from STDOUT of the child process
-		mStdoutReader = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
+		mStdoutGobbler = new StreamGobbler(mProcess.getInputStream());
+		mStdoutThread = new Thread(mStdoutGobbler);
+		mStdoutThread.start();
+		sLogger.debug(String.format("%s will consume STDOUT", mStdoutThread.getName()));
 		
-		// connect STDERR from script process and store in local memory
-		// STDERR [script process] ---> local byte array
-		StreamConnector stderrConnector = new StreamConnector(mProcess.getErrorStream(), mStderrOutputStream, mStreamBufferSize);
-		mStderrThread = new Thread(stderrConnector);
-		mStderrThread.start();		
+		mStderrGobbler = new StreamGobbler(mProcess.getErrorStream());
+		mStderrThread = new Thread(mStderrGobbler);
+		mStderrThread.start();
+		sLogger.debug(String.format("%s will consume STDERR", mStderrThread.getName()));
 	}
 
+	/**
+	 * Sends one or more data lines to the streaming process STDIN.
+	 * 
+	 * @param dataLines
+	 */
 	public void send(List<String> dataLines){
 		for (String line: dataLines) {
 			mStdinWriter.println(line);
+			mStdinWriter.flush();
 		}
-		mStdinWriter.flush();
 	}
 	
+	/**
+	 * Receives zero or more data lines from the streaming process STDOUT.
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
 	public List<String> receive() throws IOException {
-
-		List<String> dataLines = new ArrayList<String>();
-		String line = mStdoutReader.readLine();
-		while (line != null) {
-			dataLines.add(line);
-
-			if (mStdoutReader.ready()) {
-				// grab next line if there is one
-				line = mStdoutReader.readLine();
-			} else {
-				// no more data to grab
-				line = null;
-			}
-		}
+		sLogger.debug(String.format("Getting gobbled data."));
+		return mStdoutGobbler.getData();
 		
-		return dataLines;
 	}
 	
 	/**
@@ -105,16 +96,25 @@ public class StreamingCommandProcess extends BaseCommandProcess {
 	 */
 	public ProcessOutput close() throws InterruptedException, UnsupportedEncodingException {
 		// send EOF character by closing stream, which signals the streaming command process to stop
+		sLogger.debug("Closing stream to STDIN for child process.");
 		mStdinWriter.close();
 		
 		// block until process ends
 		int exitCode = mProcess.waitFor();
+		sLogger.debug(String.format("Process done with exit code %s", exitCode));
 		
 		// wait for thread(s) to finish up
+		sLogger.debug("Waiting for STDOUT and STDOUT gobbler threads to complete.");
 		mStderrThread.join();
+		mStdoutThread.join();
 		
 		// check if process exited abnormally
-		String stderr = mStderrOutputStream.toString("UTF-8");
+		StringBuilder sb = new StringBuilder();
+		for (String line: mStderrGobbler.getData()) {
+			sb.append(line);
+			sb.append(System.getProperty("line.separator"));
+		}
+		String stderr = sb.toString();
 		
 		// dump info to bean and return
 		ProcessOutput output = new ProcessOutput();
