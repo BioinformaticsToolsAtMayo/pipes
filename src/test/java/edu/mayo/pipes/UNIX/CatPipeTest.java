@@ -2,7 +2,6 @@ package edu.mayo.pipes.UNIX;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,10 +12,9 @@ import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.transform.IdentityPipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
-import edu.mayo.pipes.PrintPipe;
 import edu.mayo.pipes.aggregators.AggregatorPipe;
-import edu.mayo.pipes.util.SystemProperties;
 
+@SuppressWarnings ("javadoc")
 public class CatPipeTest {	
 	
 	private String examplegff = "ctg123\t.\tgene\t1300\t1500\t.\t+\t.\tID=gene00001;namespace=UCSC\n" +
@@ -33,7 +31,7 @@ public class CatPipeTest {
 	@Test
 	public void testProcessNextStart() {
 		String result = "";		
-		Pipe<String,String> file_pipe = new CatPipe();		
+//		Pipe<String,String> file_pipe = new CatPipe();		
 		Pipe<String,String> pipeline = new Pipeline<String,String>( new CatPipe());
 		
 		pipeline.setStarts(Arrays.asList("src/test/resources/testData/example.gff", "src/test/resources/testData/example2.gff"));

@@ -46,9 +46,6 @@ public class Compressor
 	 */
 	public static final int		kBZipCompression = 4;
 
-	private static final int	kBZipMagicBytes = 2;
-	private static final byte[]	kBZipHeaderMagic = {'B', 'Z'};
-
 	private static final String		gZipSuffix = ".zip";
 	private static final String[]	gGZipSuffixes = {".gz", ".gzip"};
 	private static final String[]	gBZipSuffixes = {".bz", ".bz2", ".tbz", ".tbz2"};
@@ -333,6 +330,7 @@ public class Compressor
 			catch (IOException e)
 			{
 				// Ignore exceptions, just make the normal reader
+//				e.printStackTrace ();
 			}
 
 			if (reader == null)
@@ -523,9 +521,7 @@ public class Compressor
 	 */
 	protected void makeBZipReader (InputStream inStream) throws IOException
 	{
-		BufferedInputStream	inBuffStream = new BufferedInputStream (inStream);
-		inBuffStream.skip (kBZipMagicBytes);	// Have to skip first two bytes to let the Ant code work
-		BZip2CompressorInputStream	zipRead = new BZip2CompressorInputStream (inBuffStream);
+		BZip2CompressorInputStream	zipRead = new BZip2CompressorInputStream (inStream);
 		// Now ready to read file, so create readers to do that
 		InputStreamReader	rStream = new InputStreamReader (zipRead);
 		reader = new BufferedReader (rStream);
@@ -543,10 +539,8 @@ public class Compressor
 		if (outFile == null)
 			return;
 
-		FileOutputStream		outFileStream = new FileOutputStream (outFile);
-		BufferedOutputStream	outBuffStream = new BufferedOutputStream (outFileStream);
-		outBuffStream.write (kBZipHeaderMagic);
-		BZip2CompressorOutputStream	zipWrite = new BZip2CompressorOutputStream (outBuffStream);
+		FileOutputStream			outFileStream = new FileOutputStream (outFile);
+		BZip2CompressorOutputStream	zipWrite = new BZip2CompressorOutputStream (outFileStream);
 		// Now can attach the writer to write to this zip entry
 		OutputStreamWriter wStream = new OutputStreamWriter (zipWrite);
 		writer = new BufferedWriter (wStream);
