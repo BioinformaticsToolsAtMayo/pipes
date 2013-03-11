@@ -6,7 +6,7 @@ import java.util.NoSuchElementException;
 import com.tinkerpop.pipes.AbstractPipe;
 
 import edu.mayo.pipes.iterators.FileLineIterator;
-import edu.mayo.pipes.iterators.GZipFileLineIterator;
+import edu.mayo.pipes.iterators.AnyFileLineIterator;
 
 /**
  * ZippedFile2LinePipe takes as input a string describing a filename
@@ -24,7 +24,7 @@ public class CatPipe extends AbstractPipe<String, String> {
 	private FileLineIterator fileitter = null;
 	
 	private FileLineIterator openFile(String filename) throws IOException{
-		fileitter = new FileLineIterator(filename);
+		fileitter = new AnyFileLineIterator(filename);
         return fileitter;
     }
 	
@@ -108,7 +108,7 @@ public class CatPipe extends AbstractPipe<String, String> {
         if(this.fileitter == null){
             try {
                 filename = this.starts.next();
-                fileitter = new FileLineIterator(filename);
+                fileitter = new AnyFileLineIterator(filename);
                 filesProcessed++;
             } catch (Exception e) {
             	throw new NoSuchElementException(e.getMessage());
@@ -122,7 +122,7 @@ public class CatPipe extends AbstractPipe<String, String> {
                 try {
                         if(fileitter != null){ fileitter.close(); }
                         filename = this.starts.next();
-                        fileitter = new FileLineIterator(filename);
+                        fileitter = new AnyFileLineIterator(filename);
                         filesProcessed++;
                 } catch (Exception e) {
                 	throw new NoSuchElementException(e.getMessage());

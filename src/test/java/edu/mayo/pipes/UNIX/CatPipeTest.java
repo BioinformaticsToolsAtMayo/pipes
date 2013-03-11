@@ -10,6 +10,7 @@ import java.util.Collection;
 import org.junit.Test;
 
 import com.tinkerpop.pipes.Pipe;
+import com.tinkerpop.pipes.transform.IdentityPipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
 import edu.mayo.pipes.PrintPipe;
@@ -47,6 +48,88 @@ public class CatPipeTest {
 		assertEquals(examplegff, result);		
 	}	
 	
+	
+	/**
+	 * Test that the CatPipe can now read gzipped files
+	 */
+	@Test
+	public void testProcessCatGZip ()
+	{
+		String					result = "";
+		Pipe<String, String>	zip_pipe = new CatPipe ();
+		Pipe<String, String>	identity = new IdentityPipe<String> ();
+		Pipe<String, String>	pipeline = new Pipeline<String, String> (identity, zip_pipe);
+		
+		pipeline.setStarts (Arrays.asList ("src/test/resources/testData/example.gff.gz",
+											"src/test/resources/testData/example2.gff.gz"));
+		
+		while (pipeline.hasNext ())
+		{
+			Object object = pipeline.next ();
+			result += object.toString () + "\n";
+		}
+		
+		// System.out.println(result + "*");
+		// System.out.println(examplegff + "*");
+		
+		assertEquals (examplegff, result);
+	}
+
+	
+	/**
+	 * Test that the CatPipe can now read bzipped files
+	 */
+	@Test
+	public void testProcessCatBZip ()
+	{
+		String					result = "";
+		Pipe<String, String>	zip_pipe = new CatPipe ();
+		Pipe<String, String>	identity = new IdentityPipe<String> ();
+		Pipe<String, String>	pipeline = new Pipeline<String, String> (identity, zip_pipe);
+		
+		pipeline.setStarts (Arrays.asList ("src/test/resources/testData/example.gff.bz2",
+											"src/test/resources/testData/example2.gff.bz2"));
+		
+		while (pipeline.hasNext ())
+		{
+			Object object = pipeline.next ();
+			result += object.toString () + "\n";
+		}
+		
+		// System.out.println(result + "*");
+		// System.out.println(examplegff + "*");
+		
+		assertEquals (examplegff, result);
+	}
+
+	
+	/**
+	 * Test that the CatPipe can now read zipped files
+	 */
+	@Test
+	public void testProcessCatZip ()
+	{
+		String					result = "";
+		Pipe<String, String>	zip_pipe = new CatPipe ();
+		Pipe<String, String>	identity = new IdentityPipe<String> ();
+		Pipe<String, String>	pipeline = new Pipeline<String, String> (identity, zip_pipe);
+		
+		pipeline.setStarts (Arrays.asList ("src/test/resources/testData/example.gff.zip",
+											"src/test/resources/testData/example2.gff.zip"));
+		
+		while (pipeline.hasNext ())
+		{
+			Object object = pipeline.next ();
+			result += object.toString () + "\n";
+		}
+		
+		// System.out.println(result + "*");
+		// System.out.println(examplegff + "*");
+		
+		assertEquals (examplegff, result);
+	}
+
+
 	@Test
     public void catTest_NoInfiniteLoop() throws IOException {
         System.out.println("Start catTest_NoInfiniteLoop..");        

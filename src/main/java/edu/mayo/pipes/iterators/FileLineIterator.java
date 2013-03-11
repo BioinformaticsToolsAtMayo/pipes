@@ -11,11 +11,11 @@ import java.util.LinkedList;
  *
  * @author dquest
  */
-public class FileLineIterator implements Iterator {  
-    private FileInputStream fis;
-    private BufferedReader br;
-    private InputStreamReader isr;
-    private String filename = null;
+public class FileLineIterator implements Iterator<String> {  
+//    private FileInputStream fis;
+    protected BufferedReader br;
+//    private InputStreamReader isr;
+//    private String filename = null;	// Never used
     private LinkedList<String> queue = new LinkedList<String>();
     private boolean readok = true;
     
@@ -40,7 +40,7 @@ public class FileLineIterator implements Iterator {
 		return false;
     }
 
-    public Object next() {
+    public String next() {
     	if(queue.size() < 1){
 			this.hasNext();
         }
@@ -53,17 +53,18 @@ public class FileLineIterator implements Iterator {
     
     public BufferedReader open(String filename) throws IOException{
     	readok = true;
-        this.filename = filename;
-        fis = new FileInputStream(filename);	
-        isr = new InputStreamReader(fis);
-        br = new BufferedReader(isr);
+//        this.filename = filename;
+//        fis = new FileInputStream(filename);	
+//        isr = new InputStreamReader(fis);
+//        br = new BufferedReader(isr);
+        br = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
         return br;
     }
     
     public void close() throws IOException{
     	br.close();
-    	isr.close();
-    	fis.close();
+//    	isr.close();	// Closing a BufferedReader closes everything it came from, too
+//    	fis.close();
     	readok = false;
     }    
 }
