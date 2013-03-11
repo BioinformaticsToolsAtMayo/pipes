@@ -1,6 +1,7 @@
 package edu.mayo.pipes.util.exec;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -133,8 +134,7 @@ public class StreamingCommandProcessTest {
 			p.start();
 			fail(String.format("Expected exception %s", IOException.class.getName()));
 		} catch (IOException e) {
-			String expected = "Cannot run program \"foobar\": error=2, No such file or directory"; 
-			assertEquals(expected, e.getMessage());
+			assertTrue(e.getMessage().startsWith("Cannot run program \"foobar\":"));
 		}
 	}
 }
