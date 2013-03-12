@@ -33,6 +33,11 @@
   </build>
 	<dependencies>
                 <dependency>
+                        <groupId>edu.mayo</groupId>
+                        <artifactId>mayo-commons-exec</artifactId>
+                        <version>0.0.1-SNAPSHOT</version>
+                </dependency>
+                <dependency>
                         <groupId>org.biojava</groupId>
                         <artifactId>core</artifactId>
                         <version>1.8.2</version>
