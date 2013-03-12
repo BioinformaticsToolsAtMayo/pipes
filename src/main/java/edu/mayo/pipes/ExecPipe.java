@@ -15,134 +15,89 @@ import com.tinkerpop.pipes.sideeffect.SideEffectPipe;
 //import com.tinkerpop.pipes.transform.InPipe;
 //import com.tinkerpop.pipes.transform.OutPipe;
 import com.tinkerpop.pipes.util.Pipeline;
-//import scala.actors.scheduler.DrainableForkJoinPool;
-import edu.mayo.pipes.util.ProcessHandler;
+import edu.mayo.exec.UnixStreamCommand;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
- * The exec pipe takes a string representing a command line and outputs strings representing the output from the algorithm
+ * The exec pipe takes a string representing a command line in the constructor.
+ * once it has this command, it creates another process that it will send data
+ * to/get data from.
+ * Input streams into the exec pipe as a list of lines at a time, and results stream
+ * out of the exec pipe as a list of lines at a time.
+ * For example, if the command passed to this pipe was blast, sequences would 
+ * stream to the exec pipe (in fasta format e.g. >header\natgcattt...aaa\naat...agc\n)
+ * the exec pipe will then send that data over to BLAST which is a seperate 
+ * process running on the same system where it will get processed against
+ * a blast database and then alignments will come out the other end as strings.
+ * users will need to set up both a pre-processing pipeline to convert raw data into
+ * a suitable format for processing with the algorithm and a post processing
+ * pipeline to convert the data into something suitable for downstream usage.
  */
-public class ExecPipe extends AbstractPipe<String, String> {
-
-    StringBuffer stdOut;
-    StringBuffer stdErr;
-
-    //private final PipeClosure<E, Pipe> closure;
-
-    public ExecPipe(){
+public class ExecPipe extends AbstractPipe<List<String>, List<String>> {
+    
+    private static final String[] ARGS = new String[0];
+    private static final Map<String, String> NO_CUSTOM_ENV = new HashMap<String, String>(); 
+    private boolean useParentEnv = true;
+    private UnixStreamCommand cmd;
+  
+    
+    /**
+     * 
+     * @param cmdarray a string of values representing the command e.g. [grep] [-v] [foo]
+     * @throws IOException 
+     */
+    public ExecPipe(String[] cmdarray) throws IOException {
         super();
+        cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, true,  UnixStreamCommand.StdoutBufferingMode.LINE_BUFFERED, 0);
+        cmd.launch();
     }
+    
+    /**
+     * 
+     * @param cmdarray a string of values representing the command e.g. [grep] [-v] [foo]
+     * @param boolean usePrntEnv
+     * @throws IOException 
+     */
+    public ExecPipe(String[] cmdarray, boolean useParentEnv) throws IOException{
+        super();
+        cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, useParentEnv,  UnixStreamCommand.StdoutBufferingMode.LINE_BUFFERED, 0);
+        cmd.launch();
+    }
+    
 
-    public String processNextStart() {
+    public List<String> processNextStart() {
         try {
-            if(stdOut != null && stdErr != null){
-                //print any errors from the program to the screen.
-                if(stdErr.length() > 0){
-                    System.err.println(this.drainBuffer(stdErr));
-                }
-                //now, if there is anything in the output buffer, go ahead and get it and
-                //pass it on to the next pipe in the system.
-                if(stdOut.length() > 0){
-                    String line = ProcessHandler.readline(stdOut);
-                    if(line != null){ return line; }
-                }
-            }
-            run(this.starts.next());
-            if(stdOut.length() > 0){
-                    String line = ProcessHandler.readline(stdOut);
-                    if(line != null){ return line; }
-            }else {
-                return ""; //program made no output
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            List<String> inLines = this.starts.next();
+            cmd.send(inLines);
+            List<String> output = cmd.receive();
+            return output;
+        } catch (IOException ex) {
+            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return "";
+        //cmd.terminate();//needed? can this cause an error?
+        throw new NoSuchElementException();
     }
-
-//    public ExecPipe(final PipeClosure<E, Pipe> closure) {
-//        this.closure = closure;
-//        this.closure.setPipe(this);
-//    }
-//
-//    public E processNextStart() {
-//        return this.closure.compute(this.starts.next());
-//    }
-
-  private void run(String command) throws IOException, InterruptedException {
-
-        stdOut = new StringBuffer();
-        stdErr = new StringBuffer();
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        ProcessHandler.runCommand(command, stdOut, stdErr);
-        //System.out.println(stdOut.toString());
-        //System.out.println("**********************");
-        //System.out.println(stdOut.indexOf("\n"));
-        //String line = null;
-        //int count = 0;
-        //do {
-        //    line = ProcessHandler.readline(stdOut);
-        //    if(line != null) System.out.println(line);
-        //    //count++; if(count == 11) break;
-        //}while(line != null);
-        ////System.out.println("");
-      return;
-  }
-
-  private String drainBuffer(StringBuffer sb){
-      StringBuffer out = new StringBuffer();
-      String line = "";
-      if(sb != null){
-      do {
-            line = ProcessHandler.readline(stdOut);
-            if(line != null) out.append(line);
-            //count++; if(count == 11) break;
-        }while(line != null);
-      }
-      return line;
-  }
-
-//  public ExecPipe() {
-//     List singleObjectList = new ArrayList() {
-//            public boolean add(Object object) {
-//                this.clear();
-//                super.add(object);
-//                return true;
-//            }
-//        };
-//     SideEffectPipe pipe0 = new AggregatorPipe(singleObjectList);
-//     Pipe pipe1 = new OutPipe("created");
-//     Pipe pipe2 = new InPipe("created");
-//     Pipe pipe3 = new ObjectFilterPipe(pipe0.getSideEffect(), ComparisonFilterPipe.Filter.EQUAL);
-//     this.setPipes(pipe0, pipe1, pipe2, pipe3);
-//   }
-
-//Note this code is a simple system call in java based on
-// http://www.devdaily.com/java/edu/pj/pj010016
-//It could be made more functional (and perhaps more confusing) by following
-// http://www.devdaily.com/java/java-exec-processbuilder-process-1
-//  protected String processNextStart() {
-//       System.out.println("Running Command: " + this.starts.next().toString());
-//       Process p;
-//      try {
-//          p = Runtime.getRuntime().exec("ls");
-//          BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//          BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-//          String s = null;
-//          while ((s = stdInput.readLine()) != null) { System.out.println(s); }
-//      } catch (IOException e) {
-//          e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-//      }
-//        return this.starts.next();
-//  }
+    
+    /**
+     * shutdown terminates the child process
+     */
+    public void shutdown() throws InterruptedException, UnsupportedEncodingException{
+        if(cmd!=null){
+            cmd.terminate();
+        }
+    }
 
 }
