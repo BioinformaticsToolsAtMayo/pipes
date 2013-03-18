@@ -32,6 +32,12 @@
      </plugins>
   </build>
 	<dependencies>
+                <!-- object cloning utility -->
+                <dependency>
+                        <groupId>uk.com.robust-it</groupId>
+                        <artifactId>cloning</artifactId>
+                        <version>1.9.0</version>
+                </dependency>
                 <dependency>
                         <groupId>edu.mayo</groupId>
                         <artifactId>mayo-commons-exec</artifactId>
