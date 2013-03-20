@@ -73,19 +73,32 @@ public class ExecPipe extends AbstractPipe<List<String>, List<String>> {
      */
     public ExecPipe(String[] cmdarray, boolean useParentEnv) throws IOException{
         super();
-        cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, useParentEnv,  UnixStreamCommand.StdoutBufferingMode.LINE_BUFFERED, 0);
+//        cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, useParentEnv,  UnixStreamCommand.StdoutBufferingMode.LINE_BUFFERED, 0);
+        cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, useParentEnv);
         cmd.launch();
     }
     
 
     public List<String> processNextStart() {
         try {
+            //cmd.launch();
             List<String> inLines = this.starts.next();
             cmd.send(inLines);
             List<String> output = cmd.receive();
+            //cmd.terminate();
+//            if(output.size() < 1){
+//                shutdown();
+//                throw new NoSuchElementException();
+//            }
             return output;
+//        } catch (InterruptedException ex) {
+//            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
+            //shutdown();
+            throw new NoSuchElementException();
         }
         //cmd.terminate();//needed? can this cause an error?
         throw new NoSuchElementException();
@@ -99,5 +112,7 @@ public class ExecPipe extends AbstractPipe<List<String>, List<String>> {
             cmd.terminate();
         }
     }
+    
+    
 
 }
