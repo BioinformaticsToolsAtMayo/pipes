@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,7 +48,7 @@ import java.util.logging.Logger;
  * a suitable format for processing with the algorithm and a post processing
  * pipeline to convert the data into something suitable for downstream usage.
  */
-public class ExecPipe extends AbstractPipe<List<String>, List<String>> {
+public class ExecPipe extends AbstractPipe<String, String> {
     
     private static final String[] ARGS = new String[0];
     private static final Map<String, String> NO_CUSTOM_ENV = new HashMap<String, String>(); 
@@ -61,7 +63,8 @@ public class ExecPipe extends AbstractPipe<List<String>, List<String>> {
      */
     public ExecPipe(String[] cmdarray) throws IOException {
         super();
-        cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, true,  UnixStreamCommand.StdoutBufferingMode.LINE_BUFFERED, 0);
+        cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, true, true);
+        //cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, true,  UnixStreamCommand.StdoutBufferingMode.LINE_BUFFERED, 0);
         cmd.launch();
     }
     
@@ -73,19 +76,17 @@ public class ExecPipe extends AbstractPipe<List<String>, List<String>> {
      */
     public ExecPipe(String[] cmdarray, boolean useParentEnv) throws IOException{
         super();
-//        cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, useParentEnv,  UnixStreamCommand.StdoutBufferingMode.LINE_BUFFERED, 0);
-        cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, useParentEnv);
+        cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, useParentEnv, true);
         cmd.launch();
     }
     
 
-    public List<String> processNextStart() {
+    public String processNextStart() {
         try {
-            //cmd.launch();
-            List<String> inLines = this.starts.next();
-            cmd.send(inLines);
-            List<String> output = cmd.receive();
-            //cmd.terminate();
+            String line = this.starts.next();
+            cmd.send(line);
+            String output = cmd.receive();
+            
 //            if(output.size() < 1){
 //                shutdown();
 //                throw new NoSuchElementException();
@@ -93,6 +94,12 @@ public class ExecPipe extends AbstractPipe<List<String>, List<String>> {
             return output;
 //        } catch (InterruptedException ex) {
 //            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (BrokenBarrierException ex) {
+            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (TimeoutException ex) {
+            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
