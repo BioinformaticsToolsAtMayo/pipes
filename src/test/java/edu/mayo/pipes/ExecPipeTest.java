@@ -51,15 +51,13 @@ public class ExecPipeTest {
     /**
      * Test of processNextStart method, of class ExecPipe.
      */
-    //@Test
+    @Test
     public void testProcessNextStart() throws IOException, InterruptedException {
         System.out.println("processNextStart");
         String[] command = {"cat"};
         ExecPipe exe = new ExecPipe(command, true);
         Pipe p = new Pipeline(
-                new AggregatorPipe(100),
                 exe,
-                new DrainPipe(),
                 new PrintPipe()
                 );
         List<String> asList = Arrays.asList("foo", "bar");
@@ -73,34 +71,33 @@ public class ExecPipeTest {
                 assertEquals("bar", result);
             }
         }
-        exe.shutdown(); //MAKE SURE TO DO THIS EVERY TIME YOU USE AN EXECPIPE!!!
+        //exe.shutdown(); //MAKE SURE TO DO THIS EVERY TIME YOU USE AN EXECPIPE!!!
     }
     
-        /**
+    /**
      * Test of processNextStart method, of class ExecPipe.
      */
+    //THIS TEST WILL NOT WORK UNTIL WE HAVE IMPLEMENTED SOMETHING MORE ROBUST AS THE JVM WILL HANG ON THE GREP AND THE GREP WILL WAIT FOR MORE DATA FROM THE JVM
     //@Test
-    public void testGrep() throws IOException {
-        System.out.println("test grep via exec pipe");
-        String[] command = {"grep", "bar"};
-        ExecPipe exe = new ExecPipe(command, true);
-        Pipe p = new Pipeline(
-                new AggregatorPipe(100),
-                exe,
-                new DrainPipe(),
-                new PrintPipe()
-                );
-        List<String> asList = Arrays.asList("foo", "bar");
-        p.setStarts(asList);
-        for(int i=0;p.hasNext();i++){
-            String result = (String) p.next();
-            if(i==0){
-                assertEquals("bar", result);
-            }
-        }
-        //assertEquals(expResult, result);
-
-    }
+//    public void testGrep() throws IOException {
+//        System.out.println("test grep via exec pipe");
+//        String[] command = {"grep", "bar"};
+//        ExecPipe exe = new ExecPipe(command, true);
+//        Pipe p = new Pipeline(
+//                exe,
+//                new PrintPipe()
+//                );
+//        List<String> asList = Arrays.asList("foo", "bar");
+//        p.setStarts(asList);
+//        for(int i=0;p.hasNext();i++){
+//            String result = (String) p.next();
+//            if(i==0){
+//                assertEquals("bar", result);
+//            }
+//        }
+//        //assertEquals(expResult, result);
+//
+//    }
     
     private String[] outputLines = new String[]
             {
@@ -121,80 +118,78 @@ public class ExecPipeTest {
         }
         return lines;
     }
-    
-    //@Test
-    public void testlargeGrep() throws IOException, InterruptedException {
-        System.out.println("test large file grep via exec pipe");
-        String[] command = {"grep", "BRCA1"};
 
-        ArrayList<String> lines = getBiggo();
-
-        //assertEquals(expResult, result);
-        UnixStreamCommand cmd = new UnixStreamCommand(command, NO_CUSTOM_ENV, true,  UnixStreamCommand.StdoutBufferingMode.LINE_BUFFERED, 0);
-        cmd.launch();
-
-        List<String> output; 
-        for(int k = 0; k<2; k++){//run at least two large datasets through the grep (do the file twice)
-            cmd.send(lines);
-            output = cmd.receive();
-            for (int i=0; i < outputLines.length; i++) {
-                //System.out.println(output.get(i));
-                assertEquals(outputLines[i], output.get(i));
-            }     
-        }
-
-        cmd.terminate();
-    }
+//    
+//    @Test
+//    public void testlargeGrep() throws IOException, InterruptedException {
+//        System.out.println("test large file grep via exec pipe");
+//        String[] command = {"grep", "BRCA1"};
+//
+//        ArrayList<String> lines = getBiggo();
+//
+//        //assertEquals(expResult, result);
+//        UnixStreamCommand cmd = new UnixStreamCommand(command, NO_CUSTOM_ENV, true,  true);
+//        cmd.launch();
+//
+//        String output; 
+//        for(int k = 0; k<2; k++){//run at least two large datasets through the grep (do the file twice)
+//            cmd.send(lines);
+//            output = cmd.receive();
+//            for (int i=0; i < outputLines.length; i++) {
+//                //System.out.println(output.get(i));
+//                assertEquals(outputLines[i], output.get(i));
+//            }     
+//        }
+//
+//        cmd.terminate();
+//    }
     
     private static final Map<String, String> NO_CUSTOM_ENV = Collections.emptyMap();
     
     
+    //THIS TEST WILL ALSO NOT WORK UNTIL WE HAVE A MORE ROBUST SOLUTION FOR COMMANDS THAT DON'T OUTPUT DATA
     //@Test
-    public void testlargeGrepExe() throws IOException, InterruptedException {
-        System.out.println("test large file grep via exec pipe");
-        String[] command = {"grep", "--line-buffered", "BRCA1"};
-        ExecPipe exe = new ExecPipe(command, true);
-        Pipe p = new Pipeline(
-                new CatGZPipe("gzip"),
-                new AggregatorPipe(1),
-                exe,
-                new DrainPipe()
-                //new PrintPipe()
-                );
-        p.setStarts(Arrays.asList("src/test/resources/testData/tabix/genes.tsv.bgz"));
-        for(int i=0;p.hasNext();i++){
-            String result = (String) p.next();
-            System.out.println(i);
-            //if(i==1) break;
-        }
-        exe.shutdown();
-
-    }
+//    public void testlargeGrepExe() throws IOException, InterruptedException {
+//        System.out.println("test large file grep via exec pipe");
+//        String[] command = {"grep", "--line-buffered", "BRCA1"};
+//        ExecPipe exe = new ExecPipe(command, true);
+//        Pipe p = new Pipeline(
+//                new CatGZPipe("gzip"),
+//                exe,
+//                //new PrintPipe()
+//                );
+//        p.setStarts(Arrays.asList("src/test/resources/testData/tabix/genes.tsv.bgz"));
+//        for(int i=0;p.hasNext();i++){
+//            String result = (String) p.next();
+//            //System.out.println(i);
+//            //if(i==1) break;
+//        }
+//        //exe.shutdown();
+//    }
     
-    //@Test
-    public void testlargeGrepExeShort() throws IOException, InterruptedException {
-        System.out.println("test large file grep via exec pipe");
-        String[] command = {"grep", "--line-buffered", "BRCA1"};
-        ExecPipe exe = new ExecPipe(command, true);
-        Pipe p = new Pipeline(
-                //new CatPipe(),
-                new AggregatorPipe(1),
-                exe,
-                new DrainPipe(),
-                new PrintPipe()
-                );
-        ArrayList<String> foo = new ArrayList<String>();
-        foo.addAll(Arrays.asList(outputLines[0],outputLines[1],outputLines[2]));
-        p.setStarts(foo);
-        //p.setStarts(Arrays.asList("src/test/resources/testData/example.gbk"));
-        for(int i=0;p.hasNext();i++){
-            String result = (String) p.next();
-            System.out.println(i);
-            //if(i==1) break;
-        }
-        exe.shutdown();
-
-    }
+//    @Test
+//    public void testlargeGrepExeShort() throws IOException, InterruptedException {
+//        System.out.println("test large file grep via exec pipe");
+//        String[] command = {"grep", "--line-buffered", "BRCA1"};
+//        ExecPipe exe = new ExecPipe(command, true);
+//        Pipe p = new Pipeline(
+//                //new CatPipe(),
+//                new AggregatorPipe(1000),
+//                exe,
+//                new DrainPipe(),
+//                new PrintPipe()
+//                );
+//        ArrayList<String> foo = new ArrayList<String>();
+//        foo.addAll(getBiggo());
+//        p.setStarts(foo);
+//        //p.setStarts(Arrays.asList("src/test/resources/testData/example.gbk"));
+//        for(int i=0;p.hasNext();i++){
+//            String result = (String) p.next();
+//            //System.out.println(i);
+//            //if(i==1) break;
+//        }
+//        //exe.shutdown();
+//    }
 
 
 }
