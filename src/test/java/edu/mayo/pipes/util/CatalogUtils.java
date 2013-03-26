@@ -5,11 +5,17 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.io.Files;
+import com.tinkerpop.pipes.Pipe;
+
+import edu.mayo.pipes.history.History;
 
 public class CatalogUtils {
+	
+	public static final String EOL = System.getProperty("line.separator");
 	
 	/** Use the JUnit asserts to validate if two files have the same size and content */
 	public static void assertFileEquals(String fileExpected, String fileActual) throws IOException {
@@ -26,4 +32,22 @@ public class CatalogUtils {
 				Files.readLines(new File(fileActual), Charset.forName("UTF-8")).size() );
 	}
 
+	
+	public static ArrayList<String> pipeOutputToStrings(Pipe<History, History> pipe) {
+		ArrayList<String> lines = new ArrayList<String>();
+		while(pipe.hasNext()) {
+			History history = pipe.next();
+			lines.add(history.getMergedData("\t"));
+		}
+		return lines;
+	}
+	
+	public static void saveToFile(ArrayList<String> lines, String filePath) throws IOException {
+		StringBuilder str = new StringBuilder();
+		for(String line : lines) {
+			str.append(line);
+			str.append(EOL);
+		}
+		Files.write(str.toString().getBytes(), new File(filePath));
+	}
 }
