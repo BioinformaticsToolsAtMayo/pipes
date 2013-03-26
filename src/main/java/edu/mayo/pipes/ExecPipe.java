@@ -81,26 +81,39 @@ public class ExecPipe extends AbstractPipe<String, String> {
         cmd.launch();
     }
     
+    
+        /**
+     * 
+     * @param cmdarray a string of values representing the command e.g. [grep] [-v] [foo]
+     * @param boolean usePrntEnv
+     * @param commentSymbol - a string that we should ignore the contents of if this symbol is at the start
+     * @throws IOException 
+     */
+    public ExecPipe(String[] cmdarray, boolean useParentEnv, String commentSymbol) throws IOException, InterruptedException, BrokenBarrierException, TimeoutException{
+        super();
+        this.commentSymbol = commentSymbol;
+        cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, useParentEnv, true);
+        cmd.launch();
+        cmd.send("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n" +
+                    "chr1	949608	rs0001	G	A	.	.	.");
+        cmd.receive();
+        cmd.receive();
+        cmd.receive();
+        cmd.receive();
+        cmd.receive();
+        
+    }
 
     
 
     public String processNextStart() {
         try {
-            StringBuilder sb = new StringBuilder();
             String line = this.starts.next();
+            //System.out.println("EXECPIPE: " + line);
             cmd.send(line);
             String output = cmd.receive();
-            if(commentSymbol != null){
-                while(output.startsWith(commentSymbol)){
-                    sb.append(output);
-                    sb.append("\n");
-                    output = cmd.receive();
-                }
-            }
-            sb.append(output);
-            //System.out.println("EXECPIPE: " + sb.toString());   
-            //sb.replace(i, i1, "");
-            return sb.toString();
+            //System.out.println("EXEKEEP: " + output);
+            return output;
         } catch (InterruptedException ex) {
             Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
         } catch (BrokenBarrierException ex) {
