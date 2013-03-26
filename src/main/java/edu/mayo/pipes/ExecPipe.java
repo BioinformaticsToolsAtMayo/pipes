@@ -54,6 +54,7 @@ public class ExecPipe extends AbstractPipe<String, String> {
     private static final Map<String, String> NO_CUSTOM_ENV = new HashMap<String, String>(); 
     private boolean useParentEnv = true;
     private UnixStreamCommand cmd;
+    private String commentSymbol = null;
   
     
     /**
@@ -81,19 +82,25 @@ public class ExecPipe extends AbstractPipe<String, String> {
     }
     
 
+    
+
     public String processNextStart() {
         try {
+            StringBuilder sb = new StringBuilder();
             String line = this.starts.next();
             cmd.send(line);
             String output = cmd.receive();
-            
-//            if(output.size() < 1){
-//                shutdown();
-//                throw new NoSuchElementException();
-//            }
-            return output;
-//        } catch (InterruptedException ex) {
-//            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
+            if(commentSymbol != null){
+                while(output.startsWith(commentSymbol)){
+                    sb.append(output);
+                    sb.append("\n");
+                    output = cmd.receive();
+                }
+            }
+            sb.append(output);
+            //System.out.println("EXECPIPE: " + sb.toString());   
+            //sb.replace(i, i1, "");
+            return sb.toString();
         } catch (InterruptedException ex) {
             Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
         } catch (BrokenBarrierException ex) {
