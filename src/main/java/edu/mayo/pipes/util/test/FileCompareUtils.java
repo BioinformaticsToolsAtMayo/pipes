@@ -1,4 +1,4 @@
-package edu.mayo.pipes.util;
+package edu.mayo.pipes.util.test;
 
 import static org.junit.Assert.assertEquals;
 
@@ -8,12 +8,15 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.tinkerpop.pipes.Pipe;
 
 import edu.mayo.pipes.history.History;
 
-public class CatalogUtils {
+/** Put this class in the main java packages so it can be picked up an used by other projects 
+ *  such as bior_pipeline and bior_catalog  */
+public class FileCompareUtils {
 	
 	public static final String EOL = System.getProperty("line.separator");
 	
@@ -21,10 +24,8 @@ public class CatalogUtils {
 	public static void assertFileEquals(String fileExpected, String fileActual) throws IOException {
 		List<String> linesExpected = Files.readLines(new File(fileExpected), Charset.forName("UTF-8"));
 		List<String> linesActual   = Files.readLines(new File(fileActual), Charset.forName("UTF-8"));
-		assertEquals("Not the same # of lines in each file.  ", linesExpected.size(), linesActual.size());
-		for(int i = 0; i < Math.max(linesExpected.size(), linesActual.size()); i++) {
-			assertEquals("Line " + (i+1) + " not equal: ", linesExpected.get(i), linesActual.get(i));
-		}
+		
+		PipeTestUtils.assertListsEqual(linesExpected, linesActual);
 		
 		// Verify that the number of lines in the input equals the # of lines in the output catalog (one variant in to each variant out)
 		assertEquals( "There should be the same number of variants in the output as were in the input.  ",
@@ -32,16 +33,6 @@ public class CatalogUtils {
 				Files.readLines(new File(fileActual), Charset.forName("UTF-8")).size() );
 	}
 
-	
-	public static ArrayList<String> pipeOutputToStrings(Pipe<History, History> pipe) {
-		ArrayList<String> lines = new ArrayList<String>();
-		while(pipe.hasNext()) {
-			History history = pipe.next();
-			lines.add(history.getMergedData("\t"));
-		}
-		return lines;
-	}
-	
 	public static void saveToFile(ArrayList<String> lines, String filePath) throws IOException {
 		StringBuilder str = new StringBuilder();
 		for(String line : lines) {
@@ -49,5 +40,9 @@ public class CatalogUtils {
 			str.append(EOL);
 		}
 		Files.write(str.toString().getBytes(), new File(filePath));
+	}
+	
+	public static List<String> loadFile(String filePath) throws IOException {
+		return Files.readLines(new File(filePath), Charsets.UTF_8);
 	}
 }

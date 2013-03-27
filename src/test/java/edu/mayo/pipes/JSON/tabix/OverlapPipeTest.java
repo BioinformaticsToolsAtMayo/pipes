@@ -26,7 +26,7 @@ import edu.mayo.pipes.PrintPipe;
 import edu.mayo.pipes.SplitPipe;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
-import edu.mayo.pipes.util.PipeTestUtils;
+import edu.mayo.pipes.util.test.PipeTestUtils;
 
 /**
  *

@@ -13,10 +13,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
-import edu.mayo.pipes.util.CatalogUtils;
 import edu.mayo.pipes.util.index.FindIndex;
 import edu.mayo.pipes.util.index.H2Connection;
+import edu.mayo.pipes.util.test.FileCompareUtils;
 
 public class IndexUtilsTest {
 	
@@ -61,7 +60,7 @@ public class IndexUtilsTest {
 		
 		utils.writeLines(key2LinesMap, QUERY_RESULTS);
 		
-		CatalogUtils.assertFileEquals(EXPECTED_RESULTS, QUERY_RESULTS.getPath());
+		FileCompareUtils.assertFileEquals(EXPECTED_RESULTS, QUERY_RESULTS.getPath());
 
 		dbConn.close();		
 		dbConn = null;

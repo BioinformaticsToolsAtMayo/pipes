@@ -1,19 +1,12 @@
 package edu.mayo.pipes.util.index;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Test;
-
-import edu.mayo.pipes.util.CatalogUtils;
-import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
 
 public class FindIndexTest {
 	

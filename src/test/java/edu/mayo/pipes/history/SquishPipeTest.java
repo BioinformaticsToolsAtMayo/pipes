@@ -8,7 +8,7 @@ import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 import edu.mayo.pipes.MergePipe;
 import edu.mayo.pipes.PrintPipe;
-import edu.mayo.pipes.util.PipeTestUtils;
+import edu.mayo.pipes.util.test.PipeTestUtils;
 
 import java.util.Arrays;
 import java.util.List;
