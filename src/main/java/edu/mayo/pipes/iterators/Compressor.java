@@ -29,25 +29,17 @@ public class Compressor
 	private int				comp;
 
 	private static final int	kNotAssigned = 0;
-	/**
-	 * Signifies an uncompressed file, or at least one whose compression we don't understand.
-	 */
-	public static final int		kNoCompression = 1;
-	/**
-	 * Signifies a file using Zip compression.
-	 */
-	public static final int		kZipCompression = 2;
-	/**
-	 * Signifies a file using GZip compression.
-	 */
-	public static final int		kGZipCompression = 3;
-	/**
-	 * Signifies a file using BZip compression.
-	 */
-	public static final int		kBZipCompression = 4;
+	/** Signifies an uncompressed file, or at least one whose compression we don't understand. */
+	public static final int		kNoCompression = kNotAssigned + 1;
+	/** Signifies a file using Zip compression. */
+	public static final int		kZipCompression = kNoCompression + 1;
+	/** Signifies a file using GZip compression. */
+	public static final int		kGZipCompression = kZipCompression + 1;
+	/** Signifies a file using BZip compression. */
+	public static final int		kBZipCompression = kGZipCompression + 1;
 
 	private static final String		gZipSuffix = ".zip";
-	private static final String[]	gGZipSuffixes = {".gz", ".gzip"};
+	private static final String[]	gGZipSuffixes = {".gz", ".bgz", ".tgz", ".taz", ".cpgz", ".z", ".gzip"};
 	private static final String[]	gBZipSuffixes = {".bz", ".bz2", ".tbz", ".tbz2"};
 
 
@@ -266,11 +258,12 @@ public class Compressor
 	 * Figure out if this suffix can represent a gzip file
 	 *
 	 * @param suffix	Suffix of the file we're testing
-	 * @return	True if one of our allowed GZip suffixes, else false.  Currently, ".gz" and
-	 * ".gzip" are the only allowed suffixes
+	 * @return	True if one of our allowed GZip suffixes, else false.  Currently, ".gz", ".bgz", 
+	 * ".tgz", ".taz", ".cpgz", ".z", and ".gzip" are the only allowed suffixes
 	 */
 	private static final boolean isGZipSuffix (String suffix)
 	{
+//		return GzipUtils.isCompressedFilename ("foo" + suffix);
 		int	i, numSuffix = gGZipSuffixes.length;
 		for (i = 0; i < numSuffix; ++i)
 		{
@@ -291,6 +284,7 @@ public class Compressor
 	 */
 	private static final boolean isBZipSuffix (String suffix)
 	{
+//		return BZip2Utils.isCompressedFilename ("foo" + suffix);
 		int	i, numSuffix = gBZipSuffixes.length;
 		for (i = 0; i < numSuffix; ++i)
 		{

@@ -70,7 +70,6 @@ public class LookupPipe extends AbstractPipe<History,History> {
      * 
      * @param catalogFile - actual catalog file
      * @param indexFile - h2 index file path
-     * @param jsonPath - 
      * @param drillColumn - column number
      */
     public LookupPipe(String catalogFile, String indexFile, int drillColumn) {
