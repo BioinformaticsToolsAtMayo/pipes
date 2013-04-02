@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
+import edu.mayo.pipes.JSON.DrillPipe;
 
 import edu.mayo.pipes.MergePipe;
 import edu.mayo.pipes.PrintPipe;
@@ -174,5 +175,123 @@ public class OverlapPipeTest {
 		// TODO: compare actual to expected
 		//PipeTestUtils.assertListsEqual(expected, actual);
     }
-        
+    
+    //on chr 17, there is a list of genes around BRCA1 that flow as follows:
+    //
+    //41,166,622                                                                           41,297,272
+    //-----------------------------------------------------------------------------------------------
+    //<==VAT1==           <=================BRCA1=======================                   HMGM1P29=>
+    //         ==RND2==>               RPL21P4==>                                  LOC100505873=>
+    //                                                                                  ====NBR2====>
+    String VAT1 ="{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"-\",\"_minBP\":41166622,\"_maxBP\":41174459,\"gene\":\"VAT1\",\"gene_synonym\":\"VATI\",\"note\":\"vesicle amine transport protein 1 homolog (T. californica); Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"10493\",\"HGNC\":\"16919\",\"HPRD\":\"05220\",\"MIM\":\"604631\"}";
+    String RND2 ="{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"+\",\"_minBP\":41177258,\"_maxBP\":41184058,\"gene\":\"RND2\",\"gene_synonym\":\"ARHN; RHO7; RhoN\",\"note\":\"Rho family GTPase 2; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"8153\",\"HGNC\":\"18315\",\"HPRD\":\"03332\",\"MIM\":\"601555\"}";
+    String BRCA1="{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"-\",\"_minBP\":41196312,\"_maxBP\":41277500,\"gene\":\"BRCA1\",\"gene_synonym\":\"BRCAI; BRCC1; BROVCA1; IRIS; PNCA4; PPP1R53; PSCP; RNF53\",\"note\":\"breast cancer 1, early onset; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"672\",\"HGNC\":\"1100\",\"HPRD\":\"00218\",\"MIM\":\"113705\"}";
+    String RPL21P4="{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"+\",\"_minBP\":41231278,\"_maxBP\":41231833,\"gene\":\"RPL21P4\",\"gene_synonym\":\"RPL21_58_1548\",\"note\":\"ribosomal protein L21 pseudogene 4; Derived by automated computational analysis using gene prediction method: Curated Genomic.\",\"pseudo\":\"\",\"GeneID\":\"140660\",\"HGNC\":\"17959\"}";
+    String NBR2="{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"+\",\"_minBP\":41277600,\"_maxBP\":41297130,\"gene\":\"NBR2\",\"gene_synonym\":\"NCRNA00192\",\"note\":\"neighbor of BRCA1 gene 2 (non-protein coding); Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"10230\",\"HGNC\":\"20691\"}";
+    String LOC100505873="{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"+\",\"_minBP\":41286808,\"_maxBP\":41287385,\"gene\":\"LOC100505873\",\"note\":\"Derived by automated computational analysis using gene prediction method: GNOMON. Supporting evidence includes similarity to: 1 EST, 1 Protein\",\"pseudo\":\"\",\"GeneID\":\"100505873\"}";
+    String HMGM1P29="{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"+\",\"_minBP\":41296973,\"_maxBP\":41297272,\"gene\":\"HMGN1P29\",\"note\":\"high mobility group nucleosome binding domain 1 pseudogene 29; Derived by automated computational analysis using gene prediction method: Curated Genomic.\",\"pseudo\":\"\",\"GeneID\":\"100885865\",\"HGNC\":\"39373\"}";
+
+    @Test
+    public void testGetCluster() throws IOException{
+        System.out.println("Get all the genes around BRCA1");
+        String[] paths = {"gene"};
+        String query = "x\ty\tz\t{\"_landmark\":\"17\",\"_minBP\":41166622,\"_maxBP\":41297272}";
+        OverlapPipe op = new OverlapPipe(geneFile, 0, 0);
+        Pipe p = new Pipeline(
+                new HistoryInPipe(), 
+	        op,
+                new DrillPipe(false, paths),
+                new PrintPipe()
+                );
+        p.setStarts(Arrays.asList(query));
+        for(int i=1; p.hasNext(); i++){
+            History h = (History) p.next();
+            if(i==1){
+                assertEquals("VAT1",h.get(4));
+            }
+            if(i==2){
+                assertEquals("RND2",h.get(4));
+            }
+            if(i==3){
+                assertEquals("BRCA1",h.get(4));
+            }
+            if(i==4){
+                assertEquals("RPL21P4",h.get(4));
+            }
+            if(i==5){
+                assertEquals("NBR2",h.get(4));
+            }
+            if(i==6){
+                assertEquals("LOC100505873",h.get(4));
+            }
+            if(i==7){
+                assertEquals("HMGN1P29",h.get(4));
+            }
+        }
+    }
+    
+    @Test
+    public void testBRCA1UP() throws IOException{
+        System.out.println("Get the genes up-chromosome and including BRCA1");
+        String[] paths = {"gene"};
+        String query = "x\ty\tz\t" + BRCA1;
+        OverlapPipe op = new OverlapPipe(geneFile, 29000, 0);
+        Pipe p = new Pipeline(
+                new HistoryInPipe(), 
+	        op,
+                new DrillPipe(false, paths),
+                new PrintPipe()
+                );
+        p.setStarts(Arrays.asList(query));
+        for(int i=1; p.hasNext(); i++){
+            History h = (History) p.next();
+            if(i==1){
+                assertEquals("VAT1",h.get(4));
+            }
+            if(i==2){
+                assertEquals("RND2",h.get(4));
+            }
+            if(i==3){
+                assertEquals("BRCA1",h.get(4));
+            }
+            if(i==4){
+                assertEquals("RPL21P4",h.get(4));//gene overlaps BRCA1 so it is included
+            }
+        }
+    }
+   
+    
+    
+    @Test
+    public void testBRCA1DOWN() throws IOException{
+        System.out.println("Get the genes down-chromosome and including BRCA1");
+        String[] paths = {"gene"};
+        String query = "x\ty\tz\t" + BRCA1;
+        OverlapPipe op = new OverlapPipe(geneFile, 0, 19772);
+        Pipe p = new Pipeline(
+                new HistoryInPipe(), 
+	        op,
+                new DrillPipe(false, paths),
+                new PrintPipe()
+                );
+        p.setStarts(Arrays.asList(query));
+        for(int i=1; p.hasNext(); i++){
+            History h = (History) p.next();
+            if(i==1){
+                assertEquals("BRCA1",h.get(4));
+            }
+            if(i==2){
+                assertEquals("RPL21P4",h.get(4));//gene overlaps BRCA1 so it is included
+            }
+            if(i==3){
+                assertEquals("NBR2",h.get(4));
+            }
+            if(i==4){
+                assertEquals("LOC100505873",h.get(4));
+            }
+            if(i==5){
+                assertEquals("HMGN1P29",h.get(4));
+            }
+        }
+    }
 }
