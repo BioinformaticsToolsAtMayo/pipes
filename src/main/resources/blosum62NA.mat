@@ -1,0 +1,7 @@
+#  Standard Alignment Matrix for DNA
+   A  N  C  G  T
+A  5  1 -4 -4 -4
+N  1  1  1  1  1
+C -4  1  5 -4 -4
+G -4  1 -4  5 -4
+T -4  1 -4 -4  5
