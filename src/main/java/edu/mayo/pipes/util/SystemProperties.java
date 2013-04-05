@@ -32,19 +32,20 @@ public class SystemProperties {
      * referenced.
      */
     static {
-
+    	final String DEFAULT_PROP_FILE_NAME = "sys.properties";
+    	
         if (System.getenv(SYS_PROP) != null) {
             file = System.getenv(SYS_PROP);
-        } else if (new File(System.getenv("HOME") + "/sys.properties").exists() == true) {
-            file = System.getenv("HOME") + "/sys.properties";
+        } else if (new File(System.getenv("HOME") + "/" + DEFAULT_PROP_FILE_NAME).exists() == true) {
+            file = System.getenv("HOME") + "/" + DEFAULT_PROP_FILE_NAME;
         } else if (System.getProperty(SYS_PROP) != null) {
             file = System.getProperty(SYS_PROP);
-        } else if (new File(System.getenv("user.dir") + "/sys.properties").exists() == true) {
+        } else if (new File(System.getenv("user.dir") + "/" + DEFAULT_PROP_FILE_NAME).exists() == true) {
             //file = "/etc/sys.properties";
-            file = System.getProperty("user.dir") + "/conf/sys.properties";
-        } else if (SystemProperties.class.getClassLoader().getResource("sys.properties") != null) {
+            file = System.getProperty("user.dir") + "/conf/" + DEFAULT_PROP_FILE_NAME;
+        } else if (SystemProperties.class.getClassLoader().getResource(DEFAULT_PROP_FILE_NAME) != null) {
         	// use classloader to find sys.properties on classpath
-        	URL url = SystemProperties.class.getClassLoader().getResource("sys.properties");
+        	URL url = SystemProperties.class.getClassLoader().getResource(DEFAULT_PROP_FILE_NAME);
         	file = url.getFile();
         }
 
