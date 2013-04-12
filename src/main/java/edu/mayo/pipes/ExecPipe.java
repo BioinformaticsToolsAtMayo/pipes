@@ -5,32 +5,20 @@
 package edu.mayo.pipes;
 
 //import com.tinkerpop.blueprints.pgm.Vertex;
-import com.tinkerpop.pipes.AbstractPipe;
-import com.tinkerpop.pipes.Pipe;
-import com.tinkerpop.pipes.PipeFunction;
-//import com.tinkerpop.pipes.filter.ComparisonFilterPipe;
-import com.tinkerpop.pipes.filter.ObjectFilterPipe;
-import com.tinkerpop.pipes.sideeffect.AggregatePipe;
-import com.tinkerpop.pipes.sideeffect.SideEffectPipe;
-//import com.tinkerpop.pipes.transform.InPipe;
-//import com.tinkerpop.pipes.transform.OutPipe;
-import com.tinkerpop.pipes.util.Pipeline;
-import edu.mayo.exec.UnixStreamCommand;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
+
+import com.tinkerpop.pipes.AbstractPipe;
+
+import edu.mayo.exec.AbnormalExitException;
+import edu.mayo.exec.UnixStreamCommand;
 
 
 /**
@@ -50,6 +38,8 @@ import java.util.logging.Logger;
  */
 public class ExecPipe extends AbstractPipe<String, String> {
     
+	private Logger sLogger = Logger.getLogger(ExecPipe.class);
+	
     private static final String[] ARGS = new String[0];
     private static final Map<String, String> NO_CUSTOM_ENV = new HashMap<String, String>(); 
     private boolean useParentEnv = true;
@@ -88,8 +78,9 @@ public class ExecPipe extends AbstractPipe<String, String> {
      * @param boolean usePrntEnv
      * @param commentSymbol - a string that we should ignore the contents of if this symbol is at the start
      * @throws IOException 
+         * @throws AbnormalExitException 
      */
-    public ExecPipe(String[] cmdarray, boolean useParentEnv, String commentSymbol) throws IOException, InterruptedException, BrokenBarrierException, TimeoutException{
+    public ExecPipe(String[] cmdarray, boolean useParentEnv, String commentSymbol) throws IOException, InterruptedException, BrokenBarrierException, TimeoutException, AbnormalExitException{
         super();
         this.commentSymbol = commentSymbol;
         cmd = new UnixStreamCommand(cmdarray, NO_CUSTOM_ENV, useParentEnv, true);
@@ -115,17 +106,19 @@ public class ExecPipe extends AbstractPipe<String, String> {
             //System.out.println("EXEKEEP: " + output);
             return output;
         } catch (InterruptedException ex) {
-            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
+        	sLogger.error(ex.getMessage(), ex);            
         } catch (BrokenBarrierException ex) {
-            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
+        	sLogger.error(ex.getMessage(), ex);
         } catch (TimeoutException ex) {
-            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
+        	sLogger.error(ex.getMessage(), ex);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
+        	sLogger.error(ex.getMessage(), ex);
         } catch (IOException ex) {
-            Logger.getLogger(ExecPipe.class.getName()).log(Level.SEVERE, null, ex);
+        	sLogger.error(ex.getMessage(), ex);
             //shutdown();
             throw new NoSuchElementException();
+        } catch (AbnormalExitException ex) {
+        	sLogger.error(ex.getMessage(), ex);
         }
         //cmd.terminate();//needed? can this cause an error?
         throw new NoSuchElementException();
