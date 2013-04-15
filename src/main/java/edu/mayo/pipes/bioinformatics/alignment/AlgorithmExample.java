@@ -7,8 +7,8 @@ package edu.mayo.pipes.bioinformatics.alignment;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 import org.biojava.bio.BioException;
 import org.biojava.bio.alignment.AlignmentPair;
 import org.biojava.bio.alignment.NeedlemanWunsch;
@@ -25,7 +25,7 @@ import org.biojava.bio.symbol.Symbol;
 
 public class AlgorithmExample {
 
-
+	private static Logger sLogger = Logger.getLogger(AlgorithmExample.class);
 
     public static void main(String[] args) throws IllegalSymbolException, BioException, NumberFormatException, IOException {
         AlgorithmExample test = new AlgorithmExample();
@@ -86,7 +86,7 @@ public class AlgorithmExample {
 			System.out.println(pair.formatOutput(100));
             System.out.printf("\n%d\t%d\n", protein1.length(), protein2.length());
         } catch (Exception ex) {
-            Logger.getLogger(AlgorithmExample.class.getName()).log(Level.SEVERE, null, ex);
+            sLogger.error("testrunAA() failed - error aligning sequences!", ex);
         } 
     }
 }

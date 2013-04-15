@@ -1,30 +1,11 @@
 package edu.mayo.pipes.UNIX;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.IOException;
 import java.util.NoSuchElementException;
-import java.util.Queue;
 
 import com.tinkerpop.pipes.AbstractPipe;
-import com.tinkerpop.pipes.Pipe;
-import com.tinkerpop.pipes.util.Pipeline;
 
 import edu.mayo.pipes.iterators.GZipFileLineIterator;
-import edu.mayo.pipes.iterators.GZipFileLineIterator;
-
-import java.io.File;
-
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.zip.GZIPInputStream;
 
 /**
  * ZippedFile2LinePipe takes as input a string describing a filename

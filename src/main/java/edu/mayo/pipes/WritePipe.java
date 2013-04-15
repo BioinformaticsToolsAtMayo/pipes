@@ -5,8 +5,8 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.NoSuchElementException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 /**
  *  Write Pipe takes a constructor of a filename for the file we wish to write
@@ -17,6 +17,8 @@ import java.util.logging.Logger;
  */
 public class WritePipe extends AbstractPipe<String, String>{
     
+	private static Logger sLogger = Logger.getLogger(WritePipe.class);
+	
     private BufferedWriter out = null; 
     private boolean mIsAppendToFile = true;
     private boolean mIsAddNewLine = false;
@@ -52,7 +54,7 @@ public class WritePipe extends AbstractPipe<String, String>{
             out.write(s + (mIsAddNewLine ? "\n" : ""));
             return s;
         } catch (IOException ex) {
-            Logger.getLogger(WritePipe.class.getName()).log(Level.SEVERE, null, ex);
+            sLogger.error("Failed writing line to file!", ex);
         }
         return null;
     }

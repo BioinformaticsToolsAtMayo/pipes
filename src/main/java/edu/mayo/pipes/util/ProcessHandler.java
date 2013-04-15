@@ -14,8 +14,8 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 /**
  * To handle logic which interacts with the operating system. The runCommand
@@ -40,11 +40,7 @@ import java.util.logging.Logger;
 public class ProcessHandler {
 
     private static Long pid = null;
-    private static Logger logger = null;
-
-    static {
-        logger = Logger.getLogger(new CurrentClassGetter().getClassName());
-    }
+    private static Logger sLogger = Logger.getLogger(ProcessHandler.class);
 
 
 
@@ -189,19 +185,13 @@ public class ProcessHandler {
 
             return retVal;
         } catch (RuntimeException re) {
-            logger.log(Level.SEVERE,
-                    "runCommand failed on command " + command,
-                    re);
+            sLogger.error("runCommand failed on command " + command, re);
             throw re;
         } catch (IOException ioe) {
-            logger.log(Level.SEVERE,
-                    "runCommand failed on command " + command,
-                    ioe);
+            sLogger.error("runCommand failed on command " + command, ioe);
             throw ioe;
         } catch (InterruptedException ie) {
-            logger.log(Level.SEVERE,
-                    "runCommand failed on command " + command,
-                    ie);
+            sLogger.error("runCommand failed on command " + command, ie);
             throw ie;
         } finally {
             if (proc != null) {
@@ -211,7 +201,7 @@ public class ProcessHandler {
                     proc.getErrorStream().close();
                     proc.destroy();
                 } catch (IOException ioe) {
-                    logger.log(Level.SEVERE, "Error closing process streams", ioe);
+                    sLogger.error("Error closing process streams", ioe);
                 }
             }
         }
@@ -242,7 +232,7 @@ public class ProcessHandler {
                         p.getErrorStream().close();
                         p.destroy();
                     } catch (IOException ioe) {
-                        logger.log(Level.SEVERE, "Error closing process streams.", ioe);
+                        sLogger.error("Error closing process streams.", ioe);
                     }
                 }
             }
@@ -250,8 +240,7 @@ public class ProcessHandler {
             if (pid == null) {
                 Random generator = new Random();
                 pid = new Long(generator.nextLong());
-                logger.log(Level.SEVERE, "Error trying to get PID. " +
-                        "Using random number (" + pid + ") instead.");
+                sLogger.error("Error trying to get PID.  Using random number (" + pid + ") instead.");
             }
         }
 
@@ -301,9 +290,7 @@ public class ProcessHandler {
                 br.close();
                 br = null;
             } catch (IOException ioe) {
-                logger.log(Level.SEVERE,
-                        "Problem reading stdout or stdin from process.",
-                        ioe);
+                sLogger.error("Problem reading stdout or stdin from process.", ioe);
             }
         }
     }
@@ -329,10 +316,4 @@ public class ProcessHandler {
         }
     }
 
-    public static class CurrentClassGetter extends SecurityManager {
-
-        public String getClassName() {
-            return getClassContext()[1].getName();
-        }
-    }
 }

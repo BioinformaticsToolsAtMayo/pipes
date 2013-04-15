@@ -4,23 +4,26 @@
  */
 package edu.mayo.pipes.JSON.tabix;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.Arrays;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
-import edu.mayo.pipes.PrintPipe;
+
 import edu.mayo.pipes.JSON.DrillPipe;
-import edu.mayo.pipes.JSON.SimpleDrillPipe;
-import edu.mayo.pipes.UNIX.CatPipe;
 import edu.mayo.pipes.bioinformatics.VCF2VariantPipe;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.junit.*;
-import static org.junit.Assert.*;
 
 /**
  *

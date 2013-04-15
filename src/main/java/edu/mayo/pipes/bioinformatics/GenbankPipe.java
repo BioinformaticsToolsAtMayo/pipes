@@ -4,17 +4,16 @@
  */
 package edu.mayo.pipes.bioinformatics;
 
-import com.tinkerpop.pipes.AbstractPipe;
-import java.io.*;
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.NoSuchElementException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import org.biojava.bio.BioException;
- 
 import org.biojavax.SimpleNamespace;
 import org.biojavax.bio.seq.RichSequence;
 import org.biojavax.bio.seq.RichSequenceIterator;
+
+import com.tinkerpop.pipes.AbstractPipe;
  
 
 /**

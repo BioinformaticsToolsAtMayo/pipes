@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 /**
  * This class is an extension of the java Properties class. The additional
@@ -23,7 +23,10 @@ import java.util.logging.Logger;
  */
 public class SystemProperties {
 
-    private static final String SYS_PROP = "SYS_PROP";
+    private static Logger sLogger = Logger.getLogger(SystemProperties.class);
+
+	
+	private static final String SYS_PROP = "SYS_PROP";
     private static String file = null;
     private Properties prop = null;
 
@@ -48,9 +51,7 @@ public class SystemProperties {
         	URL url = SystemProperties.class.getClassLoader().getResource(DEFAULT_PROP_FILE_NAME);
         	file = url.getFile();
         }
-
-        Logger.getLogger(SystemProperties.class.getName()).log(Level.INFO,
-                "using " + file + " for sys.properties");
+        sLogger.info("using " + file + " for sys.properties");
     }
 
     /**
@@ -72,7 +73,7 @@ public class SystemProperties {
             prop = new Properties();
             prop.load(inStream);
         } catch (IOException ex) {
-            Logger.getLogger(SystemProperties.class.getName()).log(Level.SEVERE, null, ex);
+            sLogger.error("Failed to load system properties!", ex);
             throw ex;
         } finally {
             try {
@@ -80,7 +81,7 @@ public class SystemProperties {
                     inStream.close();
                 }
             } catch (IOException ex) {
-                Logger.getLogger(SystemProperties.class.getName()).log(Level.SEVERE, null, ex);
+                sLogger.error("Failed to close the system properties input stream!", ex);
                 throw ex;
             }
         }

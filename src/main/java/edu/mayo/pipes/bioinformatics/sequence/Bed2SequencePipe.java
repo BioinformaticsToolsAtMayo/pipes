@@ -4,20 +4,16 @@
  */
 package edu.mayo.pipes.bioinformatics.sequence;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.NoSuchElementException;
+
 import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.AbstractPipe;
-import edu.mayo.pipes.JSON.tabix.TabixParentPipe;
+
 import edu.mayo.pipes.JSON.tabix.TabixReader;
 import edu.mayo.pipes.JSON.tabix.TabixSearchPipe;
 import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
-import edu.mayo.pipes.history.History;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
