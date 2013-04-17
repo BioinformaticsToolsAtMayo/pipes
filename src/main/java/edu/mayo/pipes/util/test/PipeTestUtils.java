@@ -39,6 +39,16 @@ public class PipeTestUtils {
 		return lines;
 	}
 
+	/**
+	 * Print the output lines 
+	 * @param lines Lines to print to stdout
+	 */
+	public static void printLines(ArrayList<String> lines) {
+		for(String s : lines) {
+			System.out.println(s);
+		}
+	}
+	
     /**
      * Assert that two lists are equal (runs assertEquals on each line).  Prints any mismatched lines
      * @param expected The expected results
