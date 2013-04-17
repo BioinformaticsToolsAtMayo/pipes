@@ -28,7 +28,7 @@ public class PipeTestUtils {
     	return results;
 	}
 	
-	public static ArrayList<String> pipeOutputToStrings(Pipe<History, History> pipe) {
+	public static List<String> pipeOutputToStrings(Pipe<History, History> pipe) {
 		ArrayList<String> lines = new ArrayList<String>();
 		while(pipe.hasNext()) {
 			History history = pipe.next();
@@ -37,7 +37,7 @@ public class PipeTestUtils {
 		return lines;
 	}
 
-	public static ArrayList<String> pipeOutputToStrings2(Pipe<Object, String> pipe) {
+	public static List<String> pipeOutputToStrings2(Pipe<Object, String> pipe) {
 		ArrayList<String> lines = new ArrayList<String>();
 		while(pipe.hasNext()) {
 			String str = pipe.next();
