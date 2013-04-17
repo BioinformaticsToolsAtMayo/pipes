@@ -14,7 +14,7 @@ import edu.mayo.pipes.history.History;
  *  such as bior_pipeline and bior_catalog  */
 public class PipeTestUtils {
 
-	public static List<String> getResults(Pipe<Object,Object> pipe) {
+	public static List<String> getResults(Pipe pipe) {
     	List<String> results = new ArrayList<String>();
     	while(pipe.hasNext()) {
     		Object obj = pipe.next();
