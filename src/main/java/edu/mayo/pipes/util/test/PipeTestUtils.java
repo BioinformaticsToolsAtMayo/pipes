@@ -43,7 +43,7 @@ public class PipeTestUtils {
 	 * Print the output lines 
 	 * @param lines Lines to print to stdout
 	 */
-	public static void printLines(ArrayList<String> lines) {
+	public static void printLines(List<String> lines) {
 		for(String s : lines) {
 			System.out.println(s);
 		}
