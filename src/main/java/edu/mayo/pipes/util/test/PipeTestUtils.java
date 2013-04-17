@@ -28,6 +28,7 @@ public class PipeTestUtils {
     	return results;
 	}
 	
+	@Deprecated
 	public static List<String> pipeOutputToStrings(Pipe<History, History> pipe) {
 		ArrayList<String> lines = new ArrayList<String>();
 		while(pipe.hasNext()) {
@@ -37,6 +38,7 @@ public class PipeTestUtils {
 		return lines;
 	}
 
+	@Deprecated
 	public static List<String> pipeOutputToStrings2(Pipe<Object, String> pipe) {
 		ArrayList<String> lines = new ArrayList<String>();
 		while(pipe.hasNext()) {
