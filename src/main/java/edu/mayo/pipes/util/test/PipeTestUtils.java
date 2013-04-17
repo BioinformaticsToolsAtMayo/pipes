@@ -39,7 +39,11 @@ public class PipeTestUtils {
 		return lines;
 	}
 
-    
+    /**
+     * Assert that two lists are equal (runs assertEquals on each line).  Prints any mismatched lines
+     * @param expected The expected results
+     * @param actual The actual results
+     */
     public static void assertListsEqual(List<String> expected, List<String> actual) {
     	Assert.assertEquals("Array sizes are not equal!", expected.size(), actual.size());
     	for(int i=0; i < expected.size(); i++) {
