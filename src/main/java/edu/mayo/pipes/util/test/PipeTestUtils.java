@@ -14,13 +14,20 @@ import edu.mayo.pipes.history.History;
  *  such as bior_pipeline and bior_catalog  */
 public class PipeTestUtils {
 
-    public static  List<String> getResults(Pipe<String,String> pipe) {
+	public static List<String> getResults(Pipe<Object,Object> pipe) {
     	List<String> results = new ArrayList<String>();
-    	while(pipe.hasNext())
-    		results.add(pipe.next());
+    	while(pipe.hasNext()) {
+    		Object obj = pipe.next();
+    		if(obj instanceof String) 
+    			results.add((String)obj);
+    		else if(obj instanceof History)
+    			results.add(((History)obj).getMergedData("\t"));
+    		else
+    			results.add(obj.toString());
+    	}
     	return results;
-    }
-    
+	}
+	
 	public static ArrayList<String> pipeOutputToStrings(Pipe<History, History> pipe) {
 		ArrayList<String> lines = new ArrayList<String>();
 		while(pipe.hasNext()) {
