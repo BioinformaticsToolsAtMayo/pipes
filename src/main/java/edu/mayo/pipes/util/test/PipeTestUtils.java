@@ -18,6 +18,7 @@ public class PipeTestUtils {
     	List<String> results = new ArrayList<String>();
     	while(pipe.hasNext()) {
     		Object obj = pipe.next();
+    		//System.out.println("Object type: " + obj.toString());
     		if(obj instanceof String) 
     			results.add((String)obj);
     		else if(obj instanceof History)
@@ -66,7 +67,11 @@ public class PipeTestUtils {
     public static void assertListsEqual(List<String> expected, List<String> actual) {
     	Assert.assertEquals("Array sizes are not equal!", expected.size(), actual.size());
     	for(int i=0; i < expected.size(); i++) {
-    		Assert.assertEquals("Array item not equal!  Line: " + (i+1), expected.get(i), actual.get(i));
+    		Assert.assertEquals("Array item not equal!  Line: " + (i+1)
+    				+ "\nExpected: " + expected.get(i) + "\n"
+    				+ "\nActual:   " + actual.get(i),
+    				expected.get(i),
+    				actual.get(i));
     	}
     }
 
