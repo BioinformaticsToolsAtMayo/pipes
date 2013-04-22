@@ -1,11 +1,15 @@
 package edu.mayo.pipes.util.test;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
 
 import com.tinkerpop.pipes.Pipe;
+import com.tinkerpop.pipes.util.Pipeline;
 
 import edu.mayo.pipes.history.History;
 
@@ -73,6 +77,38 @@ public class PipeTestUtils {
     				expected.get(i),
     				actual.get(i));
     	}
+    }
+    
+    /** Walk a pipeline and print out any subpipes, listing them in the hierarchy they are called */
+    public static void walkPipeline(Pipeline pipeline, int depth) {
+    	List<Pipe> pipes = pipeline.getPipes();
+    	for(Pipe pipe : pipes) {
+     		if( pipe instanceof Pipeline )
+    			walkPipeline((Pipeline) pipe, depth+1);
+    		else {
+    			System.out.println(getDepthSpaces(depth) + pipe.getClass().getCanonicalName());
+
+//    			for(Field field : pipe.getClass().getDeclaredFields()) {
+//    			    System.out.println(field.getGenericType());
+//    			}
+    			
+    			//    			Field[] fields = pipe.getClass().getDeclaredFields();//DPipeTestUtils.class.getDeclaredField("stringList");
+//    			Annotation[] annotations = pipe.getClass().getAnnotations();
+//    			Annotation[] declAnno = pipe.getClass().getDeclaredAnnotations();
+//    			Field field = fields[0];
+//    	        ParameterizedType type = (ParameterizedType) field.getGenericType();
+//    	        Class<?> cls = (Class<?>)type.getActualTypeArguments()[0];
+//    	        System.out.println(cls); // class java.lang.String.
+    		}
+    	}
+    }
+    
+    private static String getDepthSpaces(int depth) {
+    	StringBuilder str = new StringBuilder();
+    	while(str.length() < depth) {
+    		str.append("\t");
+    	}
+    	return str.toString();
     }
 
 }
