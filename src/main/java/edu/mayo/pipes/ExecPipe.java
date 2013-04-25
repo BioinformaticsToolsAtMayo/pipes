@@ -100,10 +100,10 @@ public class ExecPipe extends AbstractPipe<String, String> {
     public String processNextStart() {
         try {
             String line = this.starts.next();
-            //System.out.println("EXECPIPE: " + line);
+            //sLogger.info("EXECPIPE: " + line);
             cmd.send(line);
             String output = cmd.receive();
-            //System.out.println("EXEKEEP: " + output);
+            //sLogger.info("EXEKEEP: " + output);
             return output;
         } catch (InterruptedException ex) {
         	sLogger.error(ex.getMessage(), ex);            
