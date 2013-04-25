@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.apache.log4j.Logger;
+
 import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.AbstractPipe;
@@ -22,6 +24,8 @@ import edu.mayo.pipes.history.History;
  */
 public class DrillPipe extends AbstractPipe<History, History>{
 
+	private static Logger sLogger = Logger.getLogger(DrillPipe.class);
+	
     /** if keepJSON is true, it will keep the original JSON string and place it at the end of the list */
     private boolean keepJSON = false;
     private String[] drillPaths;
@@ -56,6 +60,11 @@ public class DrillPipe extends AbstractPipe<History, History>{
         if(this.starts.hasNext()){
             History history = this.starts.next();
             
+            //sLogger.debug("DrillPipe: (before): " + history);
+            //String headerBefore = History.getMetaData().getColumnHeaderRow("\t");
+			//sLogger.debug("DrillPipe: (header-before): " + headerBefore);
+			//sLogger.debug("DrillPipe: isKeepJson: " + keepJSON);
+			
             //handle the case where the drill column is greater than zero...
             if(drillColumn > 0){
                 int size = history.size();
@@ -85,7 +94,7 @@ public class DrillPipe extends AbstractPipe<History, History>{
             String json = history.remove(history.size() + drillColumn);
             //System.history.println("Abhistory to Drill: " + json);
             for(int i=0;i< compiledPaths.size(); i++){
-                if(!json.startsWith("{")){ //TODO: we may need a more rigourus check to see if it is json.
+                if(!json.startsWith("{")){ //TODO: we may need a more rigorous check to see if it is json.
                     //history.add("."); 
                     int reportColumn = history.size() + drillColumn;
                     throw new InvalidJSONException("A column input to Drill that should be JSON was not JSON, I can't Drill non-JSON columns: " + reportColumn + " : " + json);
@@ -105,10 +114,16 @@ public class DrillPipe extends AbstractPipe<History, History>{
                     }
                 }
             }
+            
+            // If keeping the json column, then add the json back in at the end
             if(keepJSON){
                 history.add(json);
             }
+            // Else, remove the head
             
+            //sLogger.debug("DrillPipe: (after): " + history);
+            //String headerAfter = History.getMetaData().getColumnHeaderRow("\t");
+			//sLogger.debug("DrillPipe: (header-after): " + headerAfter);
             return history;
         }else{
             throw new NoSuchElementException();

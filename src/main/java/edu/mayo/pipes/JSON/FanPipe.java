@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.apache.log4j.Logger;
+
 /**
  * The FanPipe works as follows.
  * @input - history (a list of strings with metadata)
@@ -33,6 +35,8 @@ import java.util.NoSuchElementException;
  * @author dquest
  */
 public class FanPipe extends AbstractPipe<History,History> {
+	private static Logger sLogger = Logger.getLogger(FanPipe.class);
+	
     private int index = -1;
     private ArrayList<String> outqueue;
 
@@ -44,7 +48,7 @@ public class FanPipe extends AbstractPipe<History,History> {
     public void serializeArrayToOutQueue(ArrayList a){
         for(Object o : a){
             String s = o.toString();
-            //System.out.println(s);
+            //sLogger.debug(s);
             outqueue.add(s);
         }
     }
@@ -56,20 +60,23 @@ public class FanPipe extends AbstractPipe<History,History> {
     protected History processNextStart() throws NoSuchElementException {
    
         if(outqueue.size() > 0){//if there is stuff in the queue...
-                //then add the element in the queue to the list, copy the history and return it.
-            	History clone = (History) history.clone();
-                clone.remove(clone.size()-1);
-		clone.add(outqueue.remove(0));
-                return clone;
+        	//then add the element in the queue to the list, copy the history and return it.
+        	History clone = (History) history.clone();
+        	clone.remove(clone.size()-1);
+        	clone.add(outqueue.remove(0));
+        	//sLogger.debug("FanPipe: (clone): " + clone);
+        	return clone;
         }else {
             history = this.starts.next();
+            //sLogger.debug("FanPipe: history: " + history);
+			//sLogger.debug("FanPipe (header): " + History.getMetaData().getColumnHeaderRow("\t"));
             String json = history.get(history.size()+index);
             //check that the json string is indeed a json array
             if(!json.startsWith("[")){
                 //if it is not, just pass along the history...
                 return history;
             }
-            //System.out.println(json);
+            //sLogger.debug(json);
             serializeArrayToOutQueue(gson.fromJson(json, ArrayList.class));
             if(outqueue.size() < 1){
                 throw new NoSuchElementException();

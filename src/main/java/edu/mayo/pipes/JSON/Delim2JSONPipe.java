@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.apache.log4j.Logger;
+
 /**
  *  Delim2JSONPipe takes in it's constructor a String[] describing each of the columns
  * in a delimited file (i.e. the metadata) and it converts these columns to JSON,
@@ -31,6 +33,8 @@ import java.util.NoSuchElementException;
  * @author m102417
  */
 public class Delim2JSONPipe extends AbstractPipe<History, History>{
+	private static Logger sLogger = Logger.getLogger(Delim2JSONPipe.class);
+	
     private int index = -1;
     private String[] meta = null;
     private boolean keepOriginalColumn = true;
@@ -77,6 +81,8 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
     @Override
     protected History processNextStart() throws NoSuchElementException {
         History history = this.starts.next();
+        //sLogger.debug("Delim2JSONPipe history : " + history);
+		//sLogger.debug("Delim2JSONPipe (header): " + History.getMetaData().getColumnHeaderRow("\t"));
         fixIndex(history);
         int pos = history.size() + index;
         String foo = history.get(pos);
@@ -84,6 +90,7 @@ public class Delim2JSONPipe extends AbstractPipe<History, History>{
         if(this.keepOriginalColumn == false){
             history.remove(history.size() + index -1);
         }
+        //sLogger.debug("Delim2JSONPipe after   : " + history);
         return  history;
     }
     
