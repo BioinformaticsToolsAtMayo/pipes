@@ -110,9 +110,12 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
 
     @Override
     protected History processNextStart() throws NoSuchElementException, InvalidPipeInputException {
-        
         History history = this.starts.next();
 
+        //sLogger.debug("VCF2VariantPipe (before): " + history);
+		//sLogger.debug("VCF2VariantPipe (header): " + History.getMetaData().getColumnHeaderRow("\t"));
+
+        
         // record the data line we are going to process
         mDataLineNumber++;
         
@@ -153,6 +156,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         String json = buildJSON(history);
         
         history.add(json);
+        //sLogger.debug("VCF2VariantPipe (after): " + history);
         
         return history;        
     }    
@@ -312,7 +316,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     private String[] al(String raw){
         List<String> finalList = new ArrayList<String>();
         if(raw.contains(",")){
-            //System.out.println(raw);
+            //sLogger.debug(raw);
             String[] split = raw.split(",");
             for(int i = 0; i<split.length; i++){
                 finalList.add(split[i]);
