@@ -22,6 +22,8 @@ import edu.mayo.pipes.PrintPipe;
 
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
+import edu.mayo.pipes.history.HistoryOutPipe;
+import edu.mayo.pipes.util.test.PipeTestUtils;
 
 /**
  *
@@ -130,5 +132,32 @@ public class DrillPipeTest {
                 assertEquals("RPL21P4 41231278", s);
             }
         }
+    }
+    
+    @Test
+    public void testRemoveDrillColumnMetadata() {
+    	List<String> input = Arrays.asList(
+    		"##Header start",
+    		"#Chrom\tJson",
+    		"1\t{\"Key\":\"Value\"}"
+    	);
+    	
+    	String[] drillCols = { "Key" };
+    	
+    	Pipeline pipe = new Pipeline(
+    		new HistoryInPipe(),
+    		new DrillPipe(false, drillCols),
+    		new HistoryOutPipe()
+    		);
+    	pipe.setStarts(input);
+    	List<String> actual = PipeTestUtils.getResults(pipe);
+    	
+    	List<String> expected = Arrays.asList(
+    		"##Header start",
+    		"#Chrom\tKey",
+    		"1\tValue"
+    	);
+    	
+    	PipeTestUtils.assertListsEqual(expected, actual);
     }
 }
