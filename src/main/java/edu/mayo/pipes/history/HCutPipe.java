@@ -21,7 +21,7 @@ public class HCutPipe extends AbstractPipe<History, History> {
     private boolean muck = true; // do we need to muck with the header?
     /**
      * 
-     * @param columns - list of numbers for the columns we want to cut
+     * @param columns - list of numbers for the columns we want to cut.  Negative values are allowed.
      */
     public HCutPipe(int[] columns){
         init(columns);
@@ -58,14 +58,24 @@ public class HCutPipe extends AbstractPipe<History, History> {
     protected History processNextStart() throws NoSuchElementException {
         History h = this.starts.next();
         List<ColumnMetaData> cmd = History.getMetaData().getColumns();
-                
-        //System.out.println(cmd.size());
+        
         for(int i=0; i<cols.size(); i++){
-          int m = cols.get(i)-1;
-          h.remove(m);
-          if(muck){
-            cmd.remove(m);
-          }
+        	int cutCol = cols.get(i);
+	        //handle the case where the drill column is greater than zero...
+	        if(cutCol > 0){
+	            //recalculate it to be negative...
+	            cutCol = cutCol - h.size() - 1;
+	        }
+	        if(h.size() == 1){
+	            cutCol = -1;
+	        }        
+        	
+        	int m = h.size() + cutCol;
+
+        	h.remove(m);
+	        if(muck){
+	        	cmd.remove(m);
+	        }
         }
         muck = false;
         return h;

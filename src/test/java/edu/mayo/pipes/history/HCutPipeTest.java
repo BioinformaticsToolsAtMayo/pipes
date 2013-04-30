@@ -76,4 +76,28 @@ public class HCutPipeTest {
         List<String> actual = PipeTestUtils.getResults(p);
         PipeTestUtils.assertListsEqual(expected, actual);
     }
+    
+    /**
+     * Test of processNextStart method, of class HCutPipe.
+     */
+    @Test
+    public void testNegativeValues() {
+        
+        int[] cc = {-2};
+        String s1 = "A\tB\tC\tX\tW";
+        String s2 = "D\tE\tF\tY\tW";
+        Pipeline p = new Pipeline(new HistoryInPipe(), 
+                                  new HCutPipe(cc), 
+                                  //new MergePipe("\t", false), 
+                                  new HistoryOutPipe()
+                                  );
+        p.setStarts(Arrays.asList(s1, s2));
+        List<String> expected = Arrays.asList(
+        		"#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\t#UNKNOWN_5",
+        		"A\tB\tC\tW",
+        		"D\tE\tF\tW"
+        		);
+        List<String> actual = PipeTestUtils.getResults(p);
+        PipeTestUtils.assertListsEqual(expected, actual);
+    }    
 }
