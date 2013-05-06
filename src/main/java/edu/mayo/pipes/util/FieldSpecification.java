@@ -1,6 +1,7 @@
 package edu.mayo.pipes.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,22 @@ public class FieldSpecification
 		NON_MATCH
 	}
 	
+	/**
+	 * The direction for the Field numbering.
+	 */
+	public enum FieldDirection
+	{
+		/**
+		 * Fields are ordered 1, 2, 3, 4, 5, 6, ... where Field 1 is the first item.
+		 */
+		LEFT_TO_RIGHT,
+
+		/**
+		 * Fields are ordered ..., 6, 5, 4, 3, 2, 1 where Field 1 is the last item.
+		 */		
+		RIGHT_TO_LEFT
+	}
+	
 	enum Type
 	{
 		NTH_ONLY,
@@ -45,6 +62,31 @@ public class FieldSpecification
 	
 	private List<FieldRange> mRanges = new ArrayList<FieldRange>();
 	
+	private FieldDirection mDirection;
+
+	/**
+	 * Constructor
+	 * <p/>
+	 * NOTE: Fields are numbered left to right (e.g. 1, 2, 3, 4, 5, etc...).
+	 *
+	 * @param spec
+	 * 		The specification.  A specification is made up of one range, or many
+	 * 		ranges separated by commas.  Each range is one of: <p/>
+	 * 
+	 *<table border=1>
+	 *<tr><td> N   </td><td> Nth field, counted from 1 </td></tr>
+	 *<tr><td> N-  </td><td> from Nth field, to end of line </td></tr>
+	 *<tr><td> N-M </td><td> from Nth to Mth (included) field </td></tr>
+	 *<tr><td> -M  </td><td> from first to Mth (included) field </td></tr>
+	 *</table>
+	 *<p/>
+	 *
+	 */
+	public FieldSpecification(String spec)
+	{
+		this(spec, FieldDirection.LEFT_TO_RIGHT);
+	}
+		
 	/**
 	 * Constructor
 	 *
@@ -52,15 +94,21 @@ public class FieldSpecification
 	 * 		The specification.  A specification is made up of one range, or many
 	 * 		ranges separated by commas.  Each range is one of: <p/>
 	 * 
-	 *<table>
+	 *<table border=1>
 	 *<tr><td> N   </td><td> Nth field, counted from 1 </td></tr>
 	 *<tr><td> N-  </td><td> from Nth field, to end of line </td></tr>
 	 *<tr><td> N-M </td><td> from Nth to Mth (included) field </td></tr>
 	 *<tr><td> -M  </td><td> from first to Mth (included) field </td></tr>
 	 *</table>
+	 *<p/>
+	 *
+	 * @param direction
+	 *		The direction for the Field numbering specified using a {@link FieldDirection}.
 	 */
-	public FieldSpecification(String spec)
+	public FieldSpecification(String spec, FieldDirection direction)
 	{
+		mDirection = direction;
+		
 		for (String rangeStr: spec.split(","))
 		{
 			FieldRange range;
@@ -115,31 +163,54 @@ public class FieldSpecification
 		List<Integer> matches = new ArrayList<Integer>();
 		for (FieldRange range: mRanges)
 		{
+			// assume NTH and MTH fields have direction LEFT_TO_RIGHT
+			Integer nthField = range.nthField;
+			Integer mthField = range.mthField;
+			
+			// orient NTH and MTH fields to be LEFT_TO_RIGHT if needed
+			if (mDirection.equals(FieldDirection.RIGHT_TO_LEFT))
+			{
+				if (range.nthField != null)
+					nthField = numFields - range.nthField + 1;
+				if (range.mthField != null)
+					mthField = numFields - range.mthField + 1;
+			}
+			
 			switch (range.type)
 			{
 				case NTH_ONLY:
-					matches.add(range.nthField);
+					matches.add(nthField);
 					break;
 				case FIRST_TO_MTH:
-					for (int i=1; i <= range.mthField; i++)
+					for (int i=1; i <= mthField; i++)
 					{
 						matches.add(i);						
 					}
 					break;
 				case NTH_TO_END:
-					for (int i=range.nthField; i <= numFields; i++)
+					for (int i=nthField; i <= numFields; i++)
 					{
 						matches.add(i);						
 					}
 					break;
 				case NTH_TO_MTH:
-					for (int i=range.nthField; i <= range.mthField; i++)
+					int start = nthField;
+					int end = mthField;
+					if (mDirection.equals(FieldDirection.RIGHT_TO_LEFT))
+					{
+						// reverse
+						start = mthField;
+						end = nthField;						
+					}
+
+					for (int i=start; i <= end; i++)
 					{
 						matches.add(i);						
 					}
 					break;
 			}
-		}		
+		}
+		Collections.sort(matches);
 		m.put(FieldType.MATCH, matches);
 		
 		// complement are non-matches
@@ -149,6 +220,7 @@ public class FieldSpecification
 			if (!matches.contains(i))
 				nonMatches.add(i);
 		}		
+		Collections.sort(nonMatches);
 		m.put(FieldType.NON_MATCH, nonMatches);
 		
 		return m;
