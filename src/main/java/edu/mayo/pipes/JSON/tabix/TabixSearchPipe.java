@@ -62,7 +62,8 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
     	if (new File(tabixDataFile).isFile()){
     		tr = new TabixReader(tabixDataFile);
     	} else {
-    		throw new IOException("TabixSearchPipe init(tabixDataFile) requires tabixDataFile to be a valid file. ");
+    		throw new IOException("TabixSearchPipe init(tabixDataFile) requires tabixDataFile to be a valid file. \n"
+    				+ "File: " + tabixDataFile);
     	}
         landmarkPath = JsonPath.compile(CoreAttributes._landmark.toString());
         minBPPath = JsonPath.compile(CoreAttributes._minBP.toString());
