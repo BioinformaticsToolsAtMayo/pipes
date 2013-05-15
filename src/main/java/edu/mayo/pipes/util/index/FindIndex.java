@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,8 @@ public class FindIndex {
     
 	private Connection mDbConn;
 	private boolean mIsKeyAnInteger = false;
+	// The new index table has a KeyUpper column so we can do case-insensitive searches
+	private boolean mIsKeyUpperColumnExists = false;
 	
 	public FindIndex() {
 	}
@@ -29,6 +32,7 @@ public class FindIndex {
 	public FindIndex(Connection dbConn) {
 		mDbConn = dbConn;
 		mIsKeyAnInteger = IndexUtils.isKeyAnInteger(dbConn);
+		mIsKeyUpperColumnExists = isKeyUpperColExists(dbConn);
 	}
 		
 	/**
@@ -80,7 +84,7 @@ public class FindIndex {
 			if(mIsKeyAnInteger)
 				stmt.setLong(1, Long.valueOf(id));
 			else
-				stmt.setString(1, id);
+				stmt.setString(1, id.toUpperCase());
 			
 			ResultSet rs = stmt.executeQuery();
 			while(rs.next()) {
@@ -105,7 +109,10 @@ public class FindIndex {
 	 * @throws SQLException
 	 */
 	public LinkedList<Long> find(String idToFind) throws SQLException {
-		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
+		final String SQL = mIsKeyUpperColumnExists
+				?  "SELECT FilePos FROM Indexer WHERE KeyUpper = ?"
+				:  "SELECT FilePos FROM Indexer WHERE Key = ?";
+		
 		PreparedStatement stmt = mDbConn.prepareStatement(SQL);
 		ResultSet rs = null;
 		LinkedList<Long> positions = new LinkedList<Long>();
@@ -119,7 +126,7 @@ public class FindIndex {
 				stmt.setLong(1, Long.valueOf(idToFind));
 			}
 			else
-				stmt.setString(1, idToFind);
+				stmt.setString(1, mIsKeyUpperColumnExists ? idToFind.toUpperCase() : idToFind);
 					
 			rs = stmt.executeQuery();
 			while(rs.next()) {
@@ -138,6 +145,28 @@ public class FindIndex {
 		}
 		
 		return positions;
-	}		
+	}
+	
+	private boolean isKeyUpperColExists(Connection dbConn) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		boolean isExists = false;
+		try {
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery("SELECT KeyUpper FROM Indexer");
+			isExists = true;
+		} catch(Exception e) {	}
+		finally {
+			try {
+				if(rs != null)
+					rs.close();
+			}catch(Exception e) {}
+			try {
+				if(stmt != null) 
+					stmt.close();
+			}catch(Exception e) {}
+		}
+		return isExists;
+	}
 
 }

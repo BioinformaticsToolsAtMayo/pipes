@@ -158,7 +158,7 @@ public class IndexDatabaseCreator {
 
 		BufferedReader fin = new BufferedReader(new FileReader(tmpTxt));
 		
-		final String SQL = "INSERT INTO Indexer (Key, FilePos) VALUES (?, ?)";
+		final String SQL = "INSERT INTO Indexer (KeyUpper, Key, FilePos) VALUES (?, ?, ?)";
 		PreparedStatement stmt = dbConn.prepareStatement(SQL);
 		dbConn.setAutoCommit(true);
 
@@ -168,11 +168,18 @@ public class IndexDatabaseCreator {
 			String[] cols = line.split("\t");
 			String key = cols[0];
 			String pos = cols[1];
+			// KeyUpper
 			if(isKeyInteger)
 				stmt.setLong(1, Integer.valueOf(key));
 			else
-				stmt.setString(1, key);
-			stmt.setLong(2, Long.valueOf(pos));
+				stmt.setString(1, key.toUpperCase());
+			// Key
+			if(isKeyInteger)
+				stmt.setLong(2, Integer.valueOf(key));
+			else
+				stmt.setString(2, key);
+			// FilePos
+			stmt.setLong(3, Long.valueOf(pos));
 			stmt.execute();
 			dbConn.commit();
 

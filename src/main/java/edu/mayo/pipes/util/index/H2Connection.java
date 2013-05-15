@@ -65,6 +65,7 @@ public class H2Connection {
     public void createTable(boolean isKeyInteger, int maxKeyLength, Connection dbConn) throws SQLException {
         final String SQL = "CREATE TABLE Indexer " 
         		+ "("
+        		+   (isKeyInteger ? "KeyUpper BIGINT," : "KeyUpper VARCHAR(" + maxKeyLength + "), ")
         		+   (isKeyInteger ? "Key BIGINT," : "Key VARCHAR(" + maxKeyLength + "), ")
         		+   "FilePos BIGINT" 
         		+ ")";
@@ -74,7 +75,7 @@ public class H2Connection {
 	}
     
 	public void createTableIndex(Connection dbConn) throws SQLException {
-		 final String SQL = "CREATE INDEX keyIndex ON Indexer (Key);";
+		 final String SQL = "CREATE INDEX keyIndex ON Indexer (KeyUpper);";
 		 Statement stmt = dbConn.createStatement();
 		 stmt.execute(SQL);
 		 stmt.close();

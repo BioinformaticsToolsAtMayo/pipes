@@ -32,7 +32,7 @@ public class IndexUtils {
 	
 	private File mBgzipFile;
 
-	public enum IndexBuilderPropKeys { MaxKeyLen, IsKeyColAnInt };
+	public enum IndexBuilderPropKeys { MaxKeyLen, IsKeyColAnInt, NumLines };
 	
 	public IndexUtils() {
 	}
@@ -158,6 +158,7 @@ public class IndexUtils {
 		Properties props = new Properties();
 		props.put(IndexBuilderPropKeys.MaxKeyLen, maxKeyLen);
 		props.put(IndexBuilderPropKeys.IsKeyColAnInt, areAllKeysInts);
+		props.put(IndexBuilderPropKeys.NumLines,  numObjects);
 		return props;
 	}
 
@@ -456,21 +457,31 @@ public class IndexUtils {
     	return isInt;
     }
 
-	public static String buildIndexPath(String bgzipPath, String jsonPath) throws IOException {
-		File bgzipFile = new File(bgzipPath);
+	public static String getH2DbIndexPath(String bgzipPath, String jsonPath) throws IOException {
+		return getDir(bgzipPath) + "/index/" + getFilePrefix(bgzipPath) + "." + jsonPath + ".idx.h2.db";
+	}
+	
+	private static String getTextIndexPath(String bgzipPath, String jsonPath) throws IOException {
+		return getDir(bgzipPath) + "/index/" + getFilePrefix(bgzipPath) + "." + jsonPath + ".idx.txt.gz";
+	}
+	
+	private static String getFilePrefix(String path) {
+		File file = new File(path);
 		
 		// Get the catalog prefix up to the first dot
-		String bgzipPrefix = bgzipFile.getName();
-		int idxFirstDot = bgzipPrefix.indexOf(".");
+		String filePrefix = file.getName();
+		int idxFirstDot = filePrefix.indexOf(".");
 		if(idxFirstDot != -1)
-			bgzipPrefix = bgzipPrefix.substring(0, idxFirstDot);
-		
+			filePrefix = filePrefix.substring(0, idxFirstDot);
+
+		return filePrefix;
+	}
+	
+	private static String getDir(String path) throws IOException {
 		// When getting the parent, make sure to use File.getCanonicalFile() FIRST, 
 		// otherwise the parent will come back null if you are working with a file
 		// in the same directory where the command is run.
-		String parentDirPath = bgzipFile.getCanonicalFile().getParentFile().getCanonicalPath();
-		String fullIndexPath = parentDirPath + "/index/" + bgzipPrefix + "." + jsonPath + ".idx.h2.db";
-		return fullIndexPath;
+		return new File(path).getCanonicalFile().getParentFile().getCanonicalPath();
 	}
 
 	
