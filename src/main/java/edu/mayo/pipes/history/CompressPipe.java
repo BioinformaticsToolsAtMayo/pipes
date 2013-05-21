@@ -162,16 +162,34 @@ public class CompressPipe extends AbstractPipe<History, History>
 		{
 			return new History();
 		}
+
+		final boolean[] identicalColVals = checkSameColumnValues(lines);
+
+		List<String> firstLine = lines.remove(0);
 		
-		final int numCols = lines.get(0).size();
+		final int numCols = firstLine.size();
 		
 		// list of StringBuilders, 1 per column for final compressed line
 		List<StringBuilder> builders = new ArrayList<StringBuilder>();
-		for (int i=0; i < numCols; i++)
+		
+		for (int col=0; col < numCols; col++)
 		{
-			builders.add(new StringBuilder());
+			String colValue = firstLine.get(col);
+			
+			// fields are 1-based
+			int field = col + 1;
+
+			if (mCompressFields.contains(field))
+			{					
+				// escape occurrences of delimiter
+				colValue = colValue.replace(mDelimiter, mEscDelimiter);
+			}
+			
+			// initialize builders with 1st line values
+			builders.add(new StringBuilder(colValue));
 		}
 
+		// handle all subsequent lines
 		for (List<String> line: lines)
 		{
 			// for-each column
@@ -183,35 +201,17 @@ public class CompressPipe extends AbstractPipe<History, History>
 				// fields are 1-based
 				int field = col + 1;
 				
-				if (mCompressFields.contains(field))
+				if ((identicalColVals[col] == false) && mCompressFields.contains(field))
 				{					
 					// escape occurrences of delimiter
 					colValue = colValue.replace(mDelimiter, mEscDelimiter);
 					
-					builder.append(colValue);
 					builder.append(mDelimiter);					
-				}
-				else if (builder.length() == 0)
-				{
-					// non-compressed field, add only if not done already
 					builder.append(colValue);
 				}
 			}
 		}
-		
-		// chomp trailing delimiter on compressed columns
-		for (int col=0; col < numCols; col++)
-		{
-			// fields are 1-based
-			int field = col + 1;
-			
-			if (mCompressFields.contains(field))
-			{
-				StringBuilder sb = builders.get(col);
-				sb.deleteCharAt(sb.length() - 1);
-			}			
-		}
-		
+				
 		// translate StringBuilder to History
 		History compressedLine = new History();
 		for (StringBuilder builder: builders)
@@ -220,6 +220,51 @@ public class CompressPipe extends AbstractPipe<History, History>
 		}
 		
 		return compressedLine;
+	}
+
+	/**
+	 * Checks all values for each column.  If all values of a specific column
+	 * are identical, the corresponding element in the boolean[] is TRUE, FALSE
+	 * otherwise.
+	 * 
+	 * @param lines
+	 * @return
+	 * 		Array of booleans that correspond 1-to-1 with the compress columns.
+	 * 		Boolean is TRUE if all values in column are identical.  FALSE otherwise.
+	 */
+	private boolean[] checkSameColumnValues(List<List<String>> lines)
+	{
+		if (lines.size() == 0)
+		{
+			return new boolean[0];
+		}
+		
+		final int numCols = lines.get(0).size();		
+		
+		// for-each column
+		boolean[] identicalColVals = new boolean[numCols];
+		for (int col=0; col < numCols; col++)
+		{
+			boolean allIdentical = true;
+			
+			String colValue = null;
+			for (List<String> line: lines)
+			{
+				if (colValue == null)
+				{
+					colValue = line.get(col);
+				}
+				else if (colValue.equals(line.get(col)) == false)
+				{
+					allIdentical = false;
+					break;
+				}
+			}
+			
+			identicalColVals[col] = allIdentical;
+		}
+		
+		return identicalColVals;
 	}
 	
 	/**
