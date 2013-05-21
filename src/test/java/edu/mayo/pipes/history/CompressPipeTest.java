@@ -13,6 +13,7 @@ import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
 import edu.mayo.pipes.util.FieldSpecification;
+import edu.mayo.pipes.util.FieldSpecification.FieldDirection;
 
 
 public class CompressPipeTest {
@@ -56,6 +57,50 @@ public class CompressPipeTest {
         validate(Arrays.asList("dataC", "333", "Z"), line);
     }
 
+    @Test
+    public void testRightToLeft() throws IOException, InterruptedException {
+        
+    	String delimiter = "|";
+        FieldSpecification fieldSpec = new FieldSpecification("2,3", FieldDirection.RIGHT_TO_LEFT);
+        CompressPipe compress = new CompressPipe(fieldSpec, delimiter);
+        
+        List<List<String>> asList = Arrays.asList
+        	(
+        		Arrays.asList("dataA", "1", "A"),
+        		Arrays.asList("dataA", "2", "A"),
+        		Arrays.asList("dataA", "3", "C"),
+        		Arrays.asList("dataB", "100", "W"),
+        		Arrays.asList("dataB", "101", "Z"),
+        		Arrays.asList("dataC", "333", "Z")        		
+        	);
+
+        Pipe<List<String>, List<String>> p = new Pipeline<List<String>, List<String>>(compress);
+
+        p.setStarts(asList);
+
+        List<String> line;
+        
+        // 1ST compressed line
+        assertTrue(p.hasNext());
+        line = (List<String>) p.next();
+        validate(Arrays.asList("dataA|dataA", "1|2", "A"), line);
+        
+        // 2ND compressed line
+        assertTrue(p.hasNext());
+        line = (List<String>) p.next();
+        validate(Arrays.asList("dataA", "3", "C"), line);
+
+        // 3RD compressed line
+        assertTrue(p.hasNext());
+        line = (List<String>) p.next();
+        validate(Arrays.asList("dataB", "100", "W"), line);
+
+        // 4TH compressed line
+        assertTrue(p.hasNext());
+        line = (List<String>) p.next();
+        validate(Arrays.asList("dataB|dataC", "101|333", "Z"), line);
+    }    
+    
     @Test
     public void testDelimiterConflictDefault() throws IOException, InterruptedException {
         
