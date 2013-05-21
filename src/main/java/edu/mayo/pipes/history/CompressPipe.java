@@ -19,7 +19,9 @@ import edu.mayo.pipes.util.FieldSpecification.FieldType;
  */
 public class CompressPipe extends AbstractPipe<History, History>
 {
+	
 	private String mDelimiter;
+	private String mEscDelimiter;
 	
 	private FieldSpecification mFieldSpec;
 			
@@ -46,12 +48,31 @@ public class CompressPipe extends AbstractPipe<History, History>
 	 * 		{@link FieldSpecification} that specifies which fields will be compressed. <p/>
 	 * @param delimiter
 	 * 		Delimiter used to concat multiple row values for 1 column into a single cel value.
+	 * 		If the field contains the specified <b>delimiter</b>, it will be escaped by
+	 * 		prefixing a blackslash "\" character.
 	 */
 	public CompressPipe(FieldSpecification fieldSpec, String delimiter)
 	{
+		this(fieldSpec, delimiter, "\\" + delimiter);
+	}
+
+	/**
+	 * Constructor
+	 *
+	 * @param fieldSpec
+	 * 		{@link FieldSpecification} that specifies which fields will be compressed. <p/>
+	 * @param delimiter
+	 * 		Delimiter used to concat multiple row values for 1 column into a single cel value.
+	 * @param escapeDelimiter
+	 * 		If a given field contains the specified <b>delimiter</b> already, the value of this
+	 * 		parameter will be used to escape it.
+	 */
+	public CompressPipe(FieldSpecification fieldSpec, String delimiter, String escapeDelimiter)
+	{
 		mFieldSpec = fieldSpec;
 		mDelimiter = delimiter;
-	}
+		mEscDelimiter = escapeDelimiter;
+	}	
 	
 	@Override
 	protected History processNextStart() throws NoSuchElementException
@@ -142,31 +163,53 @@ public class CompressPipe extends AbstractPipe<History, History>
 			return new History();
 		}
 		
-		// 1ST line
-		List<String> firstLine = lines.remove(0);
+		final int numCols = lines.get(0).size();
 		
 		// list of StringBuilders, 1 per column for final compressed line
 		List<StringBuilder> builders = new ArrayList<StringBuilder>();
-		for (int i=0; i < firstLine.size(); i++)
+		for (int i=0; i < numCols; i++)
 		{
-			// initialize StringBuilders to the 1ST line values
-			builders.add(new StringBuilder(firstLine.get(i)));
+			builders.add(new StringBuilder());
 		}
 
-		// for-each subsequent line
 		for (List<String> line: lines)
 		{
 			// for-each column
-			for (int col=0; col < line.size(); col++)
+			for (int col=0; col < numCols; col++)
 			{
+				StringBuilder builder = builders.get(col);				
+				String colValue = line.get(col);
+
+				// fields are 1-based
 				int field = col + 1;
+				
 				if (mCompressFields.contains(field))
+				{					
+					// escape occurrences of delimiter
+					colValue = colValue.replace(mDelimiter, mEscDelimiter);
+					
+					builder.append(colValue);
+					builder.append(mDelimiter);					
+				}
+				else if (builder.length() == 0)
 				{
-					String colValue = line.get(col);
-					builders.get(col).append(mDelimiter);					
-					builders.get(col).append(colValue);
+					// non-compressed field, add only if not done already
+					builder.append(colValue);
 				}
 			}
+		}
+		
+		// chomp trailing delimiter on compressed columns
+		for (int col=0; col < numCols; col++)
+		{
+			// fields are 1-based
+			int field = col + 1;
+			
+			if (mCompressFields.contains(field))
+			{
+				StringBuilder sb = builders.get(col);
+				sb.deleteCharAt(sb.length() - 1);
+			}			
 		}
 		
 		// translate StringBuilder to History

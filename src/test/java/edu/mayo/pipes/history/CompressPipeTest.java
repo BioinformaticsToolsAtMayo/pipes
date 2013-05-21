@@ -12,7 +12,6 @@ import org.junit.Test;
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
-import edu.mayo.pipes.history.CompressPipe;
 import edu.mayo.pipes.util.FieldSpecification;
 
 
@@ -56,6 +55,53 @@ public class CompressPipeTest {
         line = (List<String>) p.next();
         validate(Arrays.asList("dataC", "333", "Z"), line);
     }
+
+    @Test
+    public void testDelimiterConflictDefault() throws IOException, InterruptedException {
+        
+    	String delimiter = "|";
+        FieldSpecification fieldSpec = new FieldSpecification("2");
+        CompressPipe compress = new CompressPipe(fieldSpec, delimiter);
+        
+        List<List<String>> asList = Arrays.asList
+        	(
+        		Arrays.asList("dataA", "1|A"),
+        		Arrays.asList("dataA", "2|B")
+        	);
+
+        Pipe<List<String>, List<String>> p = new Pipeline<List<String>, List<String>>(compress);
+
+        p.setStarts(asList);
+        
+        // compressed line
+        assertTrue(p.hasNext());
+        List<String> line = (List<String>) p.next();
+        validate(Arrays.asList("dataA", "1\\|A|2\\|B"), line);        
+    }        
+    
+    @Test
+    public void testDelimiterConflict() throws IOException, InterruptedException {
+        
+    	String delimiter = "|";
+    	String escDelimiter = "%%";
+        FieldSpecification fieldSpec = new FieldSpecification("2");
+        CompressPipe compress = new CompressPipe(fieldSpec, delimiter, escDelimiter);
+        
+        List<List<String>> asList = Arrays.asList
+        	(
+        		Arrays.asList("dataA", "1|A"),
+        		Arrays.asList("dataA", "2|B")
+        	);
+
+        Pipe<List<String>, List<String>> p = new Pipeline<List<String>, List<String>>(compress);
+
+        p.setStarts(asList);
+        
+        // compressed line
+        assertTrue(p.hasNext());
+        List<String> line = (List<String>) p.next();
+        validate(Arrays.asList("dataA", "1%%A|2%%B"), line);        
+    }    
     
     private void validate(List<String> list1, List<String> list2)
     {
