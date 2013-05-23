@@ -63,12 +63,15 @@ public class IndexDatabaseCreator {
 		    System.out.println("Add rows from text file to database...");
 		    textIndexesToDb(dbConn, false, tempTxtOut);
 		    countDatabaseRows(h2DbFile);
+		    System.out.println("Size of file before index: " + h2DbFile.length());
 			System.out.println("Creating index on database...");
 			h2Conn.createTableIndex(dbConn);
 			// Print the database
 			//printDatabase(h2DbFile, isKeyAnInteger);
 
+			printDatabaseHeader(dbConn);
 			System.out.println("Num rows in database index: " + countDatabaseRows(h2DbFile));
+		    System.out.println("Size of file after index: " + h2DbFile.length());
 			
 			System.out.println("Done.");
 		} finally {
@@ -79,7 +82,26 @@ public class IndexDatabaseCreator {
 		}
 	}
 		
-
+	public static void printDatabaseHeader(Connection dbConn) throws SQLException {
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery("SELECT * FROM Indexer");
+	    
+			// Print the column names
+			int numCols = rs.getMetaData().getColumnCount();
+			System.out.println("Column headers:");
+			for(int i=1; i <= numCols; i++)
+				System.out.println(rs.getMetaData().getColumnName(i)  + " (" + rs.getMetaData().getColumnTypeName(i) + ")");
+		} finally {
+			if( rs != null )
+				rs.close();
+			if( stmt != null )
+				stmt.close();
+		}
+	}
+	
 	/** Prints all rows in the database */
 	public static void printDatabase(File h2DbFile) throws SQLException, ClassNotFoundException, IOException {
 		System.out.println("\n\nPrinting table Indexer...");
@@ -158,7 +180,7 @@ public class IndexDatabaseCreator {
 
 		BufferedReader fin = new BufferedReader(new FileReader(tmpTxt));
 		
-		final String SQL = "INSERT INTO Indexer (KeyUpper, Key, FilePos) VALUES (?, ?, ?)";
+		final String SQL = "INSERT INTO Indexer (Key, FilePos) VALUES (?, ?)";
 		PreparedStatement stmt = dbConn.prepareStatement(SQL);
 		dbConn.setAutoCommit(true);
 
@@ -168,18 +190,13 @@ public class IndexDatabaseCreator {
 			String[] cols = line.split("\t");
 			String key = cols[0];
 			String pos = cols[1];
-			// KeyUpper
+			// Key
 			if(isKeyInteger)
 				stmt.setLong(1, Integer.valueOf(key));
 			else
-				stmt.setString(1, key.toUpperCase());
-			// Key
-			if(isKeyInteger)
-				stmt.setLong(2, Integer.valueOf(key));
-			else
-				stmt.setString(2, key);
+				stmt.setString(1, key);
 			// FilePos
-			stmt.setLong(3, Long.valueOf(pos));
+			stmt.setLong(2, Long.valueOf(pos));
 			stmt.execute();
 			dbConn.commit();
 

@@ -40,7 +40,9 @@ public class H2Connection {
     	Class.forName("org.h2.Driver");
 		String dbPath = databaseFile.getCanonicalPath().replace(".h2.db", "");
 		//System.out.println("Database path: " + dbPath);
-        String url = "jdbc:h2:file:" + dbPath + ";FILE_LOCK=SERIALIZED";
+		// Allow multiple connections to the database (FILE_LOCK=SERIALIZED)
+		// AND make the columns NOT case sensitive (IGNORECASE=TRUE)
+        String url = "jdbc:h2:file:" + dbPath + ";FILE_LOCK=SERIALIZED;IGNORECASE=TRUE;";
         //double start = System.currentTimeMillis();
         Connection conn = DriverManager.getConnection(url, "sa", "");
         //double end = System.currentTimeMillis();
@@ -65,7 +67,6 @@ public class H2Connection {
     public void createTable(boolean isKeyInteger, int maxKeyLength, Connection dbConn) throws SQLException {
         final String SQL = "CREATE TABLE Indexer " 
         		+ "("
-        		+   (isKeyInteger ? "KeyUpper BIGINT," : "KeyUpper VARCHAR(" + maxKeyLength + "), ")
         		+   (isKeyInteger ? "Key BIGINT," : "Key VARCHAR(" + maxKeyLength + "), ")
         		+   "FilePos BIGINT" 
         		+ ")";
@@ -75,7 +76,7 @@ public class H2Connection {
 	}
     
 	public void createTableIndex(Connection dbConn) throws SQLException {
-		 final String SQL = "CREATE INDEX keyIndex ON Indexer (KeyUpper);";
+		 final String SQL = "CREATE INDEX keyIndex ON Indexer (Key);";
 		 Statement stmt = dbConn.createStatement();
 		 stmt.execute(SQL);
 		 stmt.close();

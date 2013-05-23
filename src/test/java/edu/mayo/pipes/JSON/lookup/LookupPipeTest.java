@@ -48,7 +48,7 @@ public class LookupPipeTest {
 	    Pipe<String, History> p = new Pipeline(new HistoryInPipe(), lookup);
 	    p.setStarts(Arrays.asList("."));
 	    
-	    while(p.hasNext()) {	    	
+	    while(p.hasNext()) {
 	    	History history = (History) p.next();            
 	    	String result = history.get(1);
 		    assertEquals(EXPECTED_RESULT, result);

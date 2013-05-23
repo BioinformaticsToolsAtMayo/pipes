@@ -2,15 +2,46 @@ package edu.mayo.pipes.util.index;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import com.google.common.io.Files;
 
 public class IndexDatabaseCreatorTest {
+
+	/** Create an index from the genes file based on gene name/symbol
+	 * @throws ClassNotFoundException 
+	 * @throws IOException 
+	 * @throws SQLException */
+	@Test
+	public void createGeneNameIndex() throws SQLException, IOException, ClassNotFoundException {
+		IndexDatabaseCreator indexH2 = new IndexDatabaseCreator();
+		
+		// Create an index based on gene symbol
+		String dir = "src/test/resources/testData/tabix";
+		String bgzipPath = dir + "/genes.tsv.bgz";
+		String h2DbPath  = dir + "/index/genes.gene.idx.h2.db";
+//		String dir = "/Users/m054457/TEMP";
+//		String bgzipPath = dir + "/allele_freqs_GRCh37.tsv.bgz";
+//		String h2DbPath = dir + "/index/hapmap.rsNumber.idx.h2.db";
+		System.out.println("Creating index at: " + h2DbPath);
+		indexH2.buildIndexH2(bgzipPath, 4, "gene", h2DbPath);
+		//indexH2.buildIndexH2(bgzipPath, 4, "rsNumber", h2DbPath);
+		
+		int rowCount = getRowCount(h2DbPath, "Indexer");
+		assertEquals(37301, rowCount); 
+		System.out.println("\n----------------------\n");
+	}
 
 	
 	/** Create an index from the genes file based on HGNC id

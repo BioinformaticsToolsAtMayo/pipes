@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,23 +15,22 @@ import java.util.Set;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-
 import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
 
 public class FindIndex {
     
 	private Connection mDbConn;
 	private boolean mIsKeyAnInteger = false;
-	// The new index table has a KeyUpper column so we can do case-insensitive searches
-	private boolean mIsKeyUpperColumnExists = false;
+	private boolean mIsKeyCaseSensitive = false;
 	
-	public FindIndex() {
+	public FindIndex(Connection dbConn, boolean isKeyCaseSensitive) {
+		mDbConn = dbConn;
+		mIsKeyAnInteger = IndexUtils.isKeyAnInteger(dbConn);
+		mIsKeyCaseSensitive = isKeyCaseSensitive;
 	}
 	
 	public FindIndex(Connection dbConn) {
-		mDbConn = dbConn;
-		mIsKeyAnInteger = IndexUtils.isKeyAnInteger(dbConn);
-		mIsKeyUpperColumnExists = isKeyUpperColExists(dbConn);
+		this(dbConn, false);
 	}
 		
 	/**
@@ -44,7 +42,7 @@ public class FindIndex {
 	 * @throws SQLException
 	 */
 	public HashMap<String, List<Long>> find(List<String> idsToFind) throws SQLException {
-		final String SQL = "SELECT FilePos FROM Indexer WHERE Key = ?";
+		final String SQL = "SELECT Key,FilePos FROM Indexer WHERE Key = ?";
 		PreparedStatement stmt = mDbConn.prepareStatement(SQL);
 
 		HashMap<String,List<Long>> key2posMap = new HashMap<String,List<Long>>();
@@ -64,17 +62,6 @@ public class FindIndex {
 			String id = it.next();
 			count++;
 			
-			/** Commenting for now.. enable if required.
-			if(count % 100000 == 0 ) {
-				//System.out.println(".");
-				double now = System.currentTimeMillis();
-				int numPerSec = (int)(count/((now-end)/1000.0));
-				long mem = utils.getMemoryUseMB();
-				if(mem > maxMem)
-					maxMem = mem;
-				System.out.println(count + "\t #/sec: " + numPerSec + "\t Est time: " + ((idSet.size()-count)/numPerSec) + " s  " + mem + "MB");
-			}*/
-			
 			List<Long> positions = key2posMap.get(id);
 			if(positions == null) {
 				positions = new ArrayList<Long>();
@@ -84,11 +71,15 @@ public class FindIndex {
 			if(mIsKeyAnInteger)
 				stmt.setLong(1, Long.valueOf(id));
 			else
-				stmt.setString(1, id.toUpperCase());
+				stmt.setString(1, id);
 			
 			ResultSet rs = stmt.executeQuery();
 			while(rs.next()) {
 				Long pos = rs.getLong("FilePos");
+				Object key = rs.getObject("Key");
+				// Don't add the position if the key is NOT an integer AND it is case sensitive AND it does not equal exactly
+				if( ! mIsKeyAnInteger && mIsKeyCaseSensitive && ! id.equals((String)key) )
+					continue;
 				positions.add(pos);
 			}
 			rs.close();
@@ -109,9 +100,7 @@ public class FindIndex {
 	 * @throws SQLException
 	 */
 	public LinkedList<Long> find(String idToFind) throws SQLException {
-		final String SQL = mIsKeyUpperColumnExists
-				?  "SELECT FilePos FROM Indexer WHERE KeyUpper = ?"
-				:  "SELECT FilePos FROM Indexer WHERE Key = ?";
+		final String SQL = "SELECT Key,FilePos FROM Indexer WHERE Key = ?";
 		
 		PreparedStatement stmt = mDbConn.prepareStatement(SQL);
 		ResultSet rs = null;
@@ -126,11 +115,15 @@ public class FindIndex {
 				stmt.setLong(1, Long.valueOf(idToFind));
 			}
 			else
-				stmt.setString(1, mIsKeyUpperColumnExists ? idToFind.toUpperCase() : idToFind);
+				stmt.setString(1, idToFind);
 					
 			rs = stmt.executeQuery();
 			while(rs.next()) {
 				Long pos = rs.getLong("FilePos");
+				Object key = rs.getObject("Key");
+				// Don't add the position if the key is NOT an integer AND it is case sensitive AND it does not equal exactly
+				if( ! mIsKeyAnInteger && mIsKeyCaseSensitive && ! idToFind.equals((String)key) )
+					continue;
 				positions.add(pos);
 			}
 		} catch (NumberFormatException nfe) {
@@ -146,27 +139,6 @@ public class FindIndex {
 		
 		return positions;
 	}
-	
-	private boolean isKeyUpperColExists(Connection dbConn) {
-		Statement stmt = null;
-		ResultSet rs = null;
-		boolean isExists = false;
-		try {
-			stmt = dbConn.createStatement();
-			rs = stmt.executeQuery("SELECT KeyUpper FROM Indexer");
-			isExists = true;
-		} catch(Exception e) {	}
-		finally {
-			try {
-				if(rs != null)
-					rs.close();
-			}catch(Exception e) {}
-			try {
-				if(stmt != null) 
-					stmt.close();
-			}catch(Exception e) {}
-		}
-		return isExists;
-	}
+
 
 }

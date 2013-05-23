@@ -1,10 +1,13 @@
 package edu.mayo.pipes.JSON.lookup.lookupUtils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -51,8 +54,8 @@ public class IndexUtilsTest {
 		Connection dbConn = h2.getConn();
 		
 		// Find index
-		FindIndex findIndex = new FindIndex(dbConn);		
-		List<Long> pos2rows = findIndex.find(idTwoRows);				
+		FindIndex findIndex = new FindIndex(dbConn, false);		
+		List<Long> pos2rows = findIndex.find(idTwoRows);
 		//System.out.println("Postions:"+Arrays.asList(pos2rows));
 		
 		HashMap<String,List<String>> key2LinesMap = utils.getBgzipLinesByIndex(bgzipFile, idTwoRows, pos2rows);		
@@ -69,36 +72,75 @@ public class IndexUtilsTest {
 
 
 	@Test
-	public void testLinesByPostion() throws Exception {
+	public void testLinesByPosition() throws Exception {
 		System.out.println("Testing IndexUtilsTest.testLinexByPosition()..");
 		
-		File bgzipFile = new File("src/test/resources/testData/tabix/genes.tsv.bgz");
+		String bgzipFile = "src/test/resources/testData/tabix/genes.tsv.bgz";
+		String indexFile = "src/test/resources/testData/tabix/index/genes.GeneID.idx.h2.db";
 		
-		IndexUtils utils = new IndexUtils(bgzipFile);
+		String[] expected = {
+				"19\t58858172\t58864865\t{\"_type\":\"gene\",\"_landmark\":\"19\",\"_strand\":\"-\",\"_minBP\":58858172,\"_maxBP\":58864865,\"gene\":\"A1BG\",\"gene_synonym\":\"A1B; ABG; GAB; HYST2477\",\"note\":\"alpha-1-B glycoprotein; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"1\",\"HGNC\":\"5\",\"HPRD\":\"00726\",\"MIM\":\"138670\"}"
+		};
+		String[] actual = getMatchingRows(bgzipFile, indexFile, "1", false);  // GeneId="1" will get a duplicate (2 rows) 
+		assertArrayEquals(expected, actual);
+	}
+
+	@Test
+	public void testCaseSensitiveLookup() throws Exception {
+		System.out.println("Testing IndexUtilsTest.testCaseSensitiveLookup()..");
 		
-		final String EXPECTED_RESULT="19\t58858172\t58864865\t{\"_type\":\"gene\",\"_landmark\":\"19\",\"_strand\":\"-\",\"_minBP\":58858172,\"_maxBP\":58864865,\"gene\":\"A1BG\",\"gene_synonym\":\"A1B; ABG; GAB; HYST2477\",\"note\":\"alpha-1-B glycoprotein; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"1\",\"HGNC\":\"5\",\"HPRD\":\"00726\",\"MIM\":\"138670\"}";
+		String bgzipFile 	= "src/test/resources/testData/tabix/genes.tsv.bgz";
+		String databaseFile = "src/test/resources/testData/tabix/index/genes.Gene.idx.h2.db";
+
+		// Find key - first by default (non-case sensitive) - actual gene name is "C1orf170"
+		String[] expected = { 
+				"1	910579	917473	{\"_type\":\"gene\",\"_landmark\":\"1\",\"_strand\":\"-\",\"_minBP\":910579,\"_maxBP\":917473,\"gene\":\"C1orf170\",\"gene_synonym\":\"RP11-54O7.8\",\"note\":\"chromosome 1 open reading frame 170; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"84808\",\"HGNC\":\"28208\"}"
+		};
+		// NOTE: Actual cap is: C1orf170
+		// This should match since it's not case-sensitive
+		String[] actual = getMatchingRows(bgzipFile, databaseFile, "C1ORF170", false);
+		assertArrayEquals(expected, actual);
 		
-		String idTwoRows = "1"; //gene-id - a duplicate (2 rows)
+		// Find key - NOT case sensitive (should be one match)
+		actual = getMatchingRows(bgzipFile, databaseFile, "c1orf170", false);
+		assertArrayEquals(expected, actual);
+
+		// Find key - NOT case sensitive (should be one match)
+		actual = getMatchingRows(bgzipFile, databaseFile, "C1orf170", false);
+		assertArrayEquals(expected, actual);
+
+		//----------- Now case-sensitive flag --------------
 		
-		String databaseFile = "src/test/resources/testData/tabix/index/genes.GeneID.idx.h2.db";
-		H2Connection h2 = new H2Connection(databaseFile);
+		// Find key - case sensitive (none should be found)
+		actual = getMatchingRows(bgzipFile, databaseFile, "C1ORF170", true);
+		assertArrayEquals(new String[] { }, actual);
+
+		// Find key - case sensitive (none should be found)
+		actual = getMatchingRows(bgzipFile, databaseFile, "c1Orf170", true);
+		assertArrayEquals(new String[] { }, actual);
+
+		// Find key - case sensitive with actual gene name with correct case
+		actual = getMatchingRows(bgzipFile, databaseFile, "C1orf170", true);
+		assertArrayEquals(expected, actual);
+	}
+	
+	private String[] getMatchingRows(String bgzipFile, String indexFile, String keyToFind, boolean isCaseSensitive) throws SQLException, IOException {
+		H2Connection h2 = new H2Connection(indexFile);
 		Connection dbConn = h2.getConn();
 		
-		// Find index
-		FindIndex findIndex = new FindIndex(dbConn);		
-		List<Long> pos2rows = findIndex.find(idTwoRows);				
-		//System.out.println("Postions:"+Arrays.asList(pos2rows));
-		
-		String line = "";
-		for (Long pos : pos2rows) {
-			line = utils.getBgzipLineByPosition(pos);
-			//System.out.println("Line=\n"+line);
-			assertEquals(EXPECTED_RESULT, line);
+		FindIndex findIndex = new FindIndex(dbConn, isCaseSensitive);		
+		List<Long> positions = findIndex.find(keyToFind);				
+
+		IndexUtils utils = new IndexUtils(new File(bgzipFile));
+		ArrayList<String> lines = new ArrayList<String>();
+		for (Long pos : positions) {
+			lines.add(utils.getBgzipLineByPosition(pos));
 		}
 
 		dbConn.close();		
 		dbConn = null;
 		h2 = null;
+		
+		return lines.toArray(new String[lines.size()]);
 	}
-
 }

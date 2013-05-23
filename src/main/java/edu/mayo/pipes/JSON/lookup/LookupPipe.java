@@ -46,24 +46,20 @@ public class LookupPipe extends AbstractPipe<History,History> {
     private int drillColumn = -1; //negative value... how many columns to go back (default -1).
      
     /**
-     * 
-     * @param h2db - the index file we want to use to do the lookup
-     * convention is:
-     * There is one new folder called ./index at the same level as ./scratch that 
-     * contains all the index files for a catalog.  
-     * These index files will be named:
-     * <catalog_name>.<json_path>.idx.<index_type>
-     * E.g. For genes.tsv.bgz we could have genes.HGNC.idx.h2.db
+     * @param catalogFile - catalog to lookup the key in to find the row
+     * @param indexFile - the index file we want to use to do the lookup
+     *   convention is:
+     *   There is one new folder called ./index at the same level as ./scratch that 
+     *   contains all the index files for a catalog.  
+     *   These index files will be named:
+     *   <catalog_name>.<json_path>.idx.<index_type>
+     *   E.g. For genes.tsv.bgz we could have:
+     *   	genes.HGNC.idx.h2.db	OR
+     *   	genes.HGNC.idx.txt.gz
      * @throws SQLException 
      */
-    public LookupPipe(String dbIndexFile, String catalog) {
-        mBgzipFile = new File(catalog);
-        //String truncate = dbIndexFile.replace("h2.db", "");
-        H2Connection c = new H2Connection(dbIndexFile);
-        mDbConn = c.getConn();
-        mUtils = new IndexUtils(mBgzipFile);
-        mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
-        mFindIndex = new FindIndex(mDbConn);        
+    public LookupPipe(String catalogFile, String indexFile) {
+    	this(catalogFile, indexFile, -1, false);
     }   
     
     /**
@@ -73,13 +69,23 @@ public class LookupPipe extends AbstractPipe<History,History> {
      * @param drillColumn - column number
      */
     public LookupPipe(String catalogFile, String indexFile, int drillColumn) {
+    	this(catalogFile, indexFile, drillColumn, false);
+    }       
+
+    /**
+     * 
+     * @param catalogFile - actual catalog file
+     * @param indexFile - h2 index file path
+     * @param drillColumn - column number
+     */
+    public LookupPipe(String catalogFile, String indexFile, int drillColumn, boolean isKeyCaseSensitive) {
         mBgzipFile = new File(catalogFile);
         //String truncate = dbIndexFile.replace("h2.db", "");
         H2Connection h2DbConn = new H2Connection(indexFile);
         mDbConn = h2DbConn.getConn();
         mUtils = new IndexUtils(mBgzipFile);
         mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
-        mFindIndex = new FindIndex(mDbConn);        
+        mFindIndex = new FindIndex(mDbConn, isKeyCaseSensitive);        
         this.drillColumn = drillColumn;
     }       
 

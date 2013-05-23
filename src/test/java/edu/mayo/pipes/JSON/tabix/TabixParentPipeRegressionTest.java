@@ -67,7 +67,7 @@ public class TabixParentPipeRegressionTest {
         };
         Pipeline p = new Pipeline(
                 new HistoryInPipe(),
-                new LookupPipe(dbIndexFile,catalog), 
+                new LookupPipe(catalog, dbIndexFile), 
                 new OverlapPipe(catalog),
                 new MergePipe("\t")//,
                 //new PrintPipe()
