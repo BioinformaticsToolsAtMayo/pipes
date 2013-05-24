@@ -69,14 +69,19 @@ public class PipeTestUtils {
      * @param actual The actual results
      */
     public static void assertListsEqual(List<String> expected, List<String> actual) {
-    	Assert.assertEquals("Array sizes are not equal!", expected.size(), actual.size());
-    	for(int i=0; i < expected.size(); i++) {
+    	int smallestSize = Math.min(expected.size(), actual.size());
+    	if(expected.size() != actual.size()) {
+    		System.out.println("Expected size (" + expected.size() + ") does not match actual size (" 
+    				+ actual.size() + ") - comparing up to lowest # of lines:");
+    	}
+    	for(int i=0; i < smallestSize; i++) {
     		Assert.assertEquals("Array item not equal!  Line: " + (i+1)
     				+ "\nExpected: " + expected.get(i)
     				+ "\nActual:   " + actual.get(i) + "\n",
     				expected.get(i),
     				actual.get(i));
     	}
+    	Assert.assertEquals("Array sizes are not equal!", expected.size(), actual.size());
     }
     
     /** Walk a pipeline and print out any subpipes, listing them in the hierarchy they are called */
