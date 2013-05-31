@@ -260,8 +260,8 @@ public class InjectIntoJsonPipeTest {
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
 				"#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\t#UNKNOWN_4\t" + InjectIntoJsonPipe.NEW_JSON_HEADER,
-				"chr17\t100\t101\t{}\t{\"MyKey\":\"MyValue\",\"UNKNOWN_1\":\"chr17\"}",
-				"chr18\t200\t201\t{}\t{\"MyKey\":\"MyValue\",\"UNKNOWN_1\":\"chr18\"}"
+				"chr17\t100\t101\t{}\t{\"MyKey\":\"MyValue\",\"#UNKNOWN_1\":\"chr17\"}",
+				"chr18\t200\t201\t{}\t{\"MyKey\":\"MyValue\",\"#UNKNOWN_1\":\"chr18\"}"
 				);
 		assertListsEqual( expected, out );
 	}
