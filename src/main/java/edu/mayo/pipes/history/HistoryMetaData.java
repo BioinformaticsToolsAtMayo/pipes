@@ -44,15 +44,23 @@ public class HistoryMetaData {
 	 * @return
 	 */
 	public String getColumnHeaderRow(String delimiter) {
+		
+		List<ColumnMetaData> cols = History.getMetaData().getColumns();
+
 		//  reconstruct column header row dynamically based on meta data
 		StringBuilder sb = new StringBuilder();
-		sb.append("#");
-		final int numCols = History.getMetaData().getColumns().size();
-		for (int i=0; i < numCols; i++) {
-			ColumnMetaData cmd = History.getMetaData().getColumns().get(i);
+		
+		// only insert # char if 1st column is not "#UNKNOWN"
+		if (((cols.size() > 0) && cols.get(0).getColumnName().startsWith("#UNKNOWN")) == false)
+		{
+			sb.append("#");			
+		}
+		
+		for (int i=0; i < cols.size(); i++) {
+			ColumnMetaData cmd = cols.get(i);
 			sb.append(cmd.getColumnName());
 			
-			if (i < (numCols - 1)) {
+			if (i < (cols.size() - 1)) {
 				sb.append(delimiter);
 			}					
 		}

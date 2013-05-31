@@ -114,7 +114,7 @@ public class HistoryInPipeTest
         // validate metadata
         HistoryMetaData meta = History.getMetaData();
 
-        assertEquals("##UNKNOWN_1,#UNKNOWN_2,#UNKNOWN_3", meta.getColumnHeaderRow(","));
+        assertEquals("#UNKNOWN_1,#UNKNOWN_2,#UNKNOWN_3", meta.getColumnHeaderRow(","));
         
         assertEquals(0, meta.getOriginalHeader().size());
         
