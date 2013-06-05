@@ -16,16 +16,20 @@ public class H2Connection {
         
 	
 	public H2Connection(String databasePath){
-		init(new File(databasePath));
+		init(new File(databasePath), true);
+	}
+	
+	public H2Connection(String databasePath, boolean isWritable) {
+		init(new File(databasePath), isWritable);		
 	}
 	
 	public H2Connection(File databaseFile) {
-		init(databaseFile);
+		init(databaseFile, true);
 	}
   
-	private void init(File databaseFile){
+	private void init(File databaseFile, boolean isWritable){
 		try {
-			this.conn = getConnection(databaseFile);
+			this.conn = getConnection(databaseFile, isWritable);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -36,13 +40,15 @@ public class H2Connection {
 		return this.conn;
 	}
 
-	private Connection getConnection(File databaseFile) throws ClassNotFoundException, SQLException, IOException {
+	private Connection getConnection(File databaseFile, boolean isWritable) throws ClassNotFoundException, SQLException, IOException {
     	Class.forName("org.h2.Driver");
 		String dbPath = databaseFile.getCanonicalPath().replace(".h2.db", "");
 		//System.out.println("Database path: " + dbPath);
 		// Allow multiple connections to the database (FILE_LOCK=SERIALIZED)
 		// AND make the columns NOT case sensitive (IGNORECASE=TRUE)
-        String url = "jdbc:h2:file:" + dbPath + ";FILE_LOCK=SERIALIZED;IGNORECASE=TRUE;";
+        String url = isWritable 
+        		?  "jdbc:h2:file:" + dbPath + ";IGNORECASE=TRUE;FILE_LOCK=SERIALIZED;"
+        		:  "jdbc:h2:file:" + dbPath + ";IGNORECASE=TRUE;FILE_LOCK=NO;LOG=0;UNDO_LOG=0;LOCK_MODE=0;ACCESS_MODE_DATA=r;TRACE_LEVEL_FILE=0;TRACE_LEVEL_SYSTEM_OUT=0;";
         //double start = System.currentTimeMillis();
         Connection conn = DriverManager.getConnection(url, "sa", "");
         //double end = System.currentTimeMillis();

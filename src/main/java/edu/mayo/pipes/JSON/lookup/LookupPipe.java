@@ -81,7 +81,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
     public LookupPipe(String catalogFile, String indexFile, int drillColumn, boolean isKeyCaseSensitive) {
         mBgzipFile = new File(catalogFile);
         //String truncate = dbIndexFile.replace("h2.db", "");
-        H2Connection h2DbConn = new H2Connection(indexFile);
+        H2Connection h2DbConn = new H2Connection(indexFile, false);
         mDbConn = h2DbConn.getConn();
         mUtils = new IndexUtils(mBgzipFile);
         mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
