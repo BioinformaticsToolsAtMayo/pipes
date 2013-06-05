@@ -1,5 +1,6 @@
 package edu.mayo.pipes.bioinformatics;
 
+import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,10 @@ import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.util.GenomicObjectUtils;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.logging.Level;
+import org.apache.log4j.Priority;
 
 /**
  * <b>INPUT:</b>	History that contains 8 columns that correspond to the VCF 4.0 format.
@@ -47,10 +52,12 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
 	private static final int COL_QUAL = 5;
 	private static final int COL_FILTER = 6;
 	private static final int COL_INFO = 7;
+        private static final int COL_FORMAT = 8;
 	
 	// 8 required fixed fields.  all VCF 4.0+ files should have these
 	private static final String[] COL_HEADERS = 
 		{"CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO"};
+        private static final String NUMBER_SUPPORTING_SAMPLES = "NUMBER_SAMPLES"; //the number of samples that have a given variant
     
     /*
      	From VCF 4.0 format specification:
@@ -75,6 +82,9 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     
     // maps a given INFO field ID to an InfoFieldMeta object
     private Map<String, InfoFieldMeta> mFieldMap = new HashMap<String, InfoFieldMeta>();
+    //Private variables to hold the rest of the "schema" specific to this VCF file. 
+    private HashMap<String,Integer> sampleKeys = new HashMap();
+    private HashMap<String,Boolean> formatKeys = new HashMap();
     
     private boolean isHeaderProcessed = false;
     
@@ -82,6 +92,11 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     private int mDataLineNumber = 0;
     
     public VCF2VariantPipe() {    	
+    }
+    
+    private boolean processSamples = false;
+    public VCF2VariantPipe(boolean includeSamples){
+        processSamples = true;
     }
     
     /**
@@ -186,6 +201,15 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         
         // add core attributes to be used by downstream pipes
         addCoreAttributes(root, history);
+        
+        // if we should process the samples, then parse the sample info and add it to the JSON
+        if(processSamples){
+            try {
+                addSamples(root, history);
+            } catch (ParseException ex) {
+                sLogger.log(Priority.ERROR, ex);//todo: we need to log this better, can't remember the right way
+            }
+        }
         
         return root.toString();    	
     }
@@ -378,4 +402,164 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     	Integer number; // null if it varies, is unknown, or is unbounded
     	INFO_TYPE type;    	
     }
+    
+    /**
+     * Adds the sample information to the given JSON object.
+     * 
+     * @param root JSON object to add to.
+     * @param history Data row from VCF.
+     */
+    public boolean firstSample = true;
+    private void addSamples(JsonObject root, List<String> history) throws ParseException {
+        String[] tokens;
+        if(firstSample){
+            String format = History.getMetaData().getColumns().get(COL_FORMAT).getColumnName();
+            if(!format.contains("FORMAT")){
+                //if we don't have a format column, sorry, we can't process the sample data, just return
+                return;
+            }
+            firstSample = false;
+        }
+        tokens = history.get(COL_FORMAT).split(":");
+        
+        //make sure all the format tokens are in the metadata hash
+        for(String tok : tokens){
+            this.formatKeys.put(tok, true);
+        }
+        
+        //start at the first sample column (format +1) and go until the end of the array.
+        for(int i=COL_FORMAT+1; i<history.size(); i++){
+            String col = History.getMetaData().getColumns().get(i).getColumnName();
+            parseSample(history.get(i), root, col, tokens);
+            //make sure that col is in the metadata hash
+            this.sampleKeys.put(col, i+1);
+        } 
+        
+        
+        
+        
+    }
+ 
+    private int findGT(String[] t){
+        for(int i=0; i<t.length; i++){
+            if(t[i].equalsIgnoreCase("GT")){
+                return i;
+            }
+        }
+        return -1;
+    }
+    
+    /**
+     * 
+     * @param genotype e.g. "./././././.", "0/0/0/0/0/0", "1/1/1/1/1/1"
+     * @return 
+     */
+    public boolean sampleHasVariant(String genotype){
+        String s1 = genotype.replaceAll("\\.", "");
+        String s2 = s1.replaceAll("0", "");
+        String s3 = s2.replaceAll("\\|", "");
+        String s4 = s3.replaceAll("/", "");
+        if(s4.length() > 0){
+            return true;
+        }else {
+            return false;
+        }
+    } 
+    
+    public static boolean isNumeric(String str)
+    {
+        return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+    }
+    
+    /**
+     * parse the sample and add it
+     * sample: the data for the sample e.g. 
+     */
+    public void parseSample(String sampleID, JsonObject root, String sampleName, String[] tokens) throws ParseException{
+        //System.out.println(Arrays.toString(tokens));
+        //System.out.println(sampleName);
+        //System.out.println(sampleID);
+        String[] split = sampleID.split(":");
+        if(split.length > tokens.length){
+            throw new ParseException("VCF2VariantPipe.parseSample: the number of tokens in the format field (" + tokens.length + ") and the number of tokens in the sample (" + split.length + ") do not agree. \nFORMAT:"+Arrays.toString(tokens)+"\nSAMPLE: "+sampleID+"\n", 0);
+        }
+        //find the index of "GT" in the format column
+        int GTPosition = findGT(tokens);
+        JsonObject genotype = new JsonObject();
+        for(int i=0; i<split.length; i++){
+            if(split[i].contains(",")){ //it is an array
+                String[] arr = split[i].split(",");
+                JsonArray jarr = new JsonArray();
+                for(int j=0;j<arr.length;j++){
+                    //it is a list of numbers
+                    if(isNumeric(arr[j])){
+                        double d = Double.parseDouble(arr[j].trim()); 
+                        jarr.add(new JsonPrimitive(d));
+                    //list of strings, add them...   
+                    }else{
+                        jarr.add(new JsonPrimitive(arr[j]));
+                    }
+                }
+                genotype.add(tokens[i], jarr);
+            }else if(isNumeric(split[i])){ //it is not
+                genotype.addProperty(tokens[i], Double.parseDouble(split[i]));
+            }else { //it is a string, so just add it as a string.
+                genotype.addProperty(tokens[i], split[i]);
+            }
+        }
+        
+        //now add
+        if(GTPosition > -1){
+            if(sampleHasVariant(split[GTPosition])){//if the sample GT value (e.g. "0/0/0/0/1/0" contains something other than /,.,|,or 0 (, not included)
+                //insert GenotypePositive if the sample has the variant.
+                genotype.addProperty("GenotypePositive", 1);
+            }
+        }
+        
+        root.add(sampleName, genotype);
+        
+        //System.out.println(genotype.toString());
+        //System.out.println(root.toString());
+
+    }
+
+    public Map<java.lang.String, InfoFieldMeta> getmFieldMap() {
+        return mFieldMap;
+    }
+
+    public HashMap<java.lang.String, Integer> getSampleKeys() {
+        return sampleKeys;
+    }
+
+    public HashMap<java.lang.String, Boolean> getFormatKeys() {
+        return formatKeys;
+    }
+    
+    public JsonObject getJSONMetadata(){
+        JsonObject json = new JsonObject();
+        JsonObject info = new JsonObject();
+        JsonObject format = new JsonObject();
+        JsonObject samples = new JsonObject();
+        for(String key : this.mFieldMap.keySet()){
+            //System.out.println(key);
+            InfoFieldMeta value = mFieldMap.get(key);
+            JsonObject meta = new JsonObject();
+            //meta.addProperty("id", value.id);
+            meta.addProperty("number", value.number);
+            meta.addProperty("type", value.type.toString());
+            info.add(key, meta);
+        }
+        for(String key : this.formatKeys.keySet()){
+            format.addProperty(key, 1);
+        }
+        for(String key : this.sampleKeys.keySet()){
+            samples.addProperty(key, sampleKeys.get(key));
+        }
+        //System.out.println(info.toString());
+        json.add("INFO", info);
+        json.add("FORMAT", format);
+        json.add("SAMPLES", samples);
+        return json;
+    }
+
 }
