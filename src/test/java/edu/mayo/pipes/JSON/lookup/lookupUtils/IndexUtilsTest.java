@@ -90,7 +90,7 @@ public class IndexUtilsTest {
 		System.out.println("Testing IndexUtilsTest.testCaseSensitiveLookup()..");
 		
 		String bgzipFile 	= "src/test/resources/testData/tabix/genes.tsv.bgz";
-		String databaseFile = "src/test/resources/testData/tabix/index/genes.Gene.idx.h2.db";
+		String databaseFile = "src/test/resources/testData/tabix/index/genes.gene.idx.h2.db";
 
 		// Find key - first by default (non-case sensitive) - actual gene name is "C1orf170"
 		String[] expected = { 

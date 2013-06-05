@@ -48,7 +48,7 @@ public class H2Connection {
 		// AND make the columns NOT case sensitive (IGNORECASE=TRUE)
         String url = isWritable 
         		?  "jdbc:h2:file:" + dbPath + ";IGNORECASE=TRUE;FILE_LOCK=SERIALIZED;"
-        		:  "jdbc:h2:file:" + dbPath + ";IGNORECASE=TRUE;FILE_LOCK=NO;LOG=0;UNDO_LOG=0;LOCK_MODE=0;ACCESS_MODE_DATA=r;TRACE_LEVEL_FILE=0;TRACE_LEVEL_SYSTEM_OUT=0;";
+        		:  "jdbc:h2:file:" + dbPath + ";IGNORECASE=TRUE;FILE_LOCK=NO;IFEXISTS=TRUE;LOG=0;UNDO_LOG=0;LOCK_MODE=0;ACCESS_MODE_DATA=r;TRACE_LEVEL_FILE=0;TRACE_LEVEL_SYSTEM_OUT=0;";
         //double start = System.currentTimeMillis();
         Connection conn = DriverManager.getConnection(url, "sa", "");
         //double end = System.currentTimeMillis();
