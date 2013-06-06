@@ -32,7 +32,9 @@ public class CompressPipeTest {
         		Arrays.asList("dataA", "3", "C"),
         		Arrays.asList("dataB", "100", "W"),
         		Arrays.asList("dataB", "101", "X"),
-        		Arrays.asList("dataC", "333", "Z")        		
+        		Arrays.asList("dataC", "333", "."),        		
+        		Arrays.asList("dataC", "334", "."),        		
+        		Arrays.asList("dataD", "555", "Z")        		
         	);
 
         Pipe<List<String>, List<String>> p = new Pipeline<List<String>, List<String>>(compress);
@@ -54,7 +56,12 @@ public class CompressPipeTest {
         // 3RD compressed line
         assertTrue(p.hasNext());
         line = (List<String>) p.next();
-        validate(Arrays.asList("dataC", "333", "Z"), line);
+        validate(Arrays.asList("dataC", "333|334", ".|."), line);
+
+        // 4TH compressed line
+        assertTrue(p.hasNext());
+        line = (List<String>) p.next();
+        validate(Arrays.asList("dataD", "555", "Z"), line);
     }
 
     @Test
@@ -189,17 +196,17 @@ public class CompressPipeTest {
         // 1ST compressed line
         assertTrue(p.hasNext());
         line = (List<String>) p.next();
-        validate(Arrays.asList("dataA", "foo", "A|B|C"), line);
+        validate(Arrays.asList("dataA", "foo|foo|foo", "A|B|C"), line);
         
         // 2ND compressed line
         assertTrue(p.hasNext());
         line = (List<String>) p.next();
-        validate(Arrays.asList("dataB", "100|101|333", "bar"), line);
+        validate(Arrays.asList("dataB", "100|101|333", "bar|bar|bar"), line);
 
         // 3RD compressed line
         assertTrue(p.hasNext());
         line = (List<String>) p.next();
-        validate(Arrays.asList("dataC", "foo", "bar"), line);
+        validate(Arrays.asList("dataC", "foo|foo|foo", "bar|bar|bar"), line);
     	
     }
 
@@ -246,6 +253,51 @@ public class CompressPipeTest {
         assertTrue(p.hasNext());
         line = (List<String>) p.next();
         validate(Arrays.asList("dataC", ".", "abc"), line);
+    	
+    }    
+
+    @Test
+    public void testDuplicatesWithSetLogic()
+    {
+    	String delimiter = "|";
+        FieldSpecification fieldSpec = new FieldSpecification("2,3");
+    	String escDelimiter = "%%";
+    	boolean useSetCompression = true;        
+        CompressPipe compress = new CompressPipe(fieldSpec, delimiter, escDelimiter, useSetCompression);
+        
+        List<List<String>> asList = Arrays.asList
+        	(
+        		Arrays.asList("dataA", "foo", "A"),
+        		Arrays.asList("dataA", "foo", "B"),
+        		Arrays.asList("dataA", "foo", "C"),
+        		Arrays.asList("dataB", "100", "bar"),
+        		Arrays.asList("dataB", "101", "bar"),
+        		Arrays.asList("dataB", "333", "bar"),        		
+        		Arrays.asList("dataC", "foo", "bar"),
+        		Arrays.asList("dataC", "foo", "bar"),
+        		Arrays.asList("dataC", "foo", "bar")        		
+        	);
+
+        Pipe<List<String>, List<String>> p = new Pipeline<List<String>, List<String>>(compress);
+
+        p.setStarts(asList);
+
+        List<String> line;
+        
+        // 1ST compressed line
+        assertTrue(p.hasNext());
+        line = (List<String>) p.next();
+        validate(Arrays.asList("dataA", "foo", "A|B|C"), line);
+        
+        // 2ND compressed line
+        assertTrue(p.hasNext());
+        line = (List<String>) p.next();
+        validate(Arrays.asList("dataB", "100|101|333", "bar"), line);
+
+        // 3RD compressed line
+        assertTrue(p.hasNext());
+        line = (List<String>) p.next();
+        validate(Arrays.asList("dataC", "foo", "bar"), line);
     	
     }    
     

@@ -225,30 +225,46 @@ public class CompressPipe extends AbstractPipe<History, History>
 
 			StringBuilder builder = builders.get(col);				
 
-			if ((identicalColVals[col] == false) && mCompressFields.contains(field))
+			// if column is supposed to be compressed
+			if (mCompressFields.contains(field))
 			{				
 				boolean ignorePeriods = false;
-				if (mSetCompression && (periodCnt[col] > 0) && (periodCnt[col] < singleRow.get(col).size()))
+				if (mSetCompression && (periodCnt[col] > 0))
 				{
 					ignorePeriods = true;
 				}
 				
-				for (String value: singleRow.get(col))
+				// if all values are identical
+				if (identicalColVals[col] && ignorePeriods)
 				{
-					if (ignorePeriods && (value.equals(".")))
-					{
-						continue;
-					}
+					// just add 1st value only
+					String value = singleRow.get(col).get(0);
 					
 					// escape occurrences of delimiter
 					value = value.replace(mDelimiter, mEscDelimiter);
-					
-					builder.append(value);
-					builder.append(mDelimiter);
+
+					builder.append(value);					
 				}
-				
-				// chomp trailing delimiter
-				builder.deleteCharAt(builder.length() - 1);
+				else
+				{
+					// otherwise, go through each value
+					for (String value: singleRow.get(col))
+					{
+						if (ignorePeriods && (value.equals(".")))
+						{
+							continue;
+						}
+						
+						// escape occurrences of delimiter
+						value = value.replace(mDelimiter, mEscDelimiter);
+						
+						builder.append(value);
+						builder.append(mDelimiter);
+					}
+					
+					// chomp trailing delimiter
+					builder.deleteCharAt(builder.length() - 1);					
+				}
 			}
 			else
 			{
