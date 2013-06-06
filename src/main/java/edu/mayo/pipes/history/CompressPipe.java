@@ -41,6 +41,9 @@ public class CompressPipe extends AbstractPipe<History, History>
 	// flag indicating previous pipe has no more data
 	private boolean mNoMoreData = false;
 	
+	// flag indicated whether values will be compressed based on "SET" logic
+	private boolean mSetCompression;
+	
 	/**
 	 * Constructor
 	 *
@@ -53,7 +56,7 @@ public class CompressPipe extends AbstractPipe<History, History>
 	 */
 	public CompressPipe(FieldSpecification fieldSpec, String delimiter)
 	{
-		this(fieldSpec, delimiter, "\\" + delimiter);
+		this(fieldSpec, delimiter, "\\" + delimiter, false);
 	}
 
 	/**
@@ -66,12 +69,16 @@ public class CompressPipe extends AbstractPipe<History, History>
 	 * @param escapeDelimiter
 	 * 		If a given field contains the specified <b>delimiter</b> already, the value of this
 	 * 		parameter will be used to escape it.
+	 * @param useSetCompression
+	 * 		"SET" compression will keep only the <b>unique</b> row values rather than all
+	 * 		values.  The order of the row values is preserved.
 	 */
-	public CompressPipe(FieldSpecification fieldSpec, String delimiter, String escapeDelimiter)
+	public CompressPipe(FieldSpecification fieldSpec, String delimiter, String escapeDelimiter, boolean useSetCompression)
 	{
 		mFieldSpec = fieldSpec;
 		mDelimiter = delimiter;
 		mEscDelimiter = escapeDelimiter;
+		mSetCompression = useSetCompression;
 	}	
 	
 	@Override
@@ -163,55 +170,98 @@ public class CompressPipe extends AbstractPipe<History, History>
 			return new History();
 		}
 
-		final boolean[] identicalColVals = checkSameColumnValues(lines);
+		final int numCols = lines.get(0).size();
 
-		List<String> firstLine = lines.remove(0);
-		
-		final int numCols = firstLine.size();
-		
-		// list of StringBuilders, 1 per column for final compressed line
-		List<StringBuilder> builders = new ArrayList<StringBuilder>();
-		
+		final boolean[] identicalColVals = checkSameColumnValues(lines);		
+
+		// 1 row, each column contains list of Strings that represent values
+		List<List<String>> singleRow = new ArrayList<List<String>>();
 		for (int col=0; col < numCols; col++)
 		{
-			String colValue = firstLine.get(col);
-			
-			// fields are 1-based
-			int field = col + 1;
-
-			if (mCompressFields.contains(field))
-			{					
-				// escape occurrences of delimiter
-				colValue = colValue.replace(mDelimiter, mEscDelimiter);
-			}
-			
-			// initialize builders with 1st line values
-			builders.add(new StringBuilder(colValue));
+			singleRow.add(new ArrayList<String>());
 		}
-
-		// handle all subsequent lines
+		
+		// count of individual values that are period chars '.' per column
+		int[] periodCnt = new int[numCols];
+		
+		// for each line
 		for (List<String> line: lines)
 		{
-			// for-each column
+			// for each column
 			for (int col=0; col < numCols; col++)
-			{
-				StringBuilder builder = builders.get(col);				
-				String colValue = line.get(col);
-
+			{				
 				// fields are 1-based
 				int field = col + 1;
 				
-				if ((identicalColVals[col] == false) && mCompressFields.contains(field))
-				{					
-					// escape occurrences of delimiter
-					colValue = colValue.replace(mDelimiter, mEscDelimiter);
+				// if the column is new OR supposed to be compressed
+				if ((singleRow.get(col).size() == 0) || mCompressFields.contains(field))
+				{
+					String colValue = line.get(col);
 					
-					builder.append(mDelimiter);					
-					builder.append(colValue);
+					if (!mSetCompression || !singleRow.get(col).contains(colValue))
+					{
+						if (colValue.equals("."))
+						{
+							periodCnt[col]++;
+						}
+						singleRow.get(col).add(colValue);
+					}
 				}
-			}
+			}			
 		}
+		
+		// list of StringBuilders, 1 per column for final compressed line
+		List<StringBuilder> builders = new ArrayList<StringBuilder>();
+		for (int col=0; col < numCols; col++)
+		{
+			builders.add(new StringBuilder());
+		}
+		
+		// for each column, build compressed Strings
+		for (int col=0; col < numCols; col++)
+		{			
+			// fields are 1-based
+			int field = col + 1;
+
+			StringBuilder builder = builders.get(col);				
+
+			if ((identicalColVals[col] == false) && mCompressFields.contains(field))
+			{				
+				boolean ignorePeriods = false;
+				if (mSetCompression && (periodCnt[col] > 0) && (periodCnt[col] < singleRow.get(col).size()))
+				{
+					ignorePeriods = true;
+				}
 				
+				for (String value: singleRow.get(col))
+				{
+					if (ignorePeriods && (value.equals(".")))
+					{
+						continue;
+					}
+					
+					// escape occurrences of delimiter
+					value = value.replace(mDelimiter, mEscDelimiter);
+					
+					builder.append(value);
+					builder.append(mDelimiter);
+				}
+				
+				// chomp trailing delimiter
+				builder.deleteCharAt(builder.length() - 1);
+			}
+			else
+			{
+				// otherwise, just add 1st value only
+				String value = singleRow.get(col).get(0);
+				
+				// escape occurrences of delimiter
+				value = value.replace(mDelimiter, mEscDelimiter);
+
+				builder.append(value);
+			}			
+		}
+		
 		// translate StringBuilder to History
 		History compressedLine = new History();
 		for (StringBuilder builder: builders)
