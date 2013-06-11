@@ -302,7 +302,7 @@ public class VCF2VariantPipeTest {
     	CatPipe			cat 	= new CatPipe();
     	HistoryInPipe historyIn = new HistoryInPipe();
         VCF2VariantPipe vcf 	= new VCF2VariantPipe(true);
-        String drill1 = "s_Mayo_TN_CC_393.GenotypePositive";//.GenotypePositive
+        String drill1 = "samples.[87].GenotypePositive";//.GenotypePositive
         JsonPath jsonPath1 = JsonPath.compile(drill1);
         
         Pipe<String, String> pipeline = new Pipeline<String, String>
@@ -319,9 +319,10 @@ public class VCF2VariantPipeTest {
 
         for(int i=0; pipeline.hasNext(); i++){
             String next = pipeline.next();
-
+            //
             if(i==1){            
                 Object o = jsonPath1.read(next);
+                System.out.println(o.toString());
                 if(!o.equals(null)){
                     assertEquals("1",o.toString());
                 }else {

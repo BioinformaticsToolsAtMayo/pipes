@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.tinkerpop.pipes.AbstractPipe;
@@ -68,16 +69,18 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
 
     		Possible Types for INFO fields are: Integer, Float, Flag, Character, and String.
     	
-    	A regular expression is used to extract 3 pieces of information:
+    	A regular expression is used to extract 4 pieces of information:
 
     		1. ID 		(regex grouping #1)
     		2. Number	(regex grouping #2)
     		3. Type		(regex grouping #3)
+                4. Description  (regex grouping #4)
     */
-    private final String mRegexStr = ".+" + "ID=([^,]+)" + ".+"+ "Number=([^,]+)" + ".+" + "Type=(Integer|Float|Flag|Character|String)" + ".+";
+    private final String mRegexStr = ".+" + "ID=([^,]+)" + ".+"+ "Number=([^,]+)" + ".+" + "Type=(Integer|Float|Flag|Character|String)" + ".+" + "Description=([^,]+)" + ".+";
     private static final int REGEX_GRP_ID   = 1;
     private static final int REGEX_GRP_NUM  = 2;
     private static final int REGEX_GRP_TYPE = 3;
+    private static final int REGEX_DESCRIPTION = 4;
     private Pattern mRegexPattern = Pattern.compile(mRegexStr);
     
     // maps a given INFO field ID to an InfoFieldMeta object
@@ -117,7 +120,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         		} catch (NumberFormatException nfe) {
         			meta.number = null;
         		}
-        		
+        		meta.desc = m.group(REGEX_DESCRIPTION).replaceAll("\"", "");
         		mFieldMap.put(meta.id, meta);
         	}
         }
@@ -399,6 +402,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
      */
     class InfoFieldMeta {
     	String id;
+        String desc; //description of the field as found in the VCF
     	Integer number; // null if it varies, is unknown, or is unbounded
     	INFO_TYPE type;    	
     }
@@ -427,22 +431,34 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             this.formatKeys.put(tok, true);
         }
         
+        JsonArray samples = new JsonArray();
         //start at the first sample column (format +1) and go until the end of the array.
         for(int i=COL_FORMAT+1; i<history.size(); i++){
             String col = History.getMetaData().getColumns().get(i).getColumnName();
-            parseSample(history.get(i), root, col, tokens);
+             
+            parseSample(history.get(i), samples, col, tokens);
             //make sure that col is in the metadata hash
             this.sampleKeys.put(col, i+1);
         } 
-        
+        root.add("samples", samples);
         
         
         
     }
  
     private int findGT(String[] t){
+        return findT(t, "GT");
+    }
+    private int findPL(String[] t){
+        return findT(t, "PL");
+    }
+    private int findAD(String[] t){
+        return findT(t, "AD");
+    }
+    
+    private int findT(String[] t, String tok){
         for(int i=0; i<t.length; i++){
-            if(t[i].equalsIgnoreCase("GT")){
+            if(t[i].equalsIgnoreCase(tok)){
                 return i;
             }
         }
@@ -475,7 +491,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
      * parse the sample and add it
      * sample: the data for the sample e.g. 
      */
-    public void parseSample(String sampleID, JsonObject root, String sampleName, String[] tokens) throws ParseException{
+    public void parseSample(String sampleID, JsonArray samples, String sampleName, String[] tokens) throws ParseException{
         //System.out.println(Arrays.toString(tokens));
         //System.out.println(sampleName);
         //System.out.println(sampleID);
@@ -486,21 +502,34 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         //find the index of "GT" in the format column
         int GTPosition = findGT(tokens);
         JsonObject genotype = new JsonObject();
+        //go through the format columns
         for(int i=0; i<split.length; i++){
             if(split[i].contains(",")){ //it is an array
                 String[] arr = split[i].split(",");
                 JsonArray jarr = new JsonArray();
+                ArrayList<Double> values = new ArrayList<Double>();
                 for(int j=0;j<arr.length;j++){
                     //it is a list of numbers
                     if(isNumeric(arr[j])){
                         double d = Double.parseDouble(arr[j].trim()); 
                         jarr.add(new JsonPrimitive(d));
+                        values.add(d);
                     //list of strings, add them...   
                     }else{
                         jarr.add(new JsonPrimitive(arr[j]));
                     }
                 }
-                genotype.add(tokens[i], jarr);
+                genotype.add(tokens[i], jarr); 
+                //calculate the maxPL and add
+                if(tokens[i].equals("PL")){
+                    genotype = addMaxMinPL(genotype,values);
+                }
+                //calculate the minAD/maxAD and add to the json
+                //for the first, AD that is ref and all of the others are alternates
+                //pick the min and max from the alternates.
+                if(tokens[i].equals("AD")){
+                    genotype = addMinMaxAD(genotype,values);
+                }
             }else if(isNumeric(split[i])){ //it is not
                 genotype.addProperty(tokens[i], Double.parseDouble(split[i]));
             }else { //it is a string, so just add it as a string.
@@ -508,19 +537,62 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             }
         }
         
-        //now add
+        //now add GenotypePositive for those samples that contain the variant in the GT string
         if(GTPosition > -1){
             if(sampleHasVariant(split[GTPosition])){//if the sample GT value (e.g. "0/0/0/0/1/0" contains something other than /,.,|,or 0 (, not included)
                 //insert GenotypePositive if the sample has the variant.
                 genotype.addProperty("GenotypePositive", 1);
             }
         }
-        
-        root.add(sampleName, genotype);
+        genotype.addProperty("sampleID", sampleName);
+        samples.add(genotype);
         
         //System.out.println(genotype.toString());
         //System.out.println(root.toString());
 
+    }
+    
+    /**
+     * PL : the phred-scaled genotype likelihoods rounded to the closest integer (and otherwise defined precisely as the GL field) (Integers)
+     * we need to select the max and of the values from this array and insert as a seperate value for use in filtering
+     */
+    public JsonObject addMaxMinPL(JsonObject genotype, ArrayList<Double> values){
+            //System.out.println(values);
+            double minPL = Double.MAX_VALUE;
+            double maxPL = -Double.MAX_VALUE;
+            for(int i=0;i<values.size();i++){
+                Double d = values.get(i);
+                if(d > maxPL){
+                    maxPL = d;
+                }
+                if(d < minPL){
+                    minPL = d;
+                }
+            }
+            //System.out.println(maxPL);
+            genotype.addProperty("maxPL", maxPL);
+            genotype.addProperty("minPL", minPL);
+            //System.out.println(genotype.toString());
+            return genotype;
+    }
+    
+    public JsonObject addMinMaxAD(JsonObject genotype, ArrayList<Double> values){
+        double maxAD = -Double.MAX_VALUE;
+        double minAD = Double.MAX_VALUE;
+        for(int i=1;i<values.size();i++){
+            Double d = values.get(i);
+            if(d > maxAD){
+                maxAD = d;
+            }
+            if(d < minAD){
+                minAD = d;
+            }
+        }
+        //System.out.println(maxPL);
+        genotype.addProperty("maxAD", maxAD);
+        genotype.addProperty("minAD", minAD);
+        //System.out.println(genotype.toString());
+        return genotype;
     }
 
     public Map<java.lang.String, InfoFieldMeta> getmFieldMap() {
@@ -547,6 +619,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             //meta.addProperty("id", value.id);
             meta.addProperty("number", value.number);
             meta.addProperty("type", value.type.toString());
+            meta.addProperty("Description", value.desc);
             info.add(key, meta);
         }
         for(String key : this.formatKeys.keySet()){
