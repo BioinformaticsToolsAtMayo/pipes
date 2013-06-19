@@ -415,6 +415,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
      */
     public boolean firstSample = true;
     private void addSamples(JsonObject root, List<String> history) throws ParseException {
+        this.GenotypePostitiveCount = 0;
         String[] tokens;
         if(firstSample){
             String format = History.getMetaData().getColumns().get(COL_FORMAT).getColumnName();
@@ -441,6 +442,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             this.sampleKeys.put(col, i+1);
         } 
         root.add("samples", samples);
+        root.addProperty("GenotypePostitiveCount", this.GenotypePostitiveCount);
         
         
         
@@ -487,6 +489,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
     }
     
+    private int GenotypePostitiveCount = 0;
     /**
      * parse the sample and add it
      * sample: the data for the sample e.g. 
@@ -542,6 +545,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             if(sampleHasVariant(split[GTPosition])){//if the sample GT value (e.g. "0/0/0/0/1/0" contains something other than /,.,|,or 0 (, not included)
                 //insert GenotypePositive if the sample has the variant.
                 genotype.addProperty("GenotypePositive", 1);
+                this.GenotypePostitiveCount++;
             }
         }
         genotype.addProperty("sampleID", sampleName);
