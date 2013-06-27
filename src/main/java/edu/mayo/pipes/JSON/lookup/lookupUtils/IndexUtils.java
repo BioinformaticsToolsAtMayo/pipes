@@ -3,7 +3,6 @@ package edu.mayo.pipes.JSON.lookup.lookupUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -22,6 +21,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.log4j.Logger;
+
 import net.sf.samtools.util.BlockCompressedInputStream;
 import net.sf.samtools.util.BlockCompressedOutputStream;
 
@@ -33,6 +34,8 @@ public class IndexUtils {
 	private File mBgzipFile;
 
 	public enum IndexBuilderPropKeys { MaxKeyLen, IsKeyColAnInt, NumLines };
+		
+	private Logger mLogger = Logger.getLogger(IndexUtils.class);
 	
 	public IndexUtils() {
 	}
@@ -177,23 +180,32 @@ public class IndexUtils {
 		HashMap<String,List<String>> linesOut = new HashMap<String,List<String>>();
 		String line = null;
 		SortedSet<String> sortedKeys = new TreeSet<String>(indexes.keySet());
-		for(String id : sortedKeys) {
-			List<Long> positions = indexes.get(id);
-			
-			List<String> linesForId = linesOut.get(id);
-			if(linesForId == null) {
-				linesForId = new ArrayList<String>();
-				linesOut.put(id, linesForId);
+		
+		// Make sure to close the input stream each time - especially when an exception occurs
+		// or we may encounter the dreaded "FileNotFoundException: xxxxxx (Too many open files)" error. 
+		List<Long> positions = null; 
+		try {
+			for(String id : sortedKeys) {
+				positions = indexes.get(id);
+				
+				List<String> linesForId = linesOut.get(id);
+				if(linesForId == null) {
+					linesForId = new ArrayList<String>();
+					linesOut.put(id, linesForId);
+				}
+				
+				for(Long pos : positions) {
+					instr.seek(pos);
+					line = instr.readLine();
+					if(line != null)
+						linesForId.add(line);
+				}
 			}
-			
-			for(Long pos : positions) {
-				instr.seek(pos);
-				line = instr.readLine();
-				if(line != null)
-					linesForId.add(line);
-			}
+		} catch(Exception e) {
+			mLogger.error("Error seeking into bgz file, or reading the line at positions " + positions.toString() + ".  File: " + mBgzipFile);
+		} finally {
+			instr.close();
 		}
-		instr.close();
 		return linesOut;
 	}
 
@@ -207,17 +219,23 @@ public class IndexUtils {
 			
 		List<String> linesForId = new ArrayList<String>();
 
-		for(Long pos : indexes) {			
-			instr.seek(pos);
-			line = instr.readLine();
-			if(line != null) {
-				linesForId.add(line);
+		// Make sure to close the input stream each time - especially when an exception occurs
+		// or we may encounter the dreaded "FileNotFoundException: xxxxxx (Too many open files)" error. 
+		try {
+			for(Long pos : indexes) {			
+				instr.seek(pos);
+				line = instr.readLine();
+				if(line != null) {
+					linesForId.add(line);
+				}
 			}
+	
+			linesOut.put(idToFind, linesForId);
+		} catch(Exception e) {
+			mLogger.error("Error seeking into bgz file, or reading the line at positions " + indexes.toString() + ".  File: " + mBgzipFile);
+		} finally {
+			instr.close();
 		}
-
-		linesOut.put(idToFind, linesForId);
-		
-		instr.close();
 		return linesOut;
 	}
 	
@@ -229,17 +247,22 @@ public class IndexUtils {
 	 */
 	public String getBgzipLineByPosition(Long position) throws IOException {
 		BlockCompressedInputStream instr = new BlockCompressedInputStream(mBgzipFile);
-		
 		String linesOut = null;
-			
-		instr.seek(position);
-		linesOut = instr.readLine();
 		
-		if (linesOut == null) {
-			linesOut = "";
+		// Make sure to close the input stream each time - especially when an exception occurs
+		// or we may encounter the dreaded "FileNotFoundException: xxxxxx (Too many open files)" error. 
+		try {
+			instr.seek(position);
+			linesOut = instr.readLine();
+		
+			if (linesOut == null) {
+				linesOut = "";
+			}
+		} catch(Exception e) {
+			mLogger.error("Error seeking into bgz file, or reading the line at position " + position + ".  File: " + mBgzipFile);
+		} finally {
+			instr.close();
 		}
-		
-		instr.close();
 		
 		return linesOut;
 	}
