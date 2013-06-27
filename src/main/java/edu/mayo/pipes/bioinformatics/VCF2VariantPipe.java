@@ -416,6 +416,8 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     public boolean firstSample = true;
     private void addSamples(JsonObject root, List<String> history) throws ParseException {
         this.GenotypePostitiveCount = 0;
+        this.ALLAD = new ArrayList<Double>();
+        this.ALLPL = new ArrayList<Double>();
         String[] tokens;
         if(firstSample){
             String format = History.getMetaData().getColumns().get(COL_FORMAT).getColumnName();
@@ -443,8 +445,18 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         } 
         root.add("samples", samples);
         root.addProperty("GenotypePostitiveCount", this.GenotypePostitiveCount);
-        
-        
+        //PLIntervalMin = 0;
+        root.addProperty("PLIntervalMin", min(this.ALLPL));
+        //PLIntervalMax = Double.MAX_VALUE;
+        root.addProperty("PLIntervalMax", max(this.ALLPL));
+        //PLAverage = Double.MAX_VALUE;
+        root.addProperty("PLAverage", average(this.ALLPL));
+        //ADIntervalMin = 0;
+        root.addProperty("ADIntervalMin", min(this.ALLAD));
+        //ADIntervalMax = Double.MAX_VALUE;
+        root.addProperty("ADIntervalMax", max(this.ALLAD));
+        //ADAverage = Double.MAX_VALUE;
+        root.addProperty("ADAverage", average(this.ALLAD));       
         
     }
  
@@ -490,6 +502,8 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     }
     
     private int GenotypePostitiveCount = 0;
+    private ArrayList<Double> ALLPL = new ArrayList<Double>();
+    private ArrayList<Double> ALLAD = new ArrayList<Double>();
     /**
      * parse the sample and add it
      * sample: the data for the sample e.g. 
@@ -566,6 +580,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             double maxPL = -Double.MAX_VALUE;
             for(int i=0;i<values.size();i++){
                 Double d = values.get(i);
+                this.ALLPL.add(d);
                 if(d > maxPL){
                     maxPL = d;
                 }
@@ -585,6 +600,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         double minAD = Double.MAX_VALUE;
         for(int i=1;i<values.size();i++){
             Double d = values.get(i);
+            this.ALLAD.add(d);
             if(d > maxAD){
                 maxAD = d;
             }
@@ -638,5 +654,41 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         json.add("SAMPLES", samples);
         return json;
     }
+    
+    public static double min(ArrayList<Double> m){
+        double min = Double.MAX_VALUE;
+        for(double d : m){
+            if(d<min) min = d;
+        }
+        return min;
+    }
+    
+    public static double max(ArrayList<Double> m){
+        double max = Double.NEGATIVE_INFINITY;
+        for(double d : m){
+            if(d>max) max = d;
+        }
+        return max;
+    }
+    
+    public static double average(ArrayList<Double> m) {
+        double sum = 0;
+        for (double d : m) {
+            sum += d;
+        }
+        if (m.size() == 0) return Double.NaN;
+        return sum / m.size();
+    }
+    
+    // the array double[] m MUST BE SORTED
+    public static double median(double[] m) {
+        int middle = m.length/2;
+        if (m.length%2 == 1) {
+            return m[middle];
+        } else {
+            return (m[middle-1] + m[middle]) / 2.0;
+        }
+    }    
+    
 
 }
