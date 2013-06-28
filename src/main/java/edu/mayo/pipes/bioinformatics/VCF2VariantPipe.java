@@ -97,9 +97,15 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     public VCF2VariantPipe() {    	
     }
     
+    private boolean allSamples = false;
     private boolean processSamples = false;
     public VCF2VariantPipe(boolean includeSamples){
+        processSamples = true;      
+    }
+    
+    public VCF2VariantPipe(boolean includeSamples, boolean AllSamples){
         processSamples = true;
+        this.allSamples = AllSamples;
     }
     
     /**
@@ -503,10 +509,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
      * @return 
      */
     public boolean sampleHasNoVariantData(String genotype){
-        String s1 = genotype.replaceAll("\\.", "");
-        String s2 = s1.replaceAll("\\|", "");
-        String s3 = s2.replaceAll("/", "");
-        if(s3.length() > 0){
+        if(genotype.startsWith(".")){
             return true;
         }else {
             return false;
@@ -581,11 +584,15 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         }
         genotype.addProperty("sampleID", sampleName);
         
-        if(GTPosition > -1){
-            if(sampleHasNoVariantData(split[GTPosition])){
-                //don't add it to the JSON Array, it is just wasteful
-            }else{
-                samples.add(genotype);
+        if(this.allSamples == true){
+            samples.add(genotype);
+        }else {
+            if(GTPosition > -1){
+                if(sampleHasNoVariantData(split[GTPosition])){
+                    //don't add it to the JSON Array, it is just wasteful
+                }else{
+                    samples.add(genotype);
+                }
             }
         }
         
