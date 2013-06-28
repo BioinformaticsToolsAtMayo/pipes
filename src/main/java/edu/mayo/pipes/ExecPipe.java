@@ -71,6 +71,19 @@ public class ExecPipe extends AbstractPipe<String, String> {
         cmd.launch();
     }
     
+    /**
+     * 
+     * @param cmdarray a string of values representing the command e.g. [grep] [-v] [foo]
+     * @param customEnvironmentProperties A map of key-value pairs to use in the environment
+     * @param boolean usePrntEnv
+     * @throws IOException 
+     */
+    public ExecPipe(String[] cmdarray, Map<String,String> customEnvironmentProperties, boolean useParentEnv) throws IOException{
+        super();
+        cmd = new UnixStreamCommand(cmdarray, customEnvironmentProperties, useParentEnv, true);
+        cmd.launch();
+    }
+
     
         /**
      * 
