@@ -496,6 +496,23 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         }
     } 
     
+    /**
+     * 
+     * @param genotype e.g. "./././././.", "./.", "." then return true
+     * else return false
+     * @return 
+     */
+    public boolean sampleHasNoVariantData(String genotype){
+        String s1 = genotype.replaceAll("\\.", "");
+        String s2 = s1.replaceAll("\\|", "");
+        String s3 = s2.replaceAll("/", "");
+        if(s3.length() > 0){
+            return true;
+        }else {
+            return false;
+        }
+    }
+    
     public static boolean isNumeric(String str)
     {
         return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
@@ -563,7 +580,15 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             }
         }
         genotype.addProperty("sampleID", sampleName);
-        samples.add(genotype);
+        
+        if(GTPosition > -1){
+            if(sampleHasNoVariantData(split[GTPosition])){
+                //don't add it to the JSON Array, it is just wasteful
+            }else{
+                samples.add(genotype);
+            }
+        }
+        
         
         //System.out.println(genotype.toString());
         //System.out.println(root.toString());
