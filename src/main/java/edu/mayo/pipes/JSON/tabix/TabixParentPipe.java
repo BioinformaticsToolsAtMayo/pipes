@@ -60,9 +60,9 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     
     protected void setup(){
         //if it is the first call to the pipe... set it up
-    	 history = this.starts.next();
         if(isFirst){
             isFirst = false;
+
             //handle the case where the drill column is greater than zero...
             if(historyPos > 0){
                 //recalculate it to be negative...
@@ -70,7 +70,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
             }
 
             //get the history
-          //  history = this.starts.next();
+            history = this.starts.next();
             qcount = 0;
             search.reset();
             search.setStarts(Arrays.asList(history.get(history.size() + historyPos)));
@@ -105,7 +105,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     protected History processNextStart() throws NoSuchElementException {
     	// Setup only on first row
     	setup();
-    	System.err.println("Value of History Position is" + historyPos);
+    	
         while(true){
 	        //If the search has another result, append the result to the history
 	        if(search.hasNext()){
