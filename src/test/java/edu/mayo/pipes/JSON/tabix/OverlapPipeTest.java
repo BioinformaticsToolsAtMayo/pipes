@@ -20,6 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.tinkerpop.pipes.Pipe;
+import com.tinkerpop.pipes.transform.IdentityPipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
 import edu.mayo.pipes.MergePipe;
@@ -311,72 +312,48 @@ public class OverlapPipeTest {
     /** Test column 1 as parm with only 1 column in input */
     @Test
     public void testColFlag_c1_1Col() throws IOException{
-        Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), 
-        	new HCutPipe( new int[] {1,2,3,4,5,6,7,8} ), new OverlapPipe(getCatalogFile(), 1));
-        p.setStarts(getOneMatchInput());
-        List<String> actual = PipeTestUtils.getResults(p);
-        PipeTestUtils.assertListsEqual(getOneMatchExpected2Col(), actual);
+    	testColFlag(1, true);
     }
-
-    
     
     /** Test positive column # as parm with multiple columns in input */
     @Test
     public void testColFlag_cPositive_MultiCols() throws IOException{
-        Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), new OverlapPipe(getCatalogFile(), 9));
-        p.setStarts(getOneMatchInput());
-        List<String> actual = PipeTestUtils.getResults(p);
-        PipeTestUtils.assertListsEqual(getOneMatchExpected(), actual);
+    	testColFlag(9, false);
     }
-
     
     /** Test column -1 as parm with only 1 column in input */
     @Test
     public void testColFlag_cNeg1_1Col() throws IOException{
-    	Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), 
-    		new HCutPipe( new int[] {1,2,3,4,5,6,7,8} ), new OverlapPipe(getCatalogFile(), -1));
-        p.setStarts(getOneMatchInput());
-        List<String> actual = PipeTestUtils.getResults(p);
-        PipeTestUtils.assertListsEqual(getOneMatchExpected2Col(), actual);
+    	testColFlag(-1, true);
     }
-
     
     /** Test column -1 as parm with multiple input columns */
     @Test
     public void testColFlag_cNeg1_MultiCols() throws IOException{
-        Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), new OverlapPipe(getCatalogFile(), -1));
-        p.setStarts(getOneMatchInput());
-        List<String> actual = PipeTestUtils.getResults(p);
-        PipeTestUtils.assertListsEqual(getOneMatchExpected(), actual);
+    	testColFlag(-1, false);
     }
 
     /** Test column 0 as parm with multiple input columns - should throw exception */
     @Test (expected=InvalidPipeInputException.class)
     public void testColFlag_c0_MultiCols() throws IOException{
-        Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), new OverlapPipe(getCatalogFile(), 0));
-        p.setStarts(getOneMatchInput());
-        List<String> actual = PipeTestUtils.getResults(p);
+    	testColFlag(0, false);
         fail("Should not make it here - an exception should be thrown before getting this far!");
     }
     
-    
-    private String getCatalogFile() {
-    	return "src/test/resources/testData/sameVariantCatalog.tsv.gz";
-    }
-    private List<String> getOneMatchInput() {
-    	return Arrays.asList("21	26960070	rs116645811	G	A	.	.	.");
-    }
-    
-    private List<String> getOneMatchExpected() {
-        List<String> expected = Arrays.asList("21	26960070	rs116645811	G	A	.	.	.	"
-            	+ "{\"CHROM\":\"21\",\"POS\":\"26960070\",\"ID\":\"rs116645811\",\"REF\":\"G\",\"ALT\":\"A\",\"QUAL\":\".\",\"FILTER\":\".\",\"INFO\":{\".\":true},\"_id\":\"rs116645811\",\"_type\":\"variant\",\"_landmark\":\"21\",\"_refAllele\":\"G\",\"_altAlleles\":[\"A\"],\"_minBP\":26960070,\"_maxBP\":26960070}	"
-           		+ "{\"CHROM\":\"21\",\"POS\":\"26960070\",\"ID\":\"rs116645811\",\"REF\":\"G\",\"ALT\":\"A\",\"QUAL\":\".\",\"FILTER\":\".\",\"INFO\":{\".\":true},\"_id\":\"rs116645811\",\"_type\":\"variant\",\"_landmark\":\"21\",\"_refAllele\":\"G\",\"_altAlleles\":[\"A\"],\"_minBP\":26960070,\"_maxBP\":26960070}");
-        return expected;
-    }
-    private List<String> getOneMatchExpected2Col() {
-        List<String> expected = Arrays.asList(
-            	  "{\"CHROM\":\"21\",\"POS\":\"26960070\",\"ID\":\"rs116645811\",\"REF\":\"G\",\"ALT\":\"A\",\"QUAL\":\".\",\"FILTER\":\".\",\"INFO\":{\".\":true},\"_id\":\"rs116645811\",\"_type\":\"variant\",\"_landmark\":\"21\",\"_refAllele\":\"G\",\"_altAlleles\":[\"A\"],\"_minBP\":26960070,\"_maxBP\":26960070}	"
-           		+ "{\"CHROM\":\"21\",\"POS\":\"26960070\",\"ID\":\"rs116645811\",\"REF\":\"G\",\"ALT\":\"A\",\"QUAL\":\".\",\"FILTER\":\".\",\"INFO\":{\".\":true},\"_id\":\"rs116645811\",\"_type\":\"variant\",\"_landmark\":\"21\",\"_refAllele\":\"G\",\"_altAlleles\":[\"A\"],\"_minBP\":26960070,\"_maxBP\":26960070}");
-        return expected;
+    private void testColFlag(int col, boolean isSingleColumnInput) throws IOException {
+        Pipeline p = new Pipeline(
+        		new HistoryInPipe(), 
+        		new VCF2VariantPipe(),
+        		// If we want to work with a single column, then cut the first 8 columns after doing vcf_to_json
+        		(isSingleColumnInput ? new HCutPipe( new int[] {1,2,3,4,5,6,7,8} ) : new IdentityPipe()), 
+        		new SameVariantPipe("src/test/resources/testData/sameVariantCatalog.tsv.gz", col));
+        final String INPUT = "21	26960070	rs116645811	G	A	.	.	.";
+        p.setStarts(Arrays.asList(INPUT));
+        List<String> actual = PipeTestUtils.getResults(p);
+        final String EXPECTED = 
+        	(isSingleColumnInput  ?  ""  :  INPUT + "\t")
+        	+ "{\"CHROM\":\"21\",\"POS\":\"26960070\",\"ID\":\"rs116645811\",\"REF\":\"G\",\"ALT\":\"A\",\"QUAL\":\".\",\"FILTER\":\".\",\"INFO\":{\".\":true},\"_id\":\"rs116645811\",\"_type\":\"variant\",\"_landmark\":\"21\",\"_refAllele\":\"G\",\"_altAlleles\":[\"A\"],\"_minBP\":26960070,\"_maxBP\":26960070}\t"
+       		+ "{\"CHROM\":\"21\",\"POS\":\"26960070\",\"ID\":\"rs116645811\",\"REF\":\"G\",\"ALT\":\"A\",\"QUAL\":\".\",\"FILTER\":\".\",\"INFO\":{\".\":true},\"_id\":\"rs116645811\",\"_type\":\"variant\",\"_landmark\":\"21\",\"_refAllele\":\"G\",\"_altAlleles\":[\"A\"],\"_minBP\":26960070,\"_maxBP\":26960070}";
+        PipeTestUtils.assertListsEqual(Arrays.asList(EXPECTED), actual);
     }
 }
