@@ -48,8 +48,8 @@ public class SameVariantPipe extends TabixParentPipe{
         this.comparableObject = new SameVariantLogic();
     }
     
-    public SameVariantPipe(String tabixDataFile, int historyPostion) throws IOException {
-        super(tabixDataFile, historyPostion);
+    public SameVariantPipe(String tabixDataFile, int historyPosition) throws IOException {
+        super(tabixDataFile, historyPosition);
         this.comparableObject = new SameVariantLogic();
     }
     
@@ -68,8 +68,8 @@ public class SameVariantPipe extends TabixParentPipe{
      * @param historyPostion - number of positions to look back (default -1)
      * @throws IOException 
      */
-    public SameVariantPipe(String tabixDataFile, boolean isRsidCheckOnly, boolean isAlleleCheckOnly, int historyPostion) throws IOException{
-        super(tabixDataFile, historyPostion);
+    public SameVariantPipe(String tabixDataFile, boolean isRsidCheckOnly, boolean isAlleleCheckOnly, int historyPosition) throws IOException{
+        super(tabixDataFile, historyPosition);
         if( isRsidCheckOnly && isAlleleCheckOnly ){
         	throw new IllegalArgumentException("Cannot set both rsIdOnly AND alleleOnly flags!");
         }

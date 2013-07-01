@@ -1,6 +1,5 @@
 package edu.mayo.pipes.JSON.lookup.lookupUtils;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 
 import java.io.File;

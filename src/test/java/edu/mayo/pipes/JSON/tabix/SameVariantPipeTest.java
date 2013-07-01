@@ -6,9 +6,11 @@ package edu.mayo.pipes.JSON.tabix;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -22,8 +24,11 @@ import com.tinkerpop.pipes.util.Pipeline;
 
 import edu.mayo.pipes.JSON.DrillPipe;
 import edu.mayo.pipes.bioinformatics.VCF2VariantPipe;
+import edu.mayo.pipes.exceptions.InvalidPipeInputException;
+import edu.mayo.pipes.history.HCutPipe;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
+import edu.mayo.pipes.util.test.PipeTestUtils;
 
 /**
  *
@@ -526,5 +531,83 @@ public class SameVariantPipeTest {
         assertTrue(p.hasNext());
         history = p.next();
         assertEquals("rs116645811",	history.get(history.size() - 1));
-    }    
+    }
+    
+    // ===================================================================
+    // Test pipe where we choose the column in the history where the variant JSON comes from:
+    // col 1 with only 1 column
+    // col positive with multiple columns
+    // col -1 with only 1 column
+    // col -1 with multiple columns
+    // col 0 - should throw error
+    // ===================================================================
+    
+    /** Test column 1 as parm with only 1 column in input */
+    @Test
+    public void testColFlag_c1_1Col() throws IOException{
+        Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), 
+        	new HCutPipe( new int[] {1,2,3,4,5,6,7,8} ), new SameVariantPipe(catalogFile, 1));
+        p.setStarts(getOneMatchInput());
+        List<String> actual = PipeTestUtils.getResults(p);
+        PipeTestUtils.assertListsEqual(getOneMatchExpected2Col(), actual);
+    }
+
+    
+    
+    /** Test positive column # as parm with multiple columns in input */
+    @Test
+    public void testColFlag_cPositive_MultiCols() throws IOException{
+        Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), new SameVariantPipe(catalogFile, 9));
+        p.setStarts(getOneMatchInput());
+        List<String> actual = PipeTestUtils.getResults(p);
+        PipeTestUtils.assertListsEqual(getOneMatchExpected(), actual);
+    }
+
+    
+    /** Test column -1 as parm with only 1 column in input */
+    @Test
+    public void testColFlag_cNeg1_1Col() throws IOException{
+    	Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), 
+    		new HCutPipe( new int[] {1,2,3,4,5,6,7,8} ), new SameVariantPipe(catalogFile, -1));
+        p.setStarts(getOneMatchInput());
+        List<String> actual = PipeTestUtils.getResults(p);
+        PipeTestUtils.assertListsEqual(getOneMatchExpected2Col(), actual);
+    }
+
+    
+    /** Test column -1 as parm with multiple input columns */
+    @Test
+    public void testColFlag_cNeg1_MultiCols() throws IOException{
+        Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), new SameVariantPipe(catalogFile, -1));
+        p.setStarts(getOneMatchInput());
+        List<String> actual = PipeTestUtils.getResults(p);
+        PipeTestUtils.assertListsEqual(getOneMatchExpected(), actual);
+    }
+
+    /** Test column 0 as parm with multiple input columns - should throw exception */
+    @Test (expected=InvalidPipeInputException.class)
+    public void testColFlag_c0_MultiCols() throws IOException{
+        Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), new SameVariantPipe(catalogFile, 0));
+        p.setStarts(getOneMatchInput());
+        List<String> actual = PipeTestUtils.getResults(p);
+        fail("Should not make it here - an exception should be thrown before getting this far!");
+    }
+    
+    private List<String> getOneMatchInput() {
+    	return Arrays.asList("21	26960070	rs116645811	G	A	.	.	.");
+    }
+    
+    private List<String> getOneMatchExpected() {
+        List<String> expected = Arrays.asList("21	26960070	rs116645811	G	A	.	.	.	"
+            	+ "{\"CHROM\":\"21\",\"POS\":\"26960070\",\"ID\":\"rs116645811\",\"REF\":\"G\",\"ALT\":\"A\",\"QUAL\":\".\",\"FILTER\":\".\",\"INFO\":{\".\":true},\"_id\":\"rs116645811\",\"_type\":\"variant\",\"_landmark\":\"21\",\"_refAllele\":\"G\",\"_altAlleles\":[\"A\"],\"_minBP\":26960070,\"_maxBP\":26960070}	"
+           		+ "{\"CHROM\":\"21\",\"POS\":\"26960070\",\"ID\":\"rs116645811\",\"REF\":\"G\",\"ALT\":\"A\",\"QUAL\":\".\",\"FILTER\":\".\",\"INFO\":{\".\":true},\"_id\":\"rs116645811\",\"_type\":\"variant\",\"_landmark\":\"21\",\"_refAllele\":\"G\",\"_altAlleles\":[\"A\"],\"_minBP\":26960070,\"_maxBP\":26960070}");
+        return expected;
+    }
+    private List<String> getOneMatchExpected2Col() {
+        List<String> expected = Arrays.asList(
+            	  "{\"CHROM\":\"21\",\"POS\":\"26960070\",\"ID\":\"rs116645811\",\"REF\":\"G\",\"ALT\":\"A\",\"QUAL\":\".\",\"FILTER\":\".\",\"INFO\":{\".\":true},\"_id\":\"rs116645811\",\"_type\":\"variant\",\"_landmark\":\"21\",\"_refAllele\":\"G\",\"_altAlleles\":[\"A\"],\"_minBP\":26960070,\"_maxBP\":26960070}	"
+           		+ "{\"CHROM\":\"21\",\"POS\":\"26960070\",\"ID\":\"rs116645811\",\"REF\":\"G\",\"ALT\":\"A\",\"QUAL\":\".\",\"FILTER\":\".\",\"INFO\":{\".\":true},\"_id\":\"rs116645811\",\"_type\":\"variant\",\"_landmark\":\"21\",\"_refAllele\":\"G\",\"_altAlleles\":[\"A\"],\"_minBP\":26960070,\"_maxBP\":26960070}");
+        return expected;
+    }
+
 }
