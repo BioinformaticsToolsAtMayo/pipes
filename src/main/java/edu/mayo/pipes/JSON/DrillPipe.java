@@ -15,6 +15,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.AbstractPipe;
 
 import edu.mayo.pipes.exceptions.InvalidJSONException;
+import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
 
@@ -70,7 +71,10 @@ public class DrillPipe extends AbstractPipe<History, History>{
                 int size = history.size();
                 //recalculate it to be negative...
                 drillColumn = drillColumn - history.size() - 1;
+            } else if (drillColumn == 0){
+            	throw	new InvalidPipeInputException("Invalid Column input",this);
             }
+
             if(history.size() == 1){
                 drillColumn = -1;
             }
