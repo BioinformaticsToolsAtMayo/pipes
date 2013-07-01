@@ -95,10 +95,7 @@ public class LookupPipeTest {
     /** Test column 1 as parm with only 1 column in input */
     @Test
     public void testColFlag_c1_1Col() throws IOException{
-        Pipeline p = new Pipeline(new HistoryInPipe(), new LookupPipe(getGenesCatalogFile(), getGeneIdIndexFile(), 1));
-        p.setStarts(getOneMatchInput1Col());
-        List<String> actual = PipeTestUtils.getResults(p);
-        PipeTestUtils.assertListsEqual(getOneMatchExpected2Col(), actual);
+    	testColFlag(1, true);
     }
 
     
@@ -106,67 +103,44 @@ public class LookupPipeTest {
     /** Test positive column # as parm with multiple columns in input */
     @Test
     public void testColFlag_cPositive_multiCols() throws IOException{
-        Pipeline p = new Pipeline(new HistoryInPipe(), new LookupPipe(getGenesCatalogFile(), getGeneIdIndexFile(), 9));
-        p.setStarts(getOneMatchInput9Cols());
-        List<String> actual = PipeTestUtils.getResults(p);
-        PipeTestUtils.assertListsEqual(getOneMatchExpected10Col(), actual);
+    	testColFlag(9, false);
     }
 
     
     /** Test column -1 as parm with only 1 column in input */
     @Test
     public void testColFlag_cNeg1_1Col() throws IOException{
-    	Pipeline p = new Pipeline(new HistoryInPipe(), new LookupPipe(getGenesCatalogFile(), getGeneIdIndexFile(), -1));
-        p.setStarts(getOneMatchInput1Col());
-        List<String> actual = PipeTestUtils.getResults(p);
-        PipeTestUtils.assertListsEqual(getOneMatchExpected2Col(), actual);
+    	testColFlag(-1, true);
     }
 
     
     /** Test column -1 as parm with multiple input columns */
     @Test
     public void testColFlag_cNeg1_multiCols() throws IOException{
-        Pipeline p = new Pipeline(new HistoryInPipe(), new LookupPipe(getGenesCatalogFile(), getGeneIdIndexFile(), -1));
-        p.setStarts(getOneMatchInput9Cols());
-        List<String> actual = PipeTestUtils.getResults(p);
-        PipeTestUtils.assertListsEqual(getOneMatchExpected10Col(), actual);
+    	testColFlag(-1, false);
     }
 
     /** Test column 0 as parm with multiple input columns - should throw exception */
     @Test (expected=InvalidPipeInputException.class)
     public void testColFlag_c0_MultiCols() throws IOException{
-        Pipeline p = new Pipeline(new HistoryInPipe(), new VCF2VariantPipe(), new LookupPipe(getGenesCatalogFile(), getGeneIdIndexFile(), 0));
-        p.setStarts(getOneMatchInput9Cols());
-        List<String> actual = PipeTestUtils.getResults(p);
+    	testColFlag(0, false);
         fail("Should not make it here - an exception should be thrown before getting this far!");
     }
     
+
+    private void testColFlag(int col, boolean isSingleColumnInput) {
+        Pipeline p = new Pipeline(
+        		new HistoryInPipe(), 
+        		new LookupPipe(
+        				"src/test/resources/testData/tabix/genes.tsv.bgz", 
+        				"src/test/resources/testData/tabix/index/genes.gene.idx.h2.db", 
+        				col)
+        );
+        final String INPUT = isSingleColumnInput  ?  "BRCA1"  :  ".	.	.	.	.	.	.	.	BRCA1";
+        p.setStarts(Arrays.asList(INPUT));
+        List<String> actual = PipeTestUtils.getResults(p);
+        final String EXPECTED = INPUT + "\t{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"-\",\"_minBP\":41196312,\"_maxBP\":41277500,\"gene\":\"BRCA1\",\"gene_synonym\":\"BRCAI; BRCC1; BROVCA1; IRIS; PNCA4; PPP1R53; PSCP; RNF53\",\"note\":\"breast cancer 1, early onset; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"672\",\"HGNC\":\"1100\",\"HPRD\":\"00218\",\"MIM\":\"113705\"}";
+        PipeTestUtils.assertListsEqual(Arrays.asList(EXPECTED), actual);
+    }
     
-    private String getGenesCatalogFile() {
-    	return "src/test/resources/testData/tabix/genes.tsv.bgz";
-    }
-    private String getGeneIdIndexFile() {
-    	return "src/test/resources/testData/tabix/index/genes.gene.idx.h2.db";
-    }
-    private List<String> getOneMatchInput1Col() {
-    	return Arrays.asList("BRCA1");
-    }
-
-    private List<String> getOneMatchInput9Cols() {
-    	return Arrays.asList(".	.	.	.	.	.	.	.	BRCA1");
-    }
-
-    private List<String> getOneMatchExpected10Col() {
-        List<String> expected = Arrays.asList(
-        	".	.	.	.	.	.	.	.	BRCA1	{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"-\",\"_minBP\":41196312,\"_maxBP\":41277500,\"gene\":\"BRCA1\",\"gene_synonym\":\"BRCAI; BRCC1; BROVCA1; IRIS; PNCA4; PPP1R53; PSCP; RNF53\",\"note\":\"breast cancer 1, early onset; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"672\",\"HGNC\":\"1100\",\"HPRD\":\"00218\",\"MIM\":\"113705\"}"
-        );
-        return expected;
-    }
-    private List<String> getOneMatchExpected2Col() {
-        List<String> expected = Arrays.asList(
-        	"BRCA1	{\"_type\":\"gene\",\"_landmark\":\"17\",\"_strand\":\"-\",\"_minBP\":41196312,\"_maxBP\":41277500,\"gene\":\"BRCA1\",\"gene_synonym\":\"BRCAI; BRCC1; BROVCA1; IRIS; PNCA4; PPP1R53; PSCP; RNF53\",\"note\":\"breast cancer 1, early onset; Derived by automated computational analysis using gene prediction method: BestRefseq.\",\"GeneID\":\"672\",\"HGNC\":\"1100\",\"HPRD\":\"00218\",\"MIM\":\"113705\"}"
-        );
-        return expected;
-    }
-
 }

@@ -5,7 +5,9 @@
 package edu.mayo.pipes.JSON;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,9 +19,9 @@ import org.junit.Test;
 
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
-import edu.mayo.pipes.MergePipe;
-import edu.mayo.pipes.PrintPipe;
 
+import edu.mayo.pipes.MergePipe;
+import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
 import edu.mayo.pipes.history.HistoryOutPipe;
@@ -160,4 +162,58 @@ public class DrillPipeTest {
     	
     	PipeTestUtils.assertListsEqual(expected, actual);
     }
+    
+    
+    
+    // ===================================================================
+    // Test pipe where we choose the column in the history where the variant JSON comes from:
+    // col 1 with only 1 column
+    // col positive with multiple columns
+    // col -1 with only 1 column
+    // col -1 with multiple columns
+    // col 0 - should throw error
+    // ===================================================================
+    
+    /** Test column 1 as parm with only 1 column in input */
+    @Test
+    public void testColFlag_c1_1Col() throws IOException{
+    	testColFlag(1, true);
+    }
+    
+    /** Test positive column # as parm with multiple columns in input */
+    @Test
+    public void testColFlag_cPositive_multiCols() throws IOException{
+    	testColFlag(9, false);
+    }
+    
+    /** Test column -1 as parm with only 1 column in input */
+    @Test
+    public void testColFlag_cNeg1_1Col() throws IOException{
+    	testColFlag(-1, true);
+    }
+    
+    /** Test column -1 as parm with multiple input columns */
+    @Test
+    public void testColFlag_cNeg1_multiCols() throws IOException{
+    	testColFlag(-1, false);
+    }
+
+    /** Test column 0 as parm with multiple input columns - should throw exception */
+    @Test (expected=InvalidPipeInputException.class)
+    public void testColFlag_c0_MultiCols() throws IOException{
+    	testColFlag(0, false);
+        fail("Should not make it here - an exception should be thrown before getting this far!");
+    }
+    
+    private void testColFlag(int col, boolean isSingleColumnInput) {
+    	final String INPUT = isSingleColumnInput 
+    			? "{\"ID\":31,\"Key\":\"volume\",\"Val\":10}"
+    			: "1\t2\t3\t4\t5\t6\t7\t8\t{\"ID\":31,\"Key\":\"volume\",\"Val\":10}";
+        Pipeline p = new Pipeline(new HistoryInPipe(), new DrillPipe(false, new String[] {"ID"}, col));
+        p.setStarts(Arrays.asList(INPUT));
+        List<String> actual = PipeTestUtils.getResults(p);
+        final String EXPECTED = (isSingleColumnInput  ?  ""  :  "1\t2\t3\t4\t5\t6\t7\t8\t") + "31";
+        PipeTestUtils.assertListsEqual(Arrays.asList(EXPECTED), actual);
+    }
+
 }
