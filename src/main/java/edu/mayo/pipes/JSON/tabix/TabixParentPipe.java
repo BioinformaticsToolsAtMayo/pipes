@@ -65,6 +65,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
             isFirst = false;
             //get the history
             history = this.starts.next();
+           
             //handle the case where the drill column is greater than zero...
             if(historyPos > 0){
                 //recalculate it to be negative...
