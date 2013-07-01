@@ -12,6 +12,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.tinkerpop.pipes.AbstractPipe;
 
 import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
+import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 
 /**
  *
@@ -70,9 +71,10 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
         maxBPPath = JsonPath.compile(CoreAttributes._maxBP.toString());     
     }
     
-    public String format(String s){
+    public String format(String s) throws InvalidPipeInputException{
         String[] split = s.split("\t");
         return split[jsonpos];
+     
     }
     
     String query = null;
