@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import com.tinkerpop.pipes.AbstractPipe;
 import com.tinkerpop.pipes.Pipe;
 
+import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.History;
 
 /**
@@ -31,7 +32,8 @@ public class OverlapPipe extends TabixParentPipe {
     }
     
     public OverlapPipe(String tabixDataFile, int historyPosition) throws IOException {
-        super(tabixDataFile, historyPosition);
+    	super(tabixDataFile, historyPosition);
+    
     }
     
     public OverlapPipe(String tabixDataFile, int minBPExtend, int maxBPExtend) throws IOException{
