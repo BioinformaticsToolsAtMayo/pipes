@@ -8,6 +8,7 @@ import com.tinkerpop.pipes.AbstractPipe;
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.PipeFunction;
 import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
+import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
 import java.io.IOException;
@@ -62,15 +63,17 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
         //if it is the first call to the pipe... set it up
         if(isFirst){
             isFirst = false;
-
+            //get the history
+            history = this.starts.next();
             //handle the case where the drill column is greater than zero...
             if(historyPos > 0){
                 //recalculate it to be negative...
                 historyPos = historyPos - history.size() - 1;
+            } else if (historyPos == 0){
+            	throw	new InvalidPipeInputException("Invalid Column input",this);
             }
 
-            //get the history
-            history = this.starts.next();
+   
             qcount = 0;
             search.reset();
             search.setStarts(Arrays.asList(history.get(history.size() + historyPos)));
