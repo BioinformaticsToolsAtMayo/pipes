@@ -19,6 +19,7 @@ import com.tinkerpop.pipes.AbstractPipe;
 
 import edu.mayo.pipes.JSON.lookup.lookupUtils.IndexUtils;
 import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
+import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.util.index.FindIndex;
@@ -116,6 +117,8 @@ public class LookupPipe extends AbstractPipe<History,History> {
                 int size = mHistory.size();
                 //recalculate it to be negative...
                 drillColumn = drillColumn - mHistory.size() - 1;
+            } else if (drillColumn == 0){
+            	throw	new InvalidPipeInputException("Invalid Column input",this);
             }
             
             if(mHistory.size() == 1){
