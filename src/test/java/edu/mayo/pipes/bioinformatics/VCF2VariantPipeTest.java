@@ -350,6 +350,15 @@ public class VCF2VariantPipeTest {
         assertEquals(false, vcf.sampleHasVariant("0|0|0|0|0|0"));
         assertEquals(true, vcf.sampleHasVariant("1/1/1/1/1/1"));
     }
-    
+
+
+    @Test
+    public void testGetEntryType(){
+        VCF2VariantPipe vcf = new VCF2VariantPipe(true);
+        assertEquals("source",vcf.getEntryType("##source=myImputationProgramV3.1"));
+        assertEquals("INFO",vcf.getEntryType("##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">"));
+        assertEquals("FILTER",vcf.getEntryType("##FILTER=<ID=s50,Description=\"Less than 50% of samples have data\">"));
+        assertEquals("FORMAT",vcf.getEntryType("##FORMAT=<ID=HQ,Number=2,Type=Integer,Description=\"Haplotype Quality\">"));
+    }
     
 }

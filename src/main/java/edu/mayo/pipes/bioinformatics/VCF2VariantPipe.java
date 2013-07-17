@@ -36,8 +36,8 @@ import org.apache.log4j.Priority;
  * 
  * <b>OUTPUT:</b>	JSON object string is appended to the end of the history as a new column.
  * 
- * @see http://www.1000genomes.org/wiki/analysis/vcf4.0
- * @see http://phd.chnebu.ch/index.php/Variant_Call_Format_(VCF)
+ *  http://www.1000genomes.org/wiki/analysis/vcf4.0
+ *  http://phd.chnebu.ch/index.php/Variant_Call_Format_(VCF)
  * 
  */
 public class VCF2VariantPipe extends AbstractPipe<History,History> {
@@ -117,6 +117,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         	if (m.find()) {
         		
         		InfoFieldMeta meta = new InfoFieldMeta();
+                meta.entryType = getEntryType(row);
         		
         		// pattern matched, extract groups
         		meta.id = m.group(REGEX_GRP_ID);
@@ -238,6 +239,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     	defaultMeta.id = "not_defined";
     	defaultMeta.number = 1;
     	defaultMeta.type = INFO_TYPE.String;
+        defaultMeta.entryType = "INFO";
     	
     	JsonObject info = new JsonObject();
     	
@@ -410,7 +412,23 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     	String id;
         String desc; //description of the field as found in the VCF
     	Integer number; // null if it varies, is unknown, or is unbounded
-    	INFO_TYPE type;    	
+    	INFO_TYPE type;
+        String entryType; //e.g. INFO, FILTER, FORMAT...
+    }
+
+    /**
+     input: a VCF header line e.g.
+     ##FILTER=<ID=q10,Description="Quality below 10">
+     return - the entityType e.g. FILTER
+     other valid entity types are INFO, FORMAT, source, reference, ...
+     */
+    public String getEntryType(String line){
+        if(!line.startsWith("##")) return "";
+        if(line.contains("=")){
+            String[] split = line.split("=");
+            return split[0].substring(2);
+        }
+        else return ""; //unknown
     }
     
     /**
@@ -422,6 +440,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     public boolean firstSample = true;
     private void addSamples(JsonObject root, List<String> history) throws ParseException {
         this.GenotypePostitiveCount = 0;
+        this.GenotypePositiveSamples = new JsonArray();
         this.ALLAD = new ArrayList<Double>();
         this.ALLPL = new ArrayList<Double>();
         String[] tokens;
@@ -451,6 +470,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         } 
         root.add("samples", samples);
         root.addProperty("GenotypePostitiveCount", this.GenotypePostitiveCount);
+        root.add("GenotypePositiveList", this.GenotypePositiveSamples);
         //PLIntervalMin = 0;
         root.addProperty("PLIntervalMin", min(this.ALLPL));
         //PLIntervalMax = Double.MAX_VALUE;
@@ -522,6 +542,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     }
     
     private int GenotypePostitiveCount = 0;
+    private JsonArray GenotypePositiveSamples = new JsonArray();
     private ArrayList<Double> ALLPL = new ArrayList<Double>();
     private ArrayList<Double> ALLAD = new ArrayList<Double>();
     /**
@@ -580,6 +601,8 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
                 //insert GenotypePositive if the sample has the variant.
                 genotype.addProperty("GenotypePositive", 1);
                 this.GenotypePostitiveCount++;
+                JsonPrimitive prim = new JsonPrimitive(sampleName);
+                this.GenotypePositiveSamples.add( prim );
             }
         }
         genotype.addProperty("sampleID", sampleName);
@@ -672,6 +695,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             meta.addProperty("number", value.number);
             meta.addProperty("type", value.type.toString());
             meta.addProperty("Description", value.desc);
+            meta.addProperty("EntryType", value.entryType);
             info.add(key, meta);
         }
         for(String key : this.formatKeys.keySet()){
@@ -720,7 +744,8 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         } else {
             return (m[middle-1] + m[middle]) / 2.0;
         }
-    }    
-    
+    }
+
+
 
 }
