@@ -12,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.tinkerpop.pipes.AbstractPipe;
@@ -46,6 +45,9 @@ public class LookupPipe extends AbstractPipe<History,History> {
     private LinkedList<Long> mPosqueue = new LinkedList<Long>();
     private int drillColumn = -1; //negative value... how many columns to go back (default -1).
      
+    
+    private static Logger sLogger = Logger.getLogger(LookupPipe.class.getClass());
+    
     /**
      * @param catalogFile - catalog to lookup the key in to find the row
      * @param indexFile - the index file we want to use to do the lookup
@@ -134,7 +136,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
 	                    //query the index and build the posqueue
 	                    mPosqueue = (LinkedList<Long>)mFindIndex.find(id);
 	            } catch (SQLException ex) {
-	                    Logger.getLogger(LookupPipe.class.getName()).log(Level.ERROR, null, ex);
+	                    sLogger.error(ex.getMessage(), ex);
 	            }
             }
             
@@ -163,19 +165,21 @@ public class LookupPipe extends AbstractPipe<History,History> {
                         json = split[mJsonpos];
                     }
                 } catch (Exception ex) {
-                    Logger.getLogger(LookupPipe.class.getName()).log(Level.ERROR, null, ex);
+                    sLogger.error(ex.getMessage(), ex);
                 }
-                return copyAppend(mHistory, json);   
+                History historyOut = copyAppend(mHistory, json);
+                return historyOut;
 	        } else {//otherwise, the search did not have any more results, get the next history
 	            if(mQcount == 0){//we did not have any search results, append empty JSON to the history and send it along
 	                mQcount++; //just to get the history to reset on the next call
-	                return copyAppend(mHistory,"{}");//return empty result
+	                History historyOut = copyAppend(mHistory,"{}");//return empty result
+	                return historyOut;
 	            } else {//we did have at least one result (perhaps empty).. and they are all done
 	                mHistory = this.starts.next();
+
 	                //reset the pipeline for the search query
 	                mPosqueue = new LinkedList<Long>();
 	                //From history, get the ID we need to search for...
-	                
 	                //String id = mHistory.get(mHistory.size() + mHistoryPos);
 	                String id = mHistory.get(mHistory.size() + drillColumn);
 	                if (validateIdToFind(id)) {
@@ -183,7 +187,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
 		                	//query the index and build the posqueue
 		                	mPosqueue = (LinkedList<Long>)mFindIndex.find(id);
 	 	                } catch (SQLException ex) {
-		                	Logger.getLogger(LookupPipe.class.getName()).log(Level.ERROR, null, ex);
+		                	sLogger.error(ex.getMessage(), ex);
 		                }
 	                }
 	                

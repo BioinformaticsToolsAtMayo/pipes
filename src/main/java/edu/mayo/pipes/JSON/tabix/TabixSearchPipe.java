@@ -47,7 +47,6 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
      * @param maxBPExtend
      * @throws IOException 
      */
-    
     public TabixSearchPipe(String tabixDataFile, int minBPExtend, int maxBPExtend) throws IOException{
         init(tabixDataFile);
         this.extendmaxbp = maxBPExtend;
@@ -63,6 +62,7 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
     	if (new File(tabixDataFile).isFile()){
     		tr = new TabixReader(tabixDataFile);
     	} else {
+    		System.err.println("File is not valid: " + tabixDataFile);
     		throw new IOException("TabixSearchPipe init(tabixDataFile) requires tabixDataFile to be a valid file. \n"
     				+ "File: " + tabixDataFile);
     	}
@@ -77,7 +77,7 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
      
     }
     
-    String query = null;
+    String snpJsonIn = null;
     TabixReader.Iterator records = null;
     @Override
     protected String processNextStart() throws NoSuchElementException {
@@ -87,10 +87,10 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
             
             if( records == null ) {
             	// no results from TABIX search            	
-            	// reset "query" to NULL so that requery() method will pull the next JSON
-            	query = null;
+            	// reset "snpJsonIn" to NULL so that requery() method will pull the next JSON
+            	snpJsonIn = null;
             	
-            	throw new NoSuchElementException("There were no tabix search results to match the query, or chromosome not found in tabix index.");
+            	throw new NoSuchElementException("There were no tabix search results to match the variant, or chromosome not found in tabix index.");
             }
             
             //give you back the next query result
@@ -99,7 +99,7 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
                 return format(record);
             } else {
                 records = null;
-                query = null;
+                snpJsonIn = null;
                 requery();
                 record = records.next();
                 if(record != null){
@@ -110,15 +110,12 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
             }
         }catch (Exception e){
             records = null;
+            // We may have hit an ArrayIndexOutOfBoundsException from TabixReader.query()  
+            // NO results, so set snpJsonIn=null
+            // NOTE: This will occur if the variant passed in has a position of 0 - which should not be valid input!!!
+            //       If that is the case, make sure to set snpJsonIn=null or it will return no results for ALL subsequent variants
+            snpJsonIn = null;
             throw new NoSuchElementException();
-//        } catch( NoSuchElementException noElemEx ) {
-//        	// Eat it - no TabixSearch records
-//        } catch( IllegalArgumentException illegalEx ) {
-//        	System.err.println("TabixSearchPipe: JSON or query string may not be valid:  " + illegalEx.getMessage());
-//        } catch (Exception ex) {
-//        	ex.printStackTrace();
-        	//Logger.getLogger(TabixSearchPipe.class.getName()).log(Level.SEVERE, null, ex);
-            //System.out.println("TabixSearchPipe.processNextStart() Failed : " + ex.getMessage());            
         }
     	
     }
@@ -149,7 +146,6 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
 				if(t-this.extendminbp < 0){
 					minBP = "0";
 				}
-				//System.out.println(minBP);
 			}
 		} else {
 			return null;
@@ -163,14 +159,12 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
 			if(extendmaxbp != 0){
 				int t = Integer.parseInt(maxBP);
 				maxBP = String.valueOf( t + extendmaxbp );
-				//System.out.println(maxBP);
 			}
 		} else {
 			return null;
 	    }
 		
 	    //abc123:7000-13000
-		//System.out.println(landmark + ":" + minBP + "-" + maxBP);
 	    records = tquery(landmark + ":" + minBP + "-" + maxBP);
 	    
 	    return records;
@@ -178,14 +172,14 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
     
     private void requery() throws NoSuchElementException, IOException {
         if(records == null){
-            if(query == null){
+            if(snpJsonIn == null){
                 if(this.starts.hasNext()){
-                    query = this.starts.next();//get the next json string
+                    snpJsonIn = this.starts.next();//get the next json string
                 }else {
                     throw new NoSuchElementException();
                 }
             }
-            records = query(query);
+            records = query(snpJsonIn);
         }
     }
     
@@ -193,13 +187,12 @@ public class TabixSearchPipe extends AbstractPipe<String, String>{
     
     /**
      * tquery takes a tabix style query, e.g. tabix genes.tsv.bgz 17:10000,20000
-     * @param query = 17:10000,20000 
+     * @param chrMinMaxQuery = 17:10000,20000 
      * @return  landmark:min:max
      * @throws IOException 
      */
-    public TabixReader.Iterator tquery(String query) throws IOException {
-        //System.out.println("Query to Tabix File: " + query);
-        TabixReader.Iterator records = tr.query(query);
+    public TabixReader.Iterator tquery(String chrMinMaxQuery) throws IOException {
+        TabixReader.Iterator records = tr.query(chrMinMaxQuery);
         return records;
     }
     

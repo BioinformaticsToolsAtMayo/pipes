@@ -40,7 +40,6 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
 	@Override
 	protected History processNextStart() throws NoSuchElementException
 	{
-
 		String line = this.starts.next();
 
 		History history = new History();
@@ -80,15 +79,7 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
 			initializeMetaData(history, headerRows, numCols);
 		}
 
-		// split data row, add to history
-		// SAFE split is required because there may be empty fields between delimiters
-		String[] colDataArr = StringUtils.safeSplit(line, COL_DELIMITER);
-		for (String colData : colDataArr)
-		{
-			history.add(colData);
-		}
-
-		return history;
+		return new History(line);
 	}
 	
 	/**

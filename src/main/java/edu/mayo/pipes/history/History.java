@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import edu.mayo.pipes.util.StringUtils;
+
 /**
  * A list of String values representing a single row of tablular data.
  * 
@@ -12,6 +14,9 @@ import java.util.List;
  */
 public class History extends ArrayList<String> implements List<String>,	Cloneable {
     
+	private static final String COL_DELIMITER = "\t";
+
+	
 	@Override
 	/** Had to override the clone method because the default ArrayList<String> clone was
 	 *  not correctly copying JSON arrays (ex: "A":["x","y"]) 
@@ -26,6 +31,27 @@ public class History extends ArrayList<String> implements List<String>,	Cloneabl
 
     public History(){
     }
+    
+    /** Create a History object from a line that is tab-delimited */
+    public History(String lineTabDelimited) {
+		// split data row, add to history
+		// SAFE split is required because there may be empty fields between delimiters
+		this(StringUtils.safeSplit(lineTabDelimited, COL_DELIMITER));
+    }
+    
+    /** Create a History object from a line that is broken into columns */
+    public History(List<String> line) {
+    	this(line.toArray(new String[line.size()]));
+    }
+
+    
+    /** Create a History object from a line that is broken into columns */
+    public History(String[] line) {
+		for (String colData : line) {
+			add(colData);
+		}
+    }
+    
     
     /** Remove all header metadata information */
     public static void clearMetaData() {
