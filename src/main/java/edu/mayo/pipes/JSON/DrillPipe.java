@@ -18,6 +18,7 @@ import edu.mayo.pipes.exceptions.InvalidJSONException;
 import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
+import edu.mayo.pipes.util.metadata.AddMetadataLines;
 
 /**
  *
@@ -33,6 +34,7 @@ public class DrillPipe extends AbstractPipe<History, History>{
     private ArrayList<JsonPath> compiledPaths;
     private boolean addColumnMetaData = true;
     private int drillColumn = -1; //negative value... how many columns to go back (default -1).
+    private AddMetadataLines addMetadataLines = new AddMetadataLines();
     
     public DrillPipe(boolean keepJSON, String[] paths){
         this.keepJSON = keepJSON;
@@ -80,22 +82,29 @@ public class DrillPipe extends AbstractPipe<History, History>{
             }
                         
             if (addColumnMetaData) {
+            	            	
             	List<ColumnMetaData> cols = History.getMetaData().getColumns();
                 ColumnMetaData lastJsonCol = cols.remove(cols.size() + drillColumn);
 
                 for (String drillPath: drillPaths) {
             		ColumnMetaData cmd = new ColumnMetaData(drillPath);
+            		//System.out.println("Name="+cmd.getColumnName());
             		cols.add(cmd);
-            	}
-                
-                if (keepJSON) {
-                	cols.add(lastJsonCol);
+            		
+            		//Add ##BIOR line for each column
+                    history = addMetadataLines.constructMetadataLine(history, cmd.getColumnName());
                 }
                 
+                if (keepJSON) {
+                	cols.add(lastJsonCol);                	 
+                }
+            
             	addColumnMetaData = false;
             }
             
+           
             String json = history.remove(history.size() + drillColumn);
+            
             //System.history.println("Abhistory to Drill: " + json);
             for(int i=0;i< compiledPaths.size(); i++){
                 if(!json.startsWith("{")){ //TODO: we may need a more rigorous check to see if it is json.
@@ -110,7 +119,7 @@ public class DrillPipe extends AbstractPipe<History, History>{
                             //System.history.println(o.toString());
                             history.add(o.toString());
                         }
-                    }catch(InvalidPathException e){
+                    }catch(InvalidPathException e){                    	
                         //In general I don't know if we should historyput an error to the logs, or just historyput a failed drill e.g. '.'.  
                         //I think failed drill is perhaps better, because what are they going to do with the error?  I think just get angry.
                         //System.history.println("Drill path did not exist for: " + this.drillPaths[i] + " This is the JSON I tried to drill: " + json);
@@ -122,14 +131,15 @@ public class DrillPipe extends AbstractPipe<History, History>{
             // If keeping the json column, then add the json back in at the end
             if(keepJSON){
                 history.add(json);
-            }
+            }            
             // Else, remove the head
             
             //sLogger.debug("DrillPipe: (after): " + history);
             //String headerAfter = History.getMetaData().getColumnHeaderRow("\t");
 			//sLogger.debug("DrillPipe: (header-after): " + headerAfter);
+            //System.out.println("Final6="+history.getMetaData().getOriginalHeader());
             return history;
-        }else{
+        }else{        	
             throw new NoSuchElementException();
         }
     }

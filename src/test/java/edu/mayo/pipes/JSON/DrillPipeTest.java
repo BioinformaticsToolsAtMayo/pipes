@@ -21,6 +21,7 @@ import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
 import edu.mayo.pipes.MergePipe;
+import edu.mayo.pipes.PrintPipe;
 import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
@@ -138,6 +139,7 @@ public class DrillPipeTest {
     
     @Test
     public void testRemoveDrillColumnMetadata() {
+    	System.out.println("Test RemoveDrillColumnMetadata..");
     	List<String> input = Arrays.asList(
     		"##Header start",
     		"#Chrom\tJson",
@@ -149,11 +151,12 @@ public class DrillPipeTest {
     	Pipeline pipe = new Pipeline(
     		new HistoryInPipe(),
     		new DrillPipe(false, drillCols),
-    		new HistoryOutPipe()
+    		new HistoryOutPipe(),
+    		new PrintPipe()
     		);
     	pipe.setStarts(input);
     	List<String> actual = PipeTestUtils.getResults(pipe);
-    	
+    	System.out.println("actual="+Arrays.asList(actual));
     	List<String> expected = Arrays.asList(
     		"##Header start",
     		"#Chrom\tKey",
@@ -215,5 +218,29 @@ public class DrillPipeTest {
         final String EXPECTED = (isSingleColumnInput  ?  ""  :  "1\t2\t3\t4\t5\t6\t7\t8\t") + "31";
         PipeTestUtils.assertListsEqual(Arrays.asList(EXPECTED), actual);
     }
-
+    
+    //TODO To enable after the code is merged
+    //@Test
+    public void testAddMetdataLines() {
+    	System.out.println("...Test AddMetdataLines");
+    	List<String> input = Arrays.asList(
+    		"##Header start",
+    		"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.Json",
+    		"1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}"
+    	);
+    	
+    	String[] drillPaths = { "Key" };
+    	
+    	Pipeline pipe = new Pipeline(
+    		new HistoryInPipe(),
+    		new DrillPipe(true, drillPaths),    		
+    		new HistoryOutPipe(),
+    		new PrintPipe()
+    		);
+    	pipe.setStarts(input);
+    	//pipe.setStarts(Arrays.asList("src/test/resources/testData/metadata/validvcf.vcf"));
+    	    	    	
+    	List<String> actual = PipeTestUtils.getResults(pipe);
+    	System.out.println("Actual=\n"+Arrays.asList(actual));
+    }
 }
