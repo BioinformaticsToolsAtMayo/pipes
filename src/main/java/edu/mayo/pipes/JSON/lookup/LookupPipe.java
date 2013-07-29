@@ -160,9 +160,9 @@ public class LookupPipe extends AbstractPipe<History,History> {
             List<ColumnMetaData> cols = History.getMetaData().getColumns();
             ColumnMetaData cmd;
             if (columnvalue != null && !columnvalue.isEmpty()) {
-    	    cmd = new ColumnMetaData("BIOR." + getClass().getSimpleName());
+            	 cmd = new ColumnMetaData("BIOR." + columnvalue);
             } else {
-           cmd = new ColumnMetaData("BIOR." + columnvalue);
+           cmd = new ColumnMetaData("BIOR." + getClass().getSimpleName());
             }
     		cols.add(cmd);
     	    mHistory = addMetadataLines.constructMetadataLine(mHistory, cmd.getColumnName());
