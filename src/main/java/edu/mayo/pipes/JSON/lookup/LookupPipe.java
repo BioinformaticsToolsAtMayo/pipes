@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -46,12 +47,8 @@ public class LookupPipe extends AbstractPipe<History,History> {
     private boolean mIsKeyAnInteger = false;
     /** this holds the indexes we need to get data for */
     private LinkedList<Long> mPosqueue = new LinkedList<Long>();
-    private int drillColumn = -1; //negative value... how many columns to go back (default -1).
-    private String biorCatalogPath = "/data5/bsi/catalogs/bior/v1/";
-    
-    BiorProperties biorProps = null;
-  
-    private String biorCatalog = "BIOR.";
+    private int drillColumn = -1; //negative value... how many columns to go back (default -1)
+    private String columnvalue;
     private AddMetadataLines addMetadataLines = new AddMetadataLines();
     
     
@@ -98,15 +95,15 @@ public class LookupPipe extends AbstractPipe<History,History> {
         mUtils = new IndexUtils(mBgzipFile);
         mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
         mFindIndex = new FindIndex(mDbConn, isKeyCaseSensitive);
-        try {
-			biorProps = new BiorProperties();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-        biorCatalogPath = biorProps.get("fileBase");
-        String[] catalogpath = catalogFile.replaceFirst(biorCatalogPath,"").split("/");
-        if (catalogpath.length > 1) {
-         biorCatalog =biorCatalog.concat(catalogpath[0]);
+    String datasourceproperties = catalogFile.replace(".tbi", "").replace(".tsv", "").replace(".bgz","") + ".datasource" + ".properties";
+        
+        File f = new File(datasourceproperties);
+        
+        if (f.exists()){
+        	
+         Properties file = new Properties();
+         columnvalue= file.getProperty("CatalogShortUniqueName");
+        	
         }
         this.drillColumn = drillColumn;
     }       
@@ -161,8 +158,12 @@ public class LookupPipe extends AbstractPipe<History,History> {
             
             // add column meta data
             List<ColumnMetaData> cols = History.getMetaData().getColumns();
-    	//	ColumnMetaData cmd = new ColumnMetaData(getClass().getSimpleName());
-    		ColumnMetaData cmd = new ColumnMetaData(biorCatalog);
+            ColumnMetaData cmd;
+            if (columnvalue != null && !columnvalue.isEmpty()) {
+    	    cmd = new ColumnMetaData("BIOR." + getClass().getSimpleName());
+            } else {
+           cmd = new ColumnMetaData("BIOR." + columnvalue);
+            }
     		cols.add(cmd);
     	    mHistory = addMetadataLines.constructMetadataLine(mHistory, cmd.getColumnName());
         }
