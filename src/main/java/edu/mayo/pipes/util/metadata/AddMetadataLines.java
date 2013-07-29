@@ -12,7 +12,39 @@ public class AddMetadataLines {
 	public AddMetadataLines() {		
 	}
 
-	public History constructMetadataLine(History history, String columnName) {
+    /**
+     * if the operation is drill, then in the header we want to do something like this instead:
+     *
+     * @param history
+     * @param columnName
+     * @param catalogFile
+     * @return
+     */
+    public History constructDrillLine(History history, String columnName){
+           return history;
+    }
+
+
+    /**
+     * constructMetadataLine basically plops a metadata line with all of the metadata
+     * Given a metadata file like this:
+     * #  CatalogShortUniqueName will appear in vcf output files and may be duplicated many times per line - so keep as short as possible
+     # It should also not conflict with any other catalog (in either BioR or user space)
+     # The CatalogShortUniqueName should only have alpha-numeric characters or '_' (A-Z, 0-9, '_').
+     # No dots allowed as they will be used as separators with any column names.
+     CatalogShortUniqueName=dbSNP137
+     CatalogDescription=dbSNP version 137, Patch 10, Human
+     CatalogSource=dbSNP
+     CatalogVersion=137
+     CatalogBuild=GRCh37.p10
+     Then create this:
+     * ##BIOR=<ID=bior.dbSNP137,Operation="bior_same_variant",DataType="JSON",CatalogShortUniqueName="dbSNP137",CatalogSource="dbSNP",CatalogVersion="137",CatalogBuild="GRCh37.p10",CatalogPath="/data5/bsi/catalogs/bior/v1/dbSNP/137/00-All-GRCh37.tsv.bgz">
+     * @param history
+     * @param columnName
+     * @param catalogFile
+     * @return
+     */
+	public History constructMetadataLine(History history, String columnName, String catalogFile) {
 		
 		String datasourceName = null;
 	    PropertiesFileUtil propsUtil = null;
@@ -36,13 +68,8 @@ public class AddMetadataLines {
     			
     			attributes.add("ID=\""+columnName+"\"");
     			
-    			// TODO
-    			//for this datasourcename, find the catalog.datasource.properties file location from the catalogs.properties file
-    			String catalogFile = "src/test/resources/testData/metadata/00-All_GRch37.datasource.properties";
-    			
-    			
     			try {
-    				propsUtil = new PropertiesFileUtil(catalogFile);
+    				propsUtil = new PropertiesFileUtil(catalogFile + ".datasource.properties");
 				
         			catalogShortUniqueName = propsUtil.get("CatalogShortUniqueName"); 
         	        catalogSource = propsUtil.get("CatalogSource");
@@ -97,7 +124,7 @@ public class AddMetadataLines {
 	 * @param attributes
 	 * @return
 	 */
-	private String buildHeaderLine(List<String> attributes) {
+	public String buildHeaderLine(List<String> attributes) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("##BIOR=<");
 		

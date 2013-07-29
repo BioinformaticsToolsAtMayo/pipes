@@ -91,7 +91,7 @@ public class DrillPipe extends AbstractPipe<History, History>{
             		cols.add(cmd);
             		
             		//Add ##BIOR line for each column
-                    history = addMetadataLines.constructMetadataLine(history, cmd.getColumnName());
+                    history = addMetadataLines.constructDrillLine(history, cmd.getColumnName());
                 }
                 
                 if (keepJSON) {

@@ -50,6 +50,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
     private int drillColumn = -1; //negative value... how many columns to go back (default -1)
     private String columnvalue;
     private AddMetadataLines addMetadataLines = new AddMetadataLines();
+    private String catalogStringPath = ""; //the complete path to the catalog file
     
     
     private static Logger sLogger = Logger.getLogger(LookupPipe.class.getClass());
@@ -88,6 +89,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
      * @param drillColumn - column number
      */
     public LookupPipe(String catalogFile, String indexFile, int drillColumn, boolean isKeyCaseSensitive) {
+        catalogStringPath = catalogFile;
         mBgzipFile = new File(catalogFile);
         //String truncate = dbIndexFile.replace("h2.db", "");
         H2Connection h2DbConn = new H2Connection(indexFile, false);
@@ -165,7 +167,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
            cmd = new ColumnMetaData("BIOR." + getClass().getSimpleName());
             }
     		cols.add(cmd);
-    	    mHistory = addMetadataLines.constructMetadataLine(mHistory, cmd.getColumnName());
+    	  mHistory = addMetadataLines.constructMetadataLine(mHistory, cmd.getColumnName(), catalogStringPath);
         }
     }
     

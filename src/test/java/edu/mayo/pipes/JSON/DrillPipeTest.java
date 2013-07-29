@@ -143,7 +143,7 @@ public class DrillPipeTest {
     	System.out.println("Test RemoveDrillColumnMetadata..");
     	List<String> input = Arrays.asList(
     		"##Header start",
-    		"#Chrom\tJson",
+    		"#Chrom\toperation",
     		"1\t{\"Key\":\"Value\"}"
     	);
     	
@@ -160,7 +160,7 @@ public class DrillPipeTest {
     	System.out.println("actual="+Arrays.asList(actual));
     	List<String> expected = Arrays.asList(
     		"##Header start",
-    		"#Chrom\tKey",
+    		"#Chrom\toperation.Key",
     		"1\tValue"
     	);
     	

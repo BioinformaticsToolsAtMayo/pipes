@@ -42,6 +42,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     protected int historyPos = -1; //position in the history to look for the input to the transform (default the last column)
     private String biorCatalogPath = "/data5/bsi/catalogs/bior/v1/";
     private String biorCatalog = "BIOR.";
+    private String catalogStringPath = "";
     private String columnvalue;
     private AddMetadataLines addMetadataLines = new AddMetadataLines();
     public TabixParentPipe(String tabixDataFile) throws IOException {
@@ -62,6 +63,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     }
     
     protected void init(String tabixDataFile) throws IOException{
+        this.catalogStringPath = tabixDataFile;
         search = new TabixSearchPipe(tabixDataFile);
         String datasourceproperties = tabixDataFile.replace(".tbi", "").replace(".tsv", "").replace(".bgz","") + ".datasource" + ".properties";
         
@@ -111,7 +113,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
             	cmd = new ColumnMetaData("BIOR." + getClass().getSimpleName());
             }
             cols.add(cmd);
-            history = addMetadataLines.constructMetadataLine(history, cmd.getColumnName());
+            history = addMetadataLines.constructMetadataLine(history, cmd.getColumnName(), this.catalogStringPath);
         }
     }
 
