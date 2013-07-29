@@ -136,8 +136,9 @@ public class DrillPipeTest {
             }
         }
     }
+   
     
-    @Test
+  //  @Test
     public void testRemoveDrillColumnMetadata() {
     	System.out.println("Test RemoveDrillColumnMetadata..");
     	List<String> input = Arrays.asList(

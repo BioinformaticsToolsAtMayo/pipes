@@ -5,6 +5,7 @@
 package edu.mayo.pipes.JSON.lookup;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
 import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
+import edu.mayo.pipes.util.BiorProperties;
 import edu.mayo.pipes.util.index.FindIndex;
 import edu.mayo.pipes.util.index.H2Connection;
 import edu.mayo.pipes.util.metadata.AddMetadataLines;
@@ -46,6 +48,9 @@ public class LookupPipe extends AbstractPipe<History,History> {
     private LinkedList<Long> mPosqueue = new LinkedList<Long>();
     private int drillColumn = -1; //negative value... how many columns to go back (default -1).
     private String biorCatalogPath = "/data5/bsi/catalogs/bior/v1/";
+    
+    BiorProperties biorProps = null;
+  
     private String biorCatalog = "BIOR.";
     private AddMetadataLines addMetadataLines = new AddMetadataLines();
     
@@ -93,6 +98,12 @@ public class LookupPipe extends AbstractPipe<History,History> {
         mUtils = new IndexUtils(mBgzipFile);
         mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
         mFindIndex = new FindIndex(mDbConn, isKeyCaseSensitive);
+        try {
+			biorProps = new BiorProperties();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        biorCatalogPath = biorProps.get("fileBase");
         String[] catalogpath = catalogFile.replaceFirst(biorCatalogPath,"").split("/");
         if (catalogpath.length > 1) {
          biorCatalog =biorCatalog.concat(catalogpath[0]);
@@ -153,7 +164,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
     	//	ColumnMetaData cmd = new ColumnMetaData(getClass().getSimpleName());
     		ColumnMetaData cmd = new ColumnMetaData(biorCatalog);
     		cols.add(cmd);
-    	  mHistory = addMetadataLines.constructMetadataLine(mHistory, cmd.getColumnName());
+    	    mHistory = addMetadataLines.constructMetadataLine(mHistory, cmd.getColumnName());
         }
     }
     

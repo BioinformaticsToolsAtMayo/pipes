@@ -19,6 +19,7 @@ import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
 import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
+import edu.mayo.pipes.util.BiorProperties;
 import edu.mayo.pipes.util.metadata.AddMetadataLines;
 
 import org.apache.log4j.Logger;
@@ -38,6 +39,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     protected ComparableObjectInterface comparableObject;
     protected int historyPos = -1; //position in the history to look for the input to the transform (default the last column)
     private String biorCatalogPath = "/data5/bsi/catalogs/bior/v1/";
+    BiorProperties biorProps = new BiorProperties();
     private String biorCatalog = "BIOR.";
     private AddMetadataLines addMetadataLines = new AddMetadataLines();
     public TabixParentPipe(String tabixDataFile) throws IOException {
@@ -59,6 +61,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     
     protected void init(String tabixDataFile) throws IOException{
         search = new TabixSearchPipe(tabixDataFile);
+        biorCatalogPath = biorProps.get("fileBase");
         String[] catalogpath = tabixDataFile.replaceFirst(biorCatalogPath,"").split("/");
         if (catalogpath.length > 1) {
         biorCatalog = biorCatalog.concat(catalogpath[0]);
