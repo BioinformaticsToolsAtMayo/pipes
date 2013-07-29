@@ -85,9 +85,8 @@ public class DrillPipe extends AbstractPipe<History, History>{
             	            	
             	List<ColumnMetaData> cols = History.getMetaData().getColumns();
                 ColumnMetaData lastJsonCol = cols.remove(cols.size() + drillColumn);
-
                 for (String drillPath: drillPaths) {
-            		ColumnMetaData cmd = new ColumnMetaData(drillPath);
+            		ColumnMetaData cmd = new ColumnMetaData(lastJsonCol.getColumnName() +"." +drillPath);
             		//System.out.println("Name="+cmd.getColumnName());
             		cols.add(cmd);
             		

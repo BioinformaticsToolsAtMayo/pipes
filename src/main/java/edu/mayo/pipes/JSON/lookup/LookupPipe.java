@@ -23,6 +23,7 @@ import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.util.index.FindIndex;
 import edu.mayo.pipes.util.index.H2Connection;
+import edu.mayo.pipes.util.metadata.AddMetadataLines;
 
 /**
  *
@@ -44,7 +45,10 @@ public class LookupPipe extends AbstractPipe<History,History> {
     /** this holds the indexes we need to get data for */
     private LinkedList<Long> mPosqueue = new LinkedList<Long>();
     private int drillColumn = -1; //negative value... how many columns to go back (default -1).
-     
+    private String biorCatalogPath = "/data5/bsi/catalogs/bior/v1/";
+    private String biorCatalog = "BIOR.";
+    private AddMetadataLines addMetadataLines = new AddMetadataLines();
+    
     
     private static Logger sLogger = Logger.getLogger(LookupPipe.class.getClass());
     
@@ -88,7 +92,11 @@ public class LookupPipe extends AbstractPipe<History,History> {
         mDbConn = h2DbConn.getConn();
         mUtils = new IndexUtils(mBgzipFile);
         mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
-        mFindIndex = new FindIndex(mDbConn, isKeyCaseSensitive);        
+        mFindIndex = new FindIndex(mDbConn, isKeyCaseSensitive);
+        String[] catalogpath = catalogFile.replaceFirst(biorCatalogPath,"").split("/");
+        if (catalogpath.length > 1) {
+         biorCatalog =biorCatalog.concat(catalogpath[0]);
+        }
         this.drillColumn = drillColumn;
     }       
 
@@ -142,8 +150,10 @@ public class LookupPipe extends AbstractPipe<History,History> {
             
             // add column meta data
             List<ColumnMetaData> cols = History.getMetaData().getColumns();
-    		ColumnMetaData cmd = new ColumnMetaData(getClass().getSimpleName());
+    	//	ColumnMetaData cmd = new ColumnMetaData(getClass().getSimpleName());
+    		ColumnMetaData cmd = new ColumnMetaData(biorCatalog);
     		cols.add(cmd);
+    	  mHistory = addMetadataLines.constructMetadataLine(mHistory, cmd.getColumnName());
         }
     }
     
