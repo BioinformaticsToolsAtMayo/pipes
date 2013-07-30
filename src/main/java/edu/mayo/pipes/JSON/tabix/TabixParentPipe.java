@@ -113,7 +113,14 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
             	cmd = new ColumnMetaData("BIOR." + getClass().getSimpleName());
             }
             cols.add(cmd);
-            history = addMetadataLines.constructMetadataLine(history, cmd.getColumnName(), this.catalogStringPath);
+            try {
+                String[] name = this.getClass().toString().split("\\.");
+                history = addMetadataLines.constructMetadataLine(history, cmd.getColumnName(), this.catalogStringPath, name[name.length-1]);
+            } catch (IOException e) {
+                //e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                //There does not exist a metadata file for this catalog, we should just eat this exception
+                //and continue on gracefully.  The history object should NOT be modified
+            }
         }
     }
 

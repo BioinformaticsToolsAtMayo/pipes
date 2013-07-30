@@ -220,28 +220,5 @@ public class DrillPipeTest {
         PipeTestUtils.assertListsEqual(Arrays.asList(EXPECTED), actual);
     }
     
-    //TODO To enable after the code is merged
-    //@Test
-    public void testAddMetdataLines() {
-    	System.out.println("...Test AddMetdataLines");
-    	List<String> input = Arrays.asList(
-    		"##Header start",
-    		"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.Json",
-    		"1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}"
-    	);
-    	
-    	String[] drillPaths = { "Key" };
-    	
-    	Pipeline pipe = new Pipeline(
-    		new HistoryInPipe(),
-    		new DrillPipe(true, drillPaths),    		
-    		new HistoryOutPipe(),
-    		new PrintPipe()
-    		);
-    	pipe.setStarts(input);
-    	//pipe.setStarts(Arrays.asList("src/test/resources/testData/metadata/validvcf.vcf"));
-    	    	    	
-    	List<String> actual = PipeTestUtils.getResults(pipe);
-    	System.out.println("Actual=\n"+Arrays.asList(actual));
-    }
+
 }

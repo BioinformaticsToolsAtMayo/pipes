@@ -38,6 +38,10 @@ public class PropertiesFileUtil {
             }
         }
     }
+
+    public Properties getProperties(){
+        return prop;
+    }
 	
     public String get(String key){
         return prop.getProperty(key);

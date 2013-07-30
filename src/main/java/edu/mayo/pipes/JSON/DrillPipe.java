@@ -4,6 +4,7 @@
  */
 package edu.mayo.pipes.JSON;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -91,7 +92,11 @@ public class DrillPipe extends AbstractPipe<History, History>{
             		cols.add(cmd);
             		
             		//Add ##BIOR line for each column
-                    history = addMetadataLines.constructDrillLine(history, cmd.getColumnName());
+                    try {
+                        history = addMetadataLines.constructDrillLine(history, cmd.getColumnName());
+                    } catch (IOException e) {
+                        //if this fails, then we don't have the metadata property files, we should not modify the history and eat the IOException
+                    }
                 }
                 
                 if (keepJSON) {

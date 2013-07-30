@@ -119,7 +119,8 @@ public class LookupPipe extends AbstractPipe<History,History> {
         return ids;
     }
 
-    protected void setup(){
+    protected void setup() throws RuntimeException {
+
         //if it is the first call to the pipe... set it up
         if(mIsFirst){
             mIsFirst = false;
@@ -167,7 +168,14 @@ public class LookupPipe extends AbstractPipe<History,History> {
            cmd = new ColumnMetaData("BIOR." + getClass().getSimpleName());
             }
     		cols.add(cmd);
-    	  mHistory = addMetadataLines.constructMetadataLine(mHistory, cmd.getColumnName(), catalogStringPath);
+            try {
+                String[] name = LookupPipe.class.toString().split("\\.");
+                mHistory = addMetadataLines.constructMetadataLine(mHistory, cmd.getColumnName(), catalogStringPath,  name[name.length-1]);
+            } catch (IOException e) {
+                //e.printStackTrace();
+                //The metadata file was not there, so we need to eat this exception and continue on gracefully
+                //don't modify the history and continue.
+            }
         }
     }
     
