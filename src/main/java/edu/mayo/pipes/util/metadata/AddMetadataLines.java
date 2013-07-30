@@ -9,12 +9,15 @@ import edu.mayo.pipes.util.PropertiesFileUtil;
 public class AddMetadataLines {
 
     /**
-     * controled vocabulary for ##BIOR lines
+     * controlled vocabulary for ##BIOR lines
      */
+	/** OPERATION and DATATYPE will be used on every command (but not data source related) */
     public static final String OPERATION = "Operation";
     public static final String DATATYPE = "DataType";
+    /** KEY and DESCRIPTION are used only by bior_drill to lookup the column properties */
     public static final String KEY = "Key";
     public static final String DESCRIPTION = "Description";
+    /** These are used by all command including bior_drill */
     public static final String CATALOGSHORTNAME = "CatalogShortUniqueName";
     public static final String CATALOGSOURCE = "CatalogSource";
     public static final String CATALOGVERSION = "CatalogVersion";
