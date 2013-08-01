@@ -175,7 +175,7 @@ public class HistoryInPipeTest
 
     @Test
     public void testMetadataToJSON(){
-        Metadata md = new Metadata(Metadata.CmdType.ToTJson);
+        Metadata md = new Metadata(Metadata.CmdType.ToTJson, "bior_vcf_to_tjson");
         HistoryInPipe historyIn = new HistoryInPipe(md);
         Pipe<String, History> p = new Pipeline<String, History>(historyIn);
 
