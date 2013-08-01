@@ -9,6 +9,8 @@ public class Metadata {
 	public static enum CmdType { Query, Drill, ToTJson, Tool };
 	
 	private CmdType mCmdType;
+
+    private String operaton;
 	private String  mCatalogPath;
 	private int     mColNum;
 	private String[] mDrillPaths;
@@ -58,5 +60,13 @@ public class Metadata {
 
     public void setmDrillPaths(String[] mDrillPaths) {
         this.mDrillPaths = mDrillPaths;
+    }
+
+    public String getOperaton() {
+        return operaton;
+    }
+
+    public void setOperaton(String operaton) {
+        this.operaton = operaton;
     }
 }
