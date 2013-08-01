@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.mayo.pipes.util.metadata.Metadata;
 import org.junit.Test;
 
 import com.tinkerpop.pipes.Pipe;
@@ -160,4 +161,57 @@ public class HistoryInPipeTest
         assertEquals("COL_B", cols.get(1).getColumnName());
         assertEquals("COL_C", cols.get(2).getColumnName());        
 	}
+
+
+    List<String> input = Arrays.asList
+            (
+                    "##header1",
+                    "##header2",
+                    "##header3",
+                    "#COL_A\tCOL_B\tCOL_C",
+                    "val1A\tval1B\tval1C",
+                    "val2A\tval2B\tval2C"
+            );
+
+    @Test
+    public void testMetadataToJSON(){
+        Metadata md = new Metadata(Metadata.CmdType.ToTJson);
+        HistoryInPipe historyIn = new HistoryInPipe(md);
+        Pipe<String, History> p = new Pipeline<String, History>(historyIn);
+
+        p.setStarts(input);
+
+        History history;
+
+        // 1ST data line
+        assertTrue(p.hasNext());
+        history =  p.next();
+//        assertEquals(3, history.size());
+//        assertEquals("val1A", history.get(0));
+//        assertEquals("val1B", history.get(1));
+//        assertEquals("val1C", history.get(2));
+//
+//        // 2ND data line
+//        assertTrue(p.hasNext());
+//        history =  p.next();
+//        assertEquals(3, history.size());
+//        assertEquals("val2A", history.get(0));
+//        assertEquals("val2B", history.get(1));
+//        assertEquals("val2C", history.get(2));
+//
+//        // validate metadata
+//        HistoryMetaData meta = History.getMetaData();
+//
+//        assertEquals("#COL_A,COL_B,COL_C", meta.getColumnHeaderRow(","));
+//
+//        PipeTestUtils.assertListsEqual(headerRows, meta.getOriginalHeader());
+//
+//        // check column metadata
+//        List<ColumnMetaData> cols = meta.getColumns();
+//        assertEquals(3, cols.size());
+//        assertEquals("COL_A", cols.get(0).getColumnName());
+//        assertEquals("COL_B", cols.get(1).getColumnName());
+//        assertEquals("COL_C", cols.get(2).getColumnName());
+
+    }
 }

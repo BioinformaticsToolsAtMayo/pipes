@@ -124,6 +124,23 @@ public class AddMetadataLines {
 	}
 
     /**
+     * For commands like vcf_to_tjson, where there is no catalog, we need to construct the ##BIOR line using this method.
+     * it makes a line like this:
+     * ##BIOR=<ID=BIOR.vcf_to_tjson,Operation="vcf_to_tjson",DataType="JSON">
+     * @param h
+     * @param operation
+     * @return
+     */
+    public History constructToJsonLine(History h, String operation){
+        LinkedHashMap<String, String> phead = null;
+        LinkedHashMap<String,String> attributes = new LinkedHashMap();
+        attributes.put("ID", "BIOR."+operation);
+        attributes.put(OPERATION, operation);
+        attributes.put(DATATYPE, "JSON");
+        return h;
+    }
+
+    /**
      * if the operation is drill, then in the header we want to do something like this instead:
      * ##BIOR=<ID=bior.dbSNP137.INFO.SSR,Operation="bior_drill",DataType="String",Key="INFO.SSR",Description="Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)",CatalogShortUniqueName="dbSNP137",CatalogSource="dbSNP",CatalogVersion="137",CatalogBuild="GRCh37.p10",CatalogPath="/data5/bsi/catalogs/bior/v1/dbSNP/137/00-All-GRCh37.tsv.bgz">
      *

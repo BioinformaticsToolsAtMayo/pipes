@@ -7,6 +7,8 @@ import java.util.NoSuchElementException;
 import com.tinkerpop.pipes.AbstractPipe;
 
 import edu.mayo.pipes.util.StringUtils;
+import edu.mayo.pipes.util.metadata.AddMetadataLines;
+import edu.mayo.pipes.util.metadata.Metadata;
 
 /**
  * Processes incoming String data and deserializes it into a History object.
@@ -16,6 +18,22 @@ import edu.mayo.pipes.util.StringUtils;
  *
  */
 public class HistoryInPipe extends AbstractPipe<String, History> {
+
+    ArrayList<Metadata> metadata = new ArrayList<Metadata>();
+
+    /**
+     * Make a new HistoryInPipe with metadata operations pending
+     * metadata operations allow the ## lines to be modified
+     * on the first pipe (HistoryInPipe) in the pipeline
+     * @param md
+     */
+    public HistoryInPipe(Metadata md){
+         metadata.add(md);
+    }
+
+    public HistoryInPipe(ArrayList<Metadata> md){
+        metadata = md;
+    }
 
 	private int expand2NumCols = -1;
     public HistoryInPipe(){
@@ -77,6 +95,7 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
 			int numCols = line.split(COL_DELIMITER).length;
 			
 			initializeMetaData(history, headerRows, numCols);
+            insertBIORLines(history);
 		}
 
 		return new History(line);
@@ -128,4 +147,33 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
 
 		history.setMetaData(hMeta);		
 	}
+
+    private AddMetadataLines amdl = new AddMetadataLines();
+    public void insertBIORLines(History h){
+        if(this.metadata.size() < 1){
+            //do nothing we don't have to add header lines
+        }else {
+            HistoryMetaData hMeta = History.getMetaData();
+            for(int i=0; i< this.metadata.size(); i++) {
+                Metadata md = metadata.get(i);
+                //type = ToTJson
+                if(md.getmCmdType().toString().equalsIgnoreCase(Metadata.CmdType.ToTJson.toString())){
+
+                }
+                //type = Drill
+                else if(md.getmCmdType().toString().equalsIgnoreCase(Metadata.CmdType.Drill.toString())){
+
+                }
+                //type = Query
+                else if(md.getmCmdType().toString().equalsIgnoreCase(Metadata.CmdType.Query.toString())){
+
+                }
+                //type = Tool
+                else if(md.getmCmdType().toString().equalsIgnoreCase(Metadata.CmdType.Tool.toString())){
+
+                }
+            }
+
+        }
+    }
 }
