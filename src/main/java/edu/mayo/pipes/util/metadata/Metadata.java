@@ -10,23 +10,23 @@ public class Metadata {
 	
 	private CmdType mCmdType;
 
-    private String operaton;
+    private String operator;
 	private String  mCatalogPath;
 	private int     mColNum;
 	private String[] mDrillPaths;
 	
 	/** Use for bior_vcf_to_tjson and other to_tjson commands ; basically input functions*/
-	public Metadata(CmdType cmdType) {
+	public Metadata(CmdType cmdType, String operator) {
 		
 	}
 
 	/** Use for bior_overlap, bior_same_variant, bior_lookup ; basically all query functions that use a catalog */
-	public Metadata(CmdType cmdType, String catalogPath) {
+	public Metadata(CmdType cmdType, String catalogPath, String operator) {
 		
 	}
 
 	/** Use for bior_drill ; use with drill functions */
-	public Metadata(CmdType cmdType, int colNum, String... drillPaths) {
+	public Metadata(CmdType cmdType, int colNum, String operator, String... drillPaths) {
 		
 	}
 
@@ -62,11 +62,11 @@ public class Metadata {
         this.mDrillPaths = mDrillPaths;
     }
 
-    public String getOperaton() {
-        return operaton;
+    public String getOperator() {
+        return operator;
     }
 
-    public void setOperaton(String operaton) {
-        this.operaton = operaton;
+    public void setOperator(String operator) {
+        this.operator = operator;
     }
 }
