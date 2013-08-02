@@ -14,6 +14,7 @@ public class Metadata {
 	private String  mFullCanonicalPath;
 	private int     mColNum;
 	private String[] mDrillPaths;
+    private boolean keepJSON = false; //used for drill
 	
 	/** Use for bior_vcf_to_tjson and other to_tjson commands ; basically input functions*/
 	public Metadata(CmdType cmdType, String operator) {
@@ -29,10 +30,11 @@ public class Metadata {
 	}
 
 	/** Use for bior_drill ; use with drill functions */
-	public Metadata(CmdType cmdType, int colNum, String operator, String... drillPaths) {
+	public Metadata(CmdType cmdType, int colNum, String operator, boolean keepJSON, String... drillPaths ) {
         mDrillPaths = drillPaths;
         this.mCmdType = cmdType;
         this.operator = operator;
+        this.keepJSON = keepJSON;
 	}
 
     public CmdType getmCmdType() {
