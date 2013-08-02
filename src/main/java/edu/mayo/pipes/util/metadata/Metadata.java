@@ -11,23 +11,28 @@ public class Metadata {
 	private CmdType mCmdType;
 
     private String operator;
-	private String  mCatalogPath;
+	private String  mFullCanonicalPath;
 	private int     mColNum;
 	private String[] mDrillPaths;
 	
 	/** Use for bior_vcf_to_tjson and other to_tjson commands ; basically input functions*/
 	public Metadata(CmdType cmdType, String operator) {
-		
+		this.mCmdType = cmdType;
+        this.operator = operator;
 	}
 
 	/** Use for bior_overlap, bior_same_variant, bior_lookup ; basically all query functions that use a catalog */
-	public Metadata(CmdType cmdType, String catalogPath, String operator) {
-		
+	public Metadata(CmdType cmdType, String mFullCanonicalPath, String operator) {
+        this.mCmdType = cmdType;
+        this.operator = operator;
+        this.mFullCanonicalPath = mFullCanonicalPath;
 	}
 
 	/** Use for bior_drill ; use with drill functions */
 	public Metadata(CmdType cmdType, int colNum, String operator, String... drillPaths) {
-		
+        mDrillPaths = drillPaths;
+        this.mCmdType = cmdType;
+        this.operator = operator;
 	}
 
     public CmdType getmCmdType() {
@@ -38,12 +43,13 @@ public class Metadata {
         this.mCmdType = mCmdType;
     }
 
-    public String getmCatalogPath() {
-        return mCatalogPath;
+
+    public String getmFullCanonicalPath() {
+        return mFullCanonicalPath;
     }
 
-    public void setmCatalogPath(String mCatalogPath) {
-        this.mCatalogPath = mCatalogPath;
+    public void setmFullCanonicalPath(String mFullCanonicalPath) {
+        this.mFullCanonicalPath = mFullCanonicalPath;
     }
 
     public int getmColNum() {
