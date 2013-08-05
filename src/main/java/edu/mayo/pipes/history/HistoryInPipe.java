@@ -1,5 +1,6 @@
 package edu.mayo.pipes.history;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -183,7 +184,7 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
                         String col = amdl.constructQueryLine(h, md.getmFullCanonicalPath(), md.getOperator());
                         ColumnMetaData cmd = new ColumnMetaData(AddMetadataLines.BiorMetaControlledVocabulary.BIOR + col);
                         hMeta.getColumns().add(cmd);
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         //if there does not exist a datasource.properties for a given catalog, then we need to modify
                         //the column but we can't add a header.  Note, this is not an error condition, but an expected
                         //code path that needs to be tested.
