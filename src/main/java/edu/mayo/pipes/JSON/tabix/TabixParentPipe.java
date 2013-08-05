@@ -4,25 +4,19 @@
  */
 package edu.mayo.pipes.JSON.tabix;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
 import com.tinkerpop.pipes.AbstractPipe;
 
-
-import edu.mayo.pipes.JSON.lookup.LookupPipe;
 import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
 import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
-import edu.mayo.pipes.util.BiorProperties;
-import edu.mayo.pipes.util.metadata.AddMetadataLines;
 
 import org.apache.log4j.Logger;
 
@@ -40,11 +34,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     protected boolean isFirst = true;
     protected ComparableObjectInterface comparableObject;
     protected int historyPos = -1; //position in the history to look for the input to the transform (default the last column)
-    private String biorCatalogPath = "/data5/bsi/catalogs/bior/v1/";
-    private String biorCatalog = "BIOR.";
-    private String catalogStringPath = "";
-    private String columnvalue;
-    private AddMetadataLines addMetadataLines = new AddMetadataLines();
+
     public TabixParentPipe(String tabixDataFile) throws IOException {
         init(tabixDataFile);
     }
@@ -63,18 +53,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
     }
     
     protected void init(String tabixDataFile) throws IOException{
-        this.catalogStringPath = tabixDataFile;
         search = new TabixSearchPipe(tabixDataFile);
-        String datasourceproperties = tabixDataFile.replace(".tbi", "").replace(".tsv", "").replace(".bgz","") + ".datasource" + ".properties";
-        
-        File f = new File(datasourceproperties);
-        
-        if (f.exists()){
-        	
-          Properties file = new Properties();
-         columnvalue= file.getProperty("CatalogShortUniqueName");
-        	
-        }
         comparableObject = new FilterLogic();
     }
     
@@ -103,24 +82,7 @@ public class TabixParentPipe extends AbstractPipe<History, History>{
             qcount = 0;
             search.reset();
             search.setStarts(Arrays.asList(history.get(history.size() + historyPos)));
-            
-            // add column meta data
-            List<ColumnMetaData> cols = History.getMetaData().getColumns();
-            ColumnMetaData cmd;
-            if (columnvalue != null && !columnvalue.isEmpty()) {
-    	     cmd = new ColumnMetaData("BIOR." + columnvalue);
-            } else {
-            	cmd = new ColumnMetaData("BIOR." + getClass().getSimpleName());
-            }
-            cols.add(cmd);
-            try {
-                String[] name = this.getClass().toString().split("\\.");
-                history = addMetadataLines.constructMetadataLine(history, cmd.getColumnName(), this.catalogStringPath, name[name.length-1]);
-            } catch (IOException e) {
-                //e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                //There does not exist a metadata file for this catalog, we should just eat this exception
-                //and continue on gracefully.  The history object should NOT be modified
-            }
+
         }
     }
 

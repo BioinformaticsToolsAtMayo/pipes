@@ -147,10 +147,6 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         // initialize header only once, on the 1st time through this method
         if (isHeaderProcessed == false) {
         	processHeader(History.getMetaData().getOriginalHeader());
-        	
-        	ColumnMetaData cmd = new ColumnMetaData(getClass().getSimpleName());
-        	History.getMetaData().getColumns().add(cmd);
-        	
         	isHeaderProcessed = true;
         }
 

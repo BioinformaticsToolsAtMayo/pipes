@@ -58,7 +58,7 @@ public class HistoryMetaData {
 		
 		for (int i=0; i < cols.size(); i++) {
 			ColumnMetaData cmd = cols.get(i);
-			sb.append(cmd.getColumnName());
+			sb.append(cmd.getColumnName().trim());
 			
 			if (i < (cols.size() - 1)) {
 				sb.append(delimiter);

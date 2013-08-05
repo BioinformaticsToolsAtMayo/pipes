@@ -210,6 +210,7 @@ public class VCF2VariantPipeTest {
         pipeline.hasNext();
         History history = pipeline.next();
         String json = history.get(history.size() - 1);
+        System.out.println(json);
         
         // use JSON paths to drill out values and compare with expected
         assertEquals("1",			JsonPath.compile("CHROM").read(json));

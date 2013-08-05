@@ -5,14 +5,12 @@
 package edu.mayo.pipes.JSON.lookup;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -23,10 +21,8 @@ import edu.mayo.pipes.bioinformatics.vocab.ComparableObjectInterface;
 import edu.mayo.pipes.exceptions.InvalidPipeInputException;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
-import edu.mayo.pipes.util.BiorProperties;
 import edu.mayo.pipes.util.index.FindIndex;
 import edu.mayo.pipes.util.index.H2Connection;
-import edu.mayo.pipes.util.metadata.AddMetadataLines;
 
 /**
  *
@@ -47,11 +43,8 @@ public class LookupPipe extends AbstractPipe<History,History> {
     private boolean mIsKeyAnInteger = false;
     /** this holds the indexes we need to get data for */
     private LinkedList<Long> mPosqueue = new LinkedList<Long>();
-    private int drillColumn = -1; //negative value... how many columns to go back (default -1)
-    private String columnvalue;
-    private AddMetadataLines addMetadataLines = new AddMetadataLines();
-    private String catalogStringPath = ""; //the complete path to the catalog file
-    
+    private int drillColumn = -1; //negative value... how many columns to go back (default -1).
+
     
     private static Logger sLogger = Logger.getLogger(LookupPipe.class.getClass());
     
@@ -89,7 +82,6 @@ public class LookupPipe extends AbstractPipe<History,History> {
      * @param drillColumn - column number
      */
     public LookupPipe(String catalogFile, String indexFile, int drillColumn, boolean isKeyCaseSensitive) {
-        catalogStringPath = catalogFile;
         mBgzipFile = new File(catalogFile);
         //String truncate = dbIndexFile.replace("h2.db", "");
         H2Connection h2DbConn = new H2Connection(indexFile, false);
@@ -97,16 +89,6 @@ public class LookupPipe extends AbstractPipe<History,History> {
         mUtils = new IndexUtils(mBgzipFile);
         mIsKeyAnInteger = IndexUtils.isKeyAnInteger(mDbConn);
         mFindIndex = new FindIndex(mDbConn, isKeyCaseSensitive);
-    String datasourceproperties = catalogFile.replace(".tbi", "").replace(".tsv", "").replace(".bgz","") + ".datasource" + ".properties";
-        
-        File f = new File(datasourceproperties);
-        
-        if (f.exists()){
-        	
-         Properties file = new Properties();
-         columnvalue= file.getProperty("CatalogShortUniqueName");
-        	
-        }
         this.drillColumn = drillColumn;
     }       
 
@@ -119,8 +101,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
         return ids;
     }
 
-    protected void setup() throws RuntimeException {
-
+    protected void setup(){
         //if it is the first call to the pipe... set it up
         if(mIsFirst){
             mIsFirst = false;
@@ -158,24 +139,7 @@ public class LookupPipe extends AbstractPipe<History,History> {
 	                    sLogger.error(ex.getMessage(), ex);
 	            }
             }
-            
-            // add column meta data
-            List<ColumnMetaData> cols = History.getMetaData().getColumns();
-            ColumnMetaData cmd;
-            if (columnvalue != null && !columnvalue.isEmpty()) {
-            	 cmd = new ColumnMetaData("BIOR." + columnvalue);
-            } else {
-           cmd = new ColumnMetaData("BIOR." + getClass().getSimpleName());
-            }
-    		cols.add(cmd);
-            try {
-                String[] name = LookupPipe.class.toString().split("\\.");
-                mHistory = addMetadataLines.constructMetadataLine(mHistory, cmd.getColumnName(), catalogStringPath,  name[name.length-1]);
-            } catch (IOException e) {
-                //e.printStackTrace();
-                //The metadata file was not there, so we need to eat this exception and continue on gracefully
-                //don't modify the history and continue.
-            }
+
         }
     }
     
