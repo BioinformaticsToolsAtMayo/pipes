@@ -12,7 +12,7 @@ public class Metadata {
 
     private String operator;
 	private String  mFullCanonicalPath;
-	private int     mColNum;
+	private int     mColNum =-1;
 	private String[] mDrillPaths;
     private boolean keepJSON = false; //used for drill
 	
@@ -35,6 +35,7 @@ public class Metadata {
         this.mCmdType = cmdType;
         this.operator = operator;
         this.keepJSON = keepJSON;
+        this.mColNum = colNum;
 	}
 
     public CmdType getmCmdType() {
@@ -76,5 +77,13 @@ public class Metadata {
 
     public void setOperator(String operator) {
         this.operator = operator;
+    }
+
+    public boolean isKeepJSON() {
+        return keepJSON;
+    }
+
+    public void setKeepJSON(boolean keepJSON) {
+        this.keepJSON = keepJSON;
     }
 }

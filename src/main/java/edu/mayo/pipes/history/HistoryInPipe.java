@@ -159,26 +159,36 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
                 Metadata md = metadata.get(i);
                 //type = ToTJson
                 if(md.getmCmdType().toString().equalsIgnoreCase(Metadata.CmdType.ToTJson.toString())){
-                    amdl.constructToJsonLine(h, md.getOperator());
-                    ColumnMetaData cmd = new ColumnMetaData(md.getOperator());
+                    amdl.constructToJsonLine(h, md.getOperator(), md.getmCmdType().toString());
+                    ColumnMetaData cmd = new ColumnMetaData(AddMetadataLines.BiorMetaControlledVocabulary.BIOR + md.getmCmdType().toString());
                     hMeta.getColumns().add(cmd);
                 }
                 //type = Drill
                 else if(md.getmCmdType().toString().equalsIgnoreCase(Metadata.CmdType.Drill.toString())){
-                     //String col = amdl.constructDrillLine(h, md.getmColNum(), md.getmDrillPaths());
+                    String col = amdl.constructDrillLines(h, md.getOperator(), md.getmColNum(), md.getmDrillPaths());
+                    //for each drill path, add the metadata
+                    for(String path : md.getmDrillPaths()){
+                        ColumnMetaData cmd = new ColumnMetaData(AddMetadataLines.BiorMetaControlledVocabulary.BIOR + col + "." + path);
+                        hMeta.getColumns().add(cmd);
+                    }
+                    //if we need to remove the metadata for the JSON column, do this
+                    if(!md.isKeepJSON()){
+                        int c = amdl.fixDrillRow(h, md.getmColNum());
+                        hMeta.getColumns().remove(History.getMetaData().getColumns().size() + c - md.getmDrillPaths().length);
+                    }
                 }
                 //type = Query
                 else if(md.getmCmdType().toString().equalsIgnoreCase(Metadata.CmdType.Query.toString())){
                     try {
                         String col = amdl.constructQueryLine(h, md.getmFullCanonicalPath(), md.getOperator());
-                        ColumnMetaData cmd = new ColumnMetaData(col);
+                        ColumnMetaData cmd = new ColumnMetaData(AddMetadataLines.BiorMetaControlledVocabulary.BIOR + col);
                         hMeta.getColumns().add(cmd);
                     } catch (IOException e) {
                         //if there does not exist a datasource.properties for a given catalog, then we need to modify
                         //the column but we can't add a header.  Note, this is not an error condition, but an expected
                         //code path that needs to be tested.
                         String col = amdl.constructQueryLineOnNoDatasourceProperties(h, md.getmFullCanonicalPath(), md.getOperator());
-                        ColumnMetaData cmd = new ColumnMetaData(col);
+                        ColumnMetaData cmd = new ColumnMetaData(AddMetadataLines.BiorMetaControlledVocabulary.BIOR + col);
                         hMeta.getColumns().add(cmd);
                     }
                 }
@@ -187,7 +197,7 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
                     try {
                         //if the file is not there, then we can't change the metadata to include the tool
                         String shortname = amdl.constructToolLine(h,md.getOperator(),md.getmFullCanonicalPath());
-                        ColumnMetaData cmd = new ColumnMetaData("bior."+shortname);
+                        ColumnMetaData cmd = new ColumnMetaData(AddMetadataLines.BiorMetaControlledVocabulary.BIOR+shortname);
                         hMeta.getColumns().add(cmd);
                     } catch (IOException e) {
                        throw new RuntimeException("Stupid Developer! You need to put the path of the VEP/SNPEFF/Tool into your project and pass it to the metadata object\n  Look at HistoryInPipeTest for an example.\n CurrentPath: " + md.getmFullCanonicalPath());

@@ -177,7 +177,7 @@ public class HistoryInPipeTest
                     "val2A\tval2B\tval2C"
             );
 
-    //@Test
+    @Test
     public void testMetadataToJSON(){
         History.clearMetaData();
         Metadata md = new Metadata(Metadata.CmdType.ToTJson, "bior_vcf_to_tjson");
@@ -195,7 +195,7 @@ public class HistoryInPipeTest
                 p.next());
     }
 
-    //@Test
+    @Test
     public void testMetadataTool(){
         History.clearMetaData();
         Metadata md = new Metadata(Metadata.CmdType.Tool, "src/test/resources/testData/metadata/vep.datasource.properties", "bior_vep");
@@ -213,35 +213,18 @@ public class HistoryInPipeTest
                 p.next());
     }
 
-    //write a test case for a second column with the same datasource different version
-    //same datasource same version
 
-
-    public final List<String> input2 = Arrays.asList(
-            "##Header start",
-            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137",
-            "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}"
+    public final List<String> querryout = Arrays.asList(
+            "##header1",
+            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "#COL_A\tCOL_B\tCOL_C\tbior.dbSNP137",
+            "val1A\tval1B\tval1C",
+            "val2A\tval2B\tval2C"
     );
-
-    public final List<String> output = Arrays.asList(
-            "##Header start",
-            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137",
-            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"LookupPipe\",DataType=\"JSON\",CatalogShortUniqueName=\"dbSNP137\",CatalogSource=\"dbSNP\",CatalogVersion=\"137\",CatalogBuild=\"GRCh37.p10\",CatalogPath=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}"
-    );
-
-    public final List<String> drillout = Arrays.asList(
-            "##Header start",
-            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137",
-            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"LookupPipe\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP from NCBI\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"DrillPipe\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP from NCBI\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">\n",
-            "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}"
-    );
-
 
     //make sure that this is the full path when passed to this method in production!
     public final String catalogFile = "src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz";
-    //@Test
+    @Test
     public void testMetadataQuery(){
         History.clearMetaData();
         Metadata md = new Metadata(Metadata.CmdType.Query, catalogFile, "bior_lookup");
@@ -249,17 +232,21 @@ public class HistoryInPipeTest
         Pipe<String, History> p = new Pipeline<String, History>(historyIn, new HistoryOutPipe());
         p.setStarts(input);
 
-        assertEquals("##header1",
-                p.next());
-        assertEquals("##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-                p.next());
-        assertEquals("#COL_A\tCOL_B\tCOL_C\tbior.dbSNP137",
-                p.next());
-        assertEquals("val1A\tval1B\tval1C",
-                p.next());
+        for(int i=0; p.hasNext(); i++){
+            assertEquals(querryout.get(i), p.next());
+        }
     }
 
-    //@Test
+    //metadata no props
+    public final List<String> noprops = Arrays.asList(
+           "##header1",
+            "##BIOR=<ID=\"bior.00-All_GRCh37\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"00-All_GRCh37\",Path=\"some/file/that/does/not/exist/00-All_GRCh37.tsv.bgz\">",
+            "#COL_A\tCOL_B\tCOL_C\tbior.00-All_GRCh37",
+            "val1A\tval1B\tval1C",
+            "val2A\tval2B\tval2C"
+    );
+
+    @Test
     public void testMetadataQueryNoProps(){
         //same sort of test as above, but this case, we don't have a datasource.properties file for the catalog, so an exception will be caught, and we need to do an alternative...
         //this tests that alternative.
@@ -269,16 +256,156 @@ public class HistoryInPipeTest
         Pipe<String, History> p = new Pipeline<String, History>(historyIn, new HistoryOutPipe());
         p.setStarts(input);
 
-        assertEquals("##header1",
-                p.next());
-        assertEquals("##BIOR=<ID=\"bior.00-All_GRCh37\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"00-All_GRCh37\",Path=\"some/file/that/does/not/exist/00-All_GRCh37.tsv.bgz\">",
-                p.next());
-        assertEquals("#COL_A\tCOL_B\tCOL_C\tbior.00-All_GRCh37",
-                p.next());
-        assertEquals("val1A\tval1B\tval1C",
-                p.next());
+        for(int i=0; p.hasNext(); i++){
+            assertEquals(noprops.get(i), p.next());
+        }
+    }
+
+    //original file
+    public final List<String> input2 = Arrays.asList(
+            "##Header start",
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO",
+            "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}"
+    );
+
+    //some operation
+    public final List<String> outputLookup = Arrays.asList(
+            "##Header start",
+            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137",
+            "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}"
+    );
+
+    //then the drill
+    public final List<String> drillout = Arrays.asList(
+            "##Header start",
+            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137\tbior.dbSNP137.INFO.SSR",
+            "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}" //note the absence of data, data is tested in Drill and other functions that deal with data
+    );
+
+    @Test
+    public void testMetadataDrill(){
+        //first do the lookup...
+        History.clearMetaData();
+        Metadata md = new Metadata(Metadata.CmdType.Query, catalogFile, "bior_lookup");
+        HistoryInPipe historyIn = new HistoryInPipe(md);
+        Pipe<String, History> p = new Pipeline<String, History>(historyIn, new HistoryOutPipe());
+        p.setStarts(input2);
+        for(int i=0; p.hasNext(); i++){
+            assertEquals(outputLookup.get(i), p.next());
+        }
+        //followed by the drill...
+        History.clearMetaData();
+        String paths[] = new String[]{"INFO.SSR"};
+        Metadata mddrill = new Metadata(Metadata.CmdType.Drill, -1, "bior_drill", true, paths);
+        HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
+        Pipe<String, History> p2 = new Pipeline<String, History>(hinDrill, new HistoryOutPipe());
+        p2.setStarts(outputLookup);
+        for(int i=0; p2.hasNext(); i++){
+            assertEquals(drillout.get(i), p2.next());
+        }
 
     }
 
+    public final List<String> multidrillout = Arrays.asList(
+            "##Header start",
+            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.VC\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.VC\",FieldDescription=\"Variation Class\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137\tbior.dbSNP137.INFO.SSR\tbior.dbSNP137.INFO.VC",
+            "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}" //note the absence of data, data is tested in Drill and other functions that deal with data
+    );
+
+    //test multiple drill paths
+    @Test
+    public void testMultiDrill(){
+        History.clearMetaData();
+        String paths[] = new String[]{"INFO.SSR", "INFO.VC"};
+        Metadata mddrill = new Metadata(Metadata.CmdType.Drill, -1, "bior_drill", true, paths);
+        HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
+        Pipe<String, History> p2 = new Pipeline<String, History>(hinDrill, new HistoryOutPipe());
+        p2.setStarts(outputLookup);
+        for(int i=0; p2.hasNext(); i++){
+            assertEquals(multidrillout.get(i), p2.next());
+        }
+    }
+
+    public final List<String> multidrilloutdashk = Arrays.asList(
+            "##Header start",
+            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.VC\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.VC\",FieldDescription=\"Variation Class\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137.INFO.SSR\tbior.dbSNP137.INFO.VC",
+            "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}" //note the absence of data, data is tested in Drill and other functions that deal with data
+    );
+
+    //test for drill where -k is removing the json
+    @Test
+    public void testKeepFalseDrill(){
+        History.clearMetaData();
+        String paths[] = new String[]{"INFO.SSR", "INFO.VC"};
+        Metadata mddrill = new Metadata(Metadata.CmdType.Drill, -1, "bior_drill", false, paths);
+        HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
+        Pipe<String, String> p2 = new Pipeline<String, String>(hinDrill, new HistoryOutPipe());
+        p2.setStarts(outputLookup);
+        for(int i=0; p2.hasNext(); i++){
+            String result = p2.next();
+            assertEquals(multidrilloutdashk.get(i), result);
+        }
+    }
+
+    public final List<String> drillnoprops = Arrays.asList(
+            "##header1",
+            "##BIOR=<ID=\"bior.00-All_GRCh37\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"00-All_GRCh37\",Path=\"some/file/that/does/not/exist/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.00-All_GRCh37.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"\",ShortUniqueName=\"00-All_GRCh37\",Path=\"some/file/that/does/not/exist/00-All_GRCh37.tsv.bgz\">",
+            "#COL_A\tCOL_B\tCOL_C\tbior.00-All_GRCh37.INFO.SSR",
+            "val1A\tval1B\tval1C",
+            "val2A\tval2B\tval2C"
+    );
+
+    //add test for if the drill does not have property files for the catalog
+    @Test
+    public void testNoPropsDrill(){
+        History.clearMetaData();
+        String paths[] = new String[]{"INFO.SSR"};
+        Metadata mddrill = new Metadata(Metadata.CmdType.Drill, -1, "bior_drill", false, paths);
+        HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
+        Pipe<String, String> p2 = new Pipeline<String, String>(hinDrill, new HistoryOutPipe());
+        p2.setStarts(noprops);
+        for(int i=0; p2.hasNext(); i++){
+            String result = p2.next();
+            assertEquals(drillnoprops.get(i), result);
+        }
+    }
+
+    public final List<String> querryagain = Arrays.asList(
+            "##header1",
+            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.2\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "#COL_A\tCOL_B\tCOL_C\tbior.dbSNP137\tbior.dbSNP137.2",
+            "val1A\tval1B\tval1C",
+            "val2A\tval2B\tval2C"
+    );
+
+    //same datasource same version
+    @Test
+    public void testQuerySameDataSourceAgain(){
+        History.clearMetaData();
+        String paths[] = new String[]{"INFO.SSR"};
+        Metadata md = new Metadata(Metadata.CmdType.Query, catalogFile, "bior_lookup");
+        HistoryInPipe hinDrill = new HistoryInPipe(md);
+        Pipe<String, String> p2 = new Pipeline<String, String>(hinDrill, new HistoryOutPipe());
+        p2.setStarts(querryout);
+        for(int i=0; p2.hasNext(); i++){
+            String result = p2.next();
+            assertEquals(querryagain.get(i), result);
+        }
+    }
+
+
+
+    //test case for a second column with the same datasource different version
 
 }

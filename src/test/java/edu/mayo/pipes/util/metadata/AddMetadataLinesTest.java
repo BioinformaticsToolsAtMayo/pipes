@@ -43,9 +43,10 @@ public class AddMetadataLinesTest {
     public void testParseHeaderLine(){
         System.out.println("TestParseHeaderLine...");
         AddMetadataLines amdl = new AddMetadataLines();
-        LinkedHashMap<String,String> hm = amdl.parseHeaderLine("##BIOR=<ID=\"bior.dbSNP137\",CatalogShortUniqueName=\"dbSNP137\",CatalogSource=\"dbSNP\",CatalogVersion=\"137\",CatalogBuild=\"GRCh37.p10\">");
+        LinkedHashMap<String,String> hm = amdl.parseHeaderLine("##BIOR=<ID=\"bior.dbSNP137\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\">");
         assertEquals("bior.dbSNP137", hm.get("ID"));
-        assertEquals("dbSNP137", hm.get("CatalogShortUniqueName"));
+        assertEquals("dbSNP137", hm.get("ShortUniqueName"));
+        assertEquals("dbSNP version 137, Patch 10, Human",hm.get("Description"));
     }
 
     //this code should be dead after the changes to HistoryInPipe
