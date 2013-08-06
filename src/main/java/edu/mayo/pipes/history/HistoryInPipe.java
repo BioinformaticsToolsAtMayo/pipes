@@ -176,6 +176,12 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
                     if(!md.isKeepJSON()){
                         int c = amdl.fixDrillRow(h, md.getmColNum());
                         hMeta.getColumns().remove(History.getMetaData().getColumns().size() + c - md.getmDrillPaths().length);
+                    }else{
+                        //we have to remove the drill column and put it at the end
+                        int c = amdl.fixDrillRow(h, md.getmColNum());
+                        ColumnMetaData moveMe = hMeta.getColumns().get(History.getMetaData().getColumns().size() + c - md.getmDrillPaths().length);
+                        hMeta.getColumns().remove(History.getMetaData().getColumns().size() + c - md.getmDrillPaths().length);
+                        hMeta.getColumns().add(moveMe);
                     }
                 }
                 //type = Query

@@ -231,7 +231,12 @@ public class AddMetadataLines {
         //attributes.put()
         attributes.put(BiorMetaControlledVocabulary.PATH.toString(), catalogPath);
         List<String> head = h.getMetaData().getOriginalHeader();
-        head.add(head.size()-1, buildHeaderLine(attributes));
+        int addline = head.size()-1;
+        if(addline == -1){
+            History.getMetaData().getOriginalHeader().add(buildHeaderLine(attributes));
+        }else {
+            head.add(head.size() - 1, buildHeaderLine(attributes));
+        }
         return attributes.get("ID").substring(5); //remove .bior for consistency
     }
 
@@ -299,7 +304,7 @@ public class AddMetadataLines {
         String cmeta = cmd.getColumnName();
         int pos = getHistoryMetadataLine4HeaderValue(cmeta);
         if(pos == -1){
-            return Undefined.UNKNOWN.toString(); //could not find the column we need to drill, adding metadata failed
+            return cmeta; //could not find the column we need to drill, adding metadata failed
         }else {
             String preLine = History.getMetaData().getOriginalHeader().get(pos).toString();
             for(String path: drillPaths){

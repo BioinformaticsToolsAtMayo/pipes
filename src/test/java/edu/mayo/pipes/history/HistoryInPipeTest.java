@@ -281,7 +281,7 @@ public class HistoryInPipeTest
             "##Header start",
             "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
             "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137\tbior.dbSNP137.INFO.SSR",
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137.INFO.SSR\tbior.dbSNP137",
             "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}" //note the absence of data, data is tested in Drill and other functions that deal with data
     );
 
@@ -314,7 +314,7 @@ public class HistoryInPipeTest
             "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
             "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
             "##BIOR=<ID=\"bior.dbSNP137.INFO.VC\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.VC\",FieldDescription=\"Variation Class\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137\tbior.dbSNP137.INFO.SSR\tbior.dbSNP137.INFO.VC",
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137.INFO.SSR\tbior.dbSNP137.INFO.VC\tbior.dbSNP137",
             "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}" //note the absence of data, data is tested in Drill and other functions that deal with data
     );
 

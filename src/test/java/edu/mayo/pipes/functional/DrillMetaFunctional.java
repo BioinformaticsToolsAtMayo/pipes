@@ -27,7 +27,7 @@ import java.util.List;
 public class DrillMetaFunctional {
 
     public List<String> historyDrillOut = Arrays.asList(
-            "#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\tbior.UNKNOWN.INFO.RSPOS\tbior.UNKNOWN.INFO.dbSNPBuildID",
+            "#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\tbior.#UNKNOWN_4.INFO.RSPOS\tbior.#UNKNOWN_4.INFO.dbSNPBuildID",
             "1\t10144\t10145\t10145\t134",
             "1\t10177\t10177\t10177\t137",
             "1\t10180\t10180\t10180\t137"
