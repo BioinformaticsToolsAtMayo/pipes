@@ -33,7 +33,6 @@ public class DrillPipe extends AbstractPipe<History, History>{
     private boolean keepJSON = false;
     private String[] drillPaths;
     private ArrayList<JsonPath> compiledPaths;
-    private boolean addColumnMetaData = true;
     private int drillColumn = -1; //negative value... how many columns to go back (default -1).
     private AddMetadataLines addMetadataLines = new AddMetadataLines();
     
@@ -80,30 +79,6 @@ public class DrillPipe extends AbstractPipe<History, History>{
 
             if(history.size() == 1){
                 drillColumn = -1;
-            }
-                        
-            if (addColumnMetaData) {
-            	            	
-            	List<ColumnMetaData> cols = History.getMetaData().getColumns();
-                ColumnMetaData lastJsonCol = cols.remove(cols.size() + drillColumn);
-                for (String drillPath: drillPaths) {
-            		ColumnMetaData cmd = new ColumnMetaData(lastJsonCol.getColumnName() +"." +drillPath);
-            		//System.out.println("Name="+cmd.getColumnName());
-            		cols.add(cmd);
-            		
-            		//Add ##BIOR line for each column
-                    try {
-                        history = addMetadataLines.constructDrillLine(history, cmd.getColumnName());
-                    } catch (IOException e) {
-                        //if this fails, then we don't have the metadata property files, we should not modify the history and eat the IOException
-                    }
-                }
-                
-                if (keepJSON) {
-                	cols.add(lastJsonCol);                	 
-                }
-            
-            	addColumnMetaData = false;
             }
             
            

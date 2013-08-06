@@ -3,6 +3,7 @@ package edu.mayo.pipes.util.metadata;
 import java.io.IOException;
 import java.util.*;
 
+import edu.mayo.pipes.bioinformatics.vocab.Undefined;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.util.PropertiesFileUtil;
@@ -155,7 +156,7 @@ public class AddMetadataLines {
     			
     			datasourceName = colNameSplit[1];
     			//System.out.println("ColumnName="+column_name+"; DatasourceName="+datasourceName);
-                attributes.put("ID", getID(history,columnName));
+                attributes.put("ID", getID(history, columnName));
                 attributes.put(BiorMetaControlledVocabulary.OPERATION.toString(), operation);
                 attributes.put(BiorMetaControlledVocabulary.DATATYPE.toString(), dataType);
                 attributes = this.parseDatasourceProperties(catalogFile, attributes);
@@ -297,10 +298,10 @@ public class AddMetadataLines {
         ColumnMetaData cmd = hcol.get(hcol.size() + col);
         String cmeta = cmd.getColumnName();
         int pos = getHistoryMetadataLine4HeaderValue(cmeta);
-        String preLine = History.getMetaData().getOriginalHeader().get(pos).toString();
         if(pos == -1){
-            return ""; //could not find the column we need to drill, adding metadata failed
+            return Undefined.UNKNOWN.toString(); //could not find the column we need to drill, adding metadata failed
         }else {
+            String preLine = History.getMetaData().getOriginalHeader().get(pos).toString();
             for(String path: drillPaths){
                 putDrillMetaLines(h, operation, preLine, path);
             }
