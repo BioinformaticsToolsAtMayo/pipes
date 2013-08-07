@@ -30,7 +30,7 @@ public class LookupMetaFunctional {
     String index = "src/test/resources/testData/tabix/index/genes.gene.idx.h2.db";
     @Test
     public void testHistoryInDrillHistoryOut(){
-        Metadata md = new Metadata(Metadata.CmdType.Query, catalog, "bior_lookup");
+        Metadata md = new Metadata(catalog, "bior_lookup");
         Pipeline p = new Pipeline(
                 new HistoryInPipe(md),
                 new LookupPipe(catalog, index),

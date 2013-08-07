@@ -180,7 +180,7 @@ public class HistoryInPipeTest
     @Test
     public void testMetadataToJSON(){
         History.clearMetaData();
-        Metadata md = new Metadata(Metadata.CmdType.ToTJson, "bior_vcf_to_tjson");
+        Metadata md = new Metadata("bior_vcf_to_tjson");
         HistoryInPipe historyIn = new HistoryInPipe(md);
         Pipe<String, History> p = new Pipeline<String, History>(historyIn, new HistoryOutPipe());
         p.setStarts(input);
@@ -198,20 +198,22 @@ public class HistoryInPipeTest
     @Test
     public void testMetadataTool(){
         History.clearMetaData();
-        Metadata md = new Metadata(Metadata.CmdType.Tool, "src/test/resources/testData/metadata/vep.datasource.properties", "bior_vep");
+        Metadata md = new Metadata("src/test/resources/testData/metadata/vep.datasource.properties", "src/test/resources/testData/metadata/vep.columns.properties", "bior_vep");
         HistoryInPipe historyIn = new HistoryInPipe(md);
         Pipe<String, History> p = new Pipeline<String, History>(historyIn, new HistoryOutPipe());
         p.setStarts(input);
 
         assertEquals("##header1",
                 p.next());
-        assertEquals("##BIOR=<ID=\"bior.Vep\",Operation=\"bior_vep\",DataType=\"JSON\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\">",
+        assertEquals("##BIOR=<ID=\"bior.Vep\",Operation=\"bior_vep\",DataType=\"JSON\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\">",
                 p.next());
         assertEquals("#COL_A\tCOL_B\tCOL_C\tbior.Vep",
                 p.next());
         assertEquals("val1A\tval1B\tval1C",
                 p.next());
     }
+
+    //todo add test to do a tool followed by a drill
 
 
     public final List<String> querryout = Arrays.asList(
@@ -227,7 +229,7 @@ public class HistoryInPipeTest
     @Test
     public void testMetadataQuery(){
         History.clearMetaData();
-        Metadata md = new Metadata(Metadata.CmdType.Query, catalogFile, "bior_lookup");
+        Metadata md = new Metadata(catalogFile, "bior_lookup");
         HistoryInPipe historyIn = new HistoryInPipe(md);
         Pipe<String, History> p = new Pipeline<String, History>(historyIn, new HistoryOutPipe());
         p.setStarts(input);
@@ -251,7 +253,7 @@ public class HistoryInPipeTest
         //same sort of test as above, but this case, we don't have a datasource.properties file for the catalog, so an exception will be caught, and we need to do an alternative...
         //this tests that alternative.
         History.clearMetaData();
-        Metadata md = new Metadata(Metadata.CmdType.Query, "some/file/that/does/not/exist/00-All_GRCh37.tsv.bgz", "bior_lookup");  //note it is ok if there is no catalog for this test, because this just does the metadata, the lookup or whatever function will test the data processing.
+        Metadata md = new Metadata("some/file/that/does/not/exist/00-All_GRCh37.tsv.bgz", "bior_lookup");  //note it is ok if there is no catalog for this test, because this just does the metadata, the lookup or whatever function will test the data processing.
         HistoryInPipe historyIn = new HistoryInPipe(md);
         Pipe<String, History> p = new Pipeline<String, History>(historyIn, new HistoryOutPipe());
         p.setStarts(input);
@@ -289,7 +291,7 @@ public class HistoryInPipeTest
     public void testMetadataDrill(){
         //first do the lookup...
         History.clearMetaData();
-        Metadata md = new Metadata(Metadata.CmdType.Query, catalogFile, "bior_lookup");
+        Metadata md = new Metadata(catalogFile, "bior_lookup");
         HistoryInPipe historyIn = new HistoryInPipe(md);
         Pipe<String, History> p = new Pipeline<String, History>(historyIn, new HistoryOutPipe());
         p.setStarts(input2);
@@ -299,7 +301,7 @@ public class HistoryInPipeTest
         //followed by the drill...
         History.clearMetaData();
         String paths[] = new String[]{"INFO.SSR"};
-        Metadata mddrill = new Metadata(Metadata.CmdType.Drill, -1, "bior_drill", true, paths);
+        Metadata mddrill = new Metadata(-1, "bior_drill", true, paths);
         HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
         Pipe<String, History> p2 = new Pipeline<String, History>(hinDrill, new HistoryOutPipe());
         p2.setStarts(outputLookup);
@@ -323,7 +325,7 @@ public class HistoryInPipeTest
     public void testMultiDrill(){
         History.clearMetaData();
         String paths[] = new String[]{"INFO.SSR", "INFO.VC"};
-        Metadata mddrill = new Metadata(Metadata.CmdType.Drill, -1, "bior_drill", true, paths);
+        Metadata mddrill = new Metadata(-1, "bior_drill", true, paths);
         HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
         Pipe<String, History> p2 = new Pipeline<String, History>(hinDrill, new HistoryOutPipe());
         p2.setStarts(outputLookup);
@@ -346,7 +348,7 @@ public class HistoryInPipeTest
     public void testKeepFalseDrill(){
         History.clearMetaData();
         String paths[] = new String[]{"INFO.SSR", "INFO.VC"};
-        Metadata mddrill = new Metadata(Metadata.CmdType.Drill, -1, "bior_drill", false, paths);
+        Metadata mddrill = new Metadata(-1, "bior_drill", false, paths);
         HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
         Pipe<String, String> p2 = new Pipeline<String, String>(hinDrill, new HistoryOutPipe());
         p2.setStarts(outputLookup);
@@ -370,7 +372,7 @@ public class HistoryInPipeTest
     public void testNoPropsDrill(){
         History.clearMetaData();
         String paths[] = new String[]{"INFO.SSR"};
-        Metadata mddrill = new Metadata(Metadata.CmdType.Drill, -1, "bior_drill", false, paths);
+        Metadata mddrill = new Metadata(-1, "bior_drill", false, paths);
         HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
         Pipe<String, String> p2 = new Pipeline<String, String>(hinDrill, new HistoryOutPipe());
         p2.setStarts(noprops);
@@ -394,7 +396,7 @@ public class HistoryInPipeTest
     public void testQuerySameDataSourceAgain(){
         History.clearMetaData();
         String paths[] = new String[]{"INFO.SSR"};
-        Metadata md = new Metadata(Metadata.CmdType.Query, catalogFile, "bior_lookup");
+        Metadata md = new Metadata(catalogFile, "bior_lookup");
         HistoryInPipe hinDrill = new HistoryInPipe(md);
         Pipe<String, String> p2 = new Pipeline<String, String>(hinDrill, new HistoryOutPipe());
         p2.setStarts(querryout);

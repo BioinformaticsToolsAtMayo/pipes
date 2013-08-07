@@ -29,7 +29,9 @@ public class AddMetadataLines {
         SOURCE("Source"),
         VERSION("Version"),
         BUILD("Build"),
-        PATH("Path");
+        PATH("Path"),
+        COLUMNPROPERTIES("ColumnProperties"),
+        DATASOURCEPROPERTIES("DataSourceProperties");
 
         private String aKey;
 
@@ -244,11 +246,12 @@ public class AddMetadataLines {
      *
      * @param h                      - the history that we need to change
      * @param operation              - the name of the tool called
-     * @param toolPropertyFilePath   - path to the property file for the tool
+     * @param datasourcepath         - path to the property file for the tool
+     * @param columnpath             - path to the column property file
      * @return   shortName for use on the column
      */
-    public String constructToolLine(History h, String operation, String toolPropertyFilePath) throws IOException {
-        PropertiesFileUtil props = new PropertiesFileUtil(toolPropertyFilePath);
+    public String constructToolLine(History h, String datasourcepath, String columnpath, String operation) throws IOException {
+        PropertiesFileUtil props = new PropertiesFileUtil(datasourcepath);
         LinkedHashMap<String,String> attributes = new LinkedHashMap();
         attributes.put("ID", getID(h,BiorMetaControlledVocabulary.BIOR + props.get(BiorMetaControlledVocabulary.SHORTNAME.toString())));
         attributes.put(BiorMetaControlledVocabulary.OPERATION.toString(), operation);
@@ -257,6 +260,8 @@ public class AddMetadataLines {
         attributes.put(BiorMetaControlledVocabulary.DESCRIPTION.toString(), props.get(BiorMetaControlledVocabulary.DESCRIPTION.toString()));
         attributes.put(BiorMetaControlledVocabulary.VERSION.toString(), props.get(BiorMetaControlledVocabulary.VERSION.toString()));
         attributes.put(BiorMetaControlledVocabulary.BUILD.toString(),props.get(BiorMetaControlledVocabulary.BUILD.toString()));
+        attributes.put(BiorMetaControlledVocabulary.DATASOURCEPROPERTIES.toString(), datasourcepath);
+        attributes.put(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString(), columnpath);
         List<String> head = h.getMetaData().getOriginalHeader();
         head.add(head.size()-1, buildHeaderLine(attributes));
         return attributes.get("ID").substring(5); //remove .bior for consistency

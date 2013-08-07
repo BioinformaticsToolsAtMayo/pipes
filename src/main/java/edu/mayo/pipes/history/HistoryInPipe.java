@@ -203,7 +203,7 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
                 else if(md.getmCmdType().toString().equalsIgnoreCase(Metadata.CmdType.Tool.toString())){
                     try {
                         //if the file is not there, then we can't change the metadata to include the tool
-                        String shortname = amdl.constructToolLine(h,md.getOperator(),md.getmFullCanonicalPath());
+                        String shortname = amdl.constructToolLine(h, md.getDatasourcepath(), md.getDatasourcepath(), md.getOperator());
                         ColumnMetaData cmd = new ColumnMetaData(AddMetadataLines.BiorMetaControlledVocabulary.BIOR+shortname);
                         hMeta.getColumns().add(cmd);
                     } catch (IOException e) {

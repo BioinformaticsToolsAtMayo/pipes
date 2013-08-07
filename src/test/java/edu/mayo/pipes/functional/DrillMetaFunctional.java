@@ -48,7 +48,7 @@ public class DrillMetaFunctional {
     @Test
     public void testHistoryInDrillHistoryOut(){
         String[] paths = new String[]{"INFO.RSPOS","INFO.dbSNPBuildID"};
-        Metadata md = new Metadata(Metadata.CmdType.Drill, -1, "bior_drill", false, paths);
+        Metadata md = new Metadata( -1, "bior_drill", false, paths);
         Pipeline p = new Pipeline(
                 new CatPipe(),
                 new HistoryInPipe(md),
