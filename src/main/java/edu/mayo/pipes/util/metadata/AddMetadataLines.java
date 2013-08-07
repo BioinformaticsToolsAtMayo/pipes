@@ -346,7 +346,7 @@ public class AddMetadataLines {
             if(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()) != null){
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()));
             }else {
-                properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.DATASOURCEPROPERTIES.toString()));
+                properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()));
             }
 
             attributes.put(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(dpath));

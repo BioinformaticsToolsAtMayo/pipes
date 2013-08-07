@@ -242,8 +242,8 @@ public class HistoryInPipeTest
         p.setStarts(toolout);
 
         for(int i=0; p.hasNext(); i++){
-            System.out.println(p.next());
-            //assertEquals(tooldrillout.get(i), p.next());
+            //System.out.println(p.next());
+            assertEquals(tooldrillout.get(i), p.next());
         }
         return;
     }
