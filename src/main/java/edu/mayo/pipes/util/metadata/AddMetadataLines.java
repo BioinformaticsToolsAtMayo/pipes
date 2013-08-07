@@ -109,7 +109,7 @@ public class AddMetadataLines {
 
     public Properties parseColumnProperties(String catalogPath) throws IOException {
         String rootpath = catalogPath;
-        if(rootpath.endsWith("properties")){
+        if(rootpath.endsWith("columns.properties")){
             //then use it directly;
         }else {
             //if it is the catalog, then try to use it
