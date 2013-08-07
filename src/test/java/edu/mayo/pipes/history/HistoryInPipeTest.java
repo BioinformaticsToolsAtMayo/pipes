@@ -198,7 +198,7 @@ public class HistoryInPipeTest
 
     public final List<String> toolout = Arrays.asList(
             "##header1",
-            "##BIOR=<ID=\"bior.Vep\",Operation=\"bior_vep\",DataType=\"JSON\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\">",
+            "##BIOR=<ID=\"bior.Vep\",Operation=\"bior_vep\",DataType=\"JSON\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.columns.properties\">",
             "#COL_A\tCOL_B\tCOL_C\tbior.Vep",
             "val1A\tval1B\tval1C",
             "val2A\tval2B\tval2C"
@@ -220,9 +220,9 @@ public class HistoryInPipeTest
 
     public final List<String> tooldrillout = Arrays.asList(
             "##header1",
-            "##BIOR=<ID=\"bior.Vep\",Operation=\"bior_vep\",DataType=\"JSON\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\">",
-            "##BIOR=<ID=\"bior.Vep.FOO\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"FOO\",FieldDescription=\"\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\">",
-            "##BIOR=<ID=\"bior.Vep.BAR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"BAR\",FieldDescription=\"\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\">",
+            "##BIOR=<ID=\"bior.Vep\",Operation=\"bior_vep\",DataType=\"JSON\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.columns.properties\">",
+            "##BIOR=<ID=\"bior.Vep.FOO\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"FOO\",FieldDescription=\"\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.columns.properties\">",
+            "##BIOR=<ID=\"bior.Vep.BAR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"BAR\",FieldDescription=\"\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.columns.properties\">",
             "#COL_A\tCOL_B\tCOL_C\tbior.Vep.FOO\tbior.Vep.BAR\tbior.Vep",
             "val1A\tval1B\tval1C",
             "val2A\tval2B\tval2C"
