@@ -191,7 +191,11 @@ public class AddMetadataLines {
         attributes.put(BiorMetaControlledVocabulary.DATATYPE.toString(), "JSON");
         attributes.put(BiorMetaControlledVocabulary.SHORTNAME.toString(), operationType);
         List<String> head = h.getMetaData().getOriginalHeader();
-        head.add(head.size()-1, buildHeaderLine(attributes));
+        if(head.size() > 1){
+            head.add(head.size()-1, buildHeaderLine(attributes));
+        }else{
+            head.add(buildHeaderLine(attributes));
+        }
         return h;
     }
 
