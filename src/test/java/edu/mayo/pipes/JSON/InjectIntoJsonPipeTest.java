@@ -1,5 +1,6 @@
 package edu.mayo.pipes.JSON;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.mayo.pipes.util.metadata.Metadata;
 import org.junit.Test;
 
 import com.tinkerpop.pipes.Pipe;
@@ -26,9 +28,12 @@ public class InjectIntoJsonPipeTest {
 		
 		Injector injector = new ColumnInjector(1, JsonType.STRING);
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injector);
+        //note in all of these test 	toJson is added before the test to ensure there is a column for the data that will be added/injected... in production you need to pass a correct
+        //metadata into HistoryIn(MetaData md) - but that will also create a ##BIOR line which would require that we rewrite all of these tests... so because this is not important for
+        //testing that inject is behaving correctly, we just add the extra column.
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
-				"#Chrom\tMinBP\tMaxBP\tJSON",
+				"#Chrom\tMinBP\tMaxBP\tJSON\ttoJson",
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
 				);
 		List<String> out = getPipeOutput(injectorPipe, in);
@@ -49,7 +54,7 @@ public class InjectIntoJsonPipeTest {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(8, injectors);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
-				"#Chrom\tMinBP\tMaxBP\tSTR_ARRAY_COL\tINT_ARRAY_COL\tBOOL_ARRAY_COL\tEMPTY_ARRAY_COL\tJSON",
+				"#Chrom\tMinBP\tMaxBP\tSTR_ARRAY_COL\tINT_ARRAY_COL\tBOOL_ARRAY_COL\tEMPTY_ARRAY_COL\tJSON\ttoJson",
 				"chr17\t100\t101\tA,B,C\t1|2|3\ttrue,false,true\t\t{\"info\":\"somejunk\"}"
 				);
 		List<String> out = getPipeOutput(injectorPipe, in);
@@ -63,7 +68,7 @@ public class InjectIntoJsonPipeTest {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injector);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
-				"#Chrom\tMinBP\tMaxBP\tJSON",
+				"#Chrom\tMinBP\tMaxBP\tJSON\ttoJson",
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
 		);
 		List<String> out = getPipeOutput(injectorPipe, in);
@@ -78,7 +83,7 @@ public class InjectIntoJsonPipeTest {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injector);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
-				"#Chrom\tMinBP\tMaxBP\tJSON",
+				"#Chrom\tMinBP\tMaxBP\tJSON\ttoJson",
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
 		);
 		List<String> out = getPipeOutput(injectorPipe, in);
@@ -98,7 +103,7 @@ public class InjectIntoJsonPipeTest {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injectors);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
-				"#Chrom\tMinBP\tMaxBP\tJSON",
+				"#Chrom\tMinBP\tMaxBP\tJSON\ttoJson",
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
 		);
 		List<String> out = getPipeOutput(injectorPipe, in);
@@ -137,7 +142,7 @@ public class InjectIntoJsonPipeTest {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injector);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
-				"#Chrom\tMinBP\tMaxBP\tJSON",
+				"#Chrom\tMinBP\tMaxBP\tJSON\ttoJson",
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
 		);
 		List<String> out = getPipeOutput(injectorPipe, in);
@@ -171,7 +176,7 @@ public class InjectIntoJsonPipeTest {
 		);
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
-				"#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\t#UNKNOWN_4\tbior_injectIntoJson",
+				"#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\t#UNKNOWN_4\t#UNKNOWN_5",
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}\t{\"MyChromosome\":\"chr17\"}");
 		assertListsEqual( expected, out );
 	}
@@ -187,7 +192,7 @@ public class InjectIntoJsonPipeTest {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(injectors);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
-				"#Chrom\tMinBP\tMaxBP\tJSON",
+				"#Chrom\tMinBP\tMaxBP\tJSON\ttoJson",
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
 		);
 		List<String> out = getPipeOutput(injectorPipe, in);
@@ -206,7 +211,7 @@ public class InjectIntoJsonPipeTest {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(4, injectors);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
-				"#Chrom\tMinBP\tMaxBP\tJSON",
+				"#Chrom\tMinBP\tMaxBP\tJSON\ttoJson",
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
 		);
 		List<String> out = getPipeOutput(injectorPipe, in);
@@ -234,11 +239,10 @@ public class InjectIntoJsonPipeTest {
 		InjectIntoJsonPipe injectorPipe = new InjectIntoJsonPipe(5, injectors);
     	List<String> in = Arrays.asList( 
 				"## Some unneeded header line",
-				"#Chrom\tMinBP\tMaxBP\tJSON",
+				"#Chrom\tMinBP\tMaxBP\tJSON\ttoJson",
 				"chr17\t100\t101\t{\"info\":\"somejunk\"}"
 		);
 		List<String> out = getPipeOutput(injectorPipe, in);
-		in.set(1, in.get(1) + "\tbior_injectIntoJson");
 		in.set(2, "chr17\t100\t101\t{\"info\":\"somejunk\"}\t{\"MyKey\":\"MyValue\",\"Chromosome\":\"chr17\"}");
 		assertListsEqual( in, out );
 	}
@@ -259,7 +263,7 @@ public class InjectIntoJsonPipeTest {
 		);
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
-				"#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\t#UNKNOWN_4\t" + InjectIntoJsonPipe.NEW_JSON_HEADER,
+				"#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\t#UNKNOWN_4\t#UNKNOWN_5",
 				"chr17\t100\t101\t{}\t{\"MyKey\":\"MyValue\",\"#UNKNOWN_1\":\"chr17\"}",
 				"chr18\t200\t201\t{}\t{\"MyKey\":\"MyValue\",\"#UNKNOWN_1\":\"chr18\"}"
 				);
@@ -345,7 +349,7 @@ public class InjectIntoJsonPipeTest {
     	List<String> in = Arrays.asList( "chr17\t100\t101" );
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
-				"#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\t" + InjectIntoJsonPipe.NEW_JSON_HEADER,
+				"#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\t#UNKNOWN_4",
 				"chr17\t100\t101\t{\"MyChrom\":\"chr17\",\"Min\":\"100\",\"Max\":\"101\"}" );
 		System.out.println("\njustRightNumColumnNamesSpecified_noHeaders_addNewJsonCol()");
 		System.out.println("expected: "); printList(expected);
@@ -390,7 +394,7 @@ public class InjectIntoJsonPipeTest {
     			);
 		List<String> out = getPipeOutput(injectorPipe, in);
 		List<String> expected = Arrays.asList(
-				"#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\tbior_injectIntoJson",
+				"#UNKNOWN_1\t#UNKNOWN_2\t#UNKNOWN_3\t#UNKNOWN_4",
 				"chr17\t1\t2\t{\"Chr\":\"chr17\",\"Min\":1,\"Max\":2}",
 				"NULL\tnull\tNull\t{}",
 				"\\n\t\\N\t\t{}",
@@ -430,7 +434,14 @@ public class InjectIntoJsonPipeTest {
 	}
 	
 	private void assertListsEqual(List<String> expected, List<String> actual) {
-		assertTrue( "Expected: " + expected + "\n  Actual: " + actual,  expected.equals(actual) );
+        if(expected.size() != actual.size()){
+            assertEquals(expected.size(), actual.size());
+            return;
+        }
+        for(int i = 0; i< expected.size(); i++){
+            assertEquals(expected.get(i), actual.get(i));
+        }
+        return;
 	}
 	
 	private void printList(List<String> strList) {

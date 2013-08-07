@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.tinkerpop.pipes.AbstractPipe;
+import edu.mayo.pipes.bioinformatics.vocab.Undefined;
 
 /**
  * Serializes a History object into a header that appears before the data.
@@ -36,8 +37,10 @@ public class HistoryOutPipe extends AbstractPipe<History, String>{
 
             List<String> originalHeader = History.getMetaData().getOriginalHeader();
             int p = 1; //by default add all header lines except for the LAST line which is the old column header line
-            if(originalHeader.get(originalHeader.size()-1).startsWith("##")){ // the last header row is not a column header but a ## metadata line, don't delete
-                p = 0;
+            if(originalHeader.size() > 0){
+                if(originalHeader.get(originalHeader.size()-1).startsWith("##")){ // the last header row is not a column header but a ## metadata line, don't delete
+                    p = 0;
+                }
             }
             // add the header lines to the queue first so they appear in the
 			// output first
@@ -47,6 +50,11 @@ public class HistoryOutPipe extends AbstractPipe<History, String>{
 				String headerLine = History.getMetaData().getOriginalHeader().get(i);
 				mQueue.add(headerLine);					
 			}
+            List<ColumnMetaData> headerCols = History.getMetaData().getColumns();
+            while(history.size() > headerCols.size()){
+                ColumnMetaData cmd = new ColumnMetaData("#" + Undefined.UNKNOWN + "_" + (new Integer(headerCols.size()+1)).toString());
+                headerCols.add(cmd);
+            }
 			// add a new generated column header row, even if the original header was blank
 			mQueue.add(History.getMetaData().getColumnHeaderRow(FIELD_DELIMITER));
 

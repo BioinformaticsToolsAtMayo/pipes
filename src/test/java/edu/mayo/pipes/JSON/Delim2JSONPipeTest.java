@@ -62,7 +62,7 @@ public class Delim2JSONPipeTest {
         p.setStarts(lists);
         
         List<String> expected = Arrays.asList(
-        	"#UNKNOWN_1",
+        	"#UNKNOWN_1\t#UNKNOWN_2",
         	"Rex|brown|12\t{\"name\":\"Rex\",\"color\":\"brown\",\"age\":12}",
         	"Simon|black|2.5\t{\"name\":\"Simon\",\"color\":\"black\",\"age\":2.5}",
         	"Pillsbury|white|6\t{\"name\":\"Pillsbury\",\"color\":\"white\",\"age\":6}"
