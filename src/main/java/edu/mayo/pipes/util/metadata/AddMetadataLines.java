@@ -109,9 +109,14 @@ public class AddMetadataLines {
 
     public Properties parseColumnProperties(String catalogPath) throws IOException {
         String rootpath = catalogPath;
-        if(catalogPath.contains("tsv.bgz")){
-            String[] split = catalogPath.split(".tsv.bgz");
-            rootpath = split[0];
+        if(rootpath.endsWith("properties")){
+            //then use it directly;
+        }else {
+            //if it is the catalog, then try to use it
+            if(catalogPath.contains("tsv.bgz")){
+                String[] split = catalogPath.split(".tsv.bgz");
+                rootpath = split[0];
+            }
         }
 
         PropertiesFileUtil propsUtil = new PropertiesFileUtil(rootpath + ".columns.properties");
@@ -337,7 +342,13 @@ public class AddMetadataLines {
         attributes.put(BiorMetaControlledVocabulary.FIELD.toString(), dpath);
         try {
             //attributes = parseDatasourceProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()), attributes);
-            Properties properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()));
+            Properties properties;
+            if(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()) != null){
+                properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()));
+            }else {
+                properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.DATASOURCEPROPERTIES.toString()));
+            }
+
             attributes.put(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(dpath));
         } catch (IOException e) {
             //else there is not a columns.properties file, so we can't add a description

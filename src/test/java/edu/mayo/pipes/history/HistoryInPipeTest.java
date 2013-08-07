@@ -195,6 +195,15 @@ public class HistoryInPipeTest
                 p.next());
     }
 
+
+    public final List<String> toolout = Arrays.asList(
+            "##header1",
+            "##BIOR=<ID=\"bior.Vep\",Operation=\"bior_vep\",DataType=\"JSON\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\">",
+            "#COL_A\tCOL_B\tCOL_C\tbior.Vep",
+            "val1A\tval1B\tval1C",
+            "val2A\tval2B\tval2C"
+    );
+
     @Test
     public void testMetadataTool(){
         History.clearMetaData();
@@ -203,17 +212,41 @@ public class HistoryInPipeTest
         Pipe<String, History> p = new Pipeline<String, History>(historyIn, new HistoryOutPipe());
         p.setStarts(input);
 
-        assertEquals("##header1",
-                p.next());
-        assertEquals("##BIOR=<ID=\"bior.Vep\",Operation=\"bior_vep\",DataType=\"JSON\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\">",
-                p.next());
-        assertEquals("#COL_A\tCOL_B\tCOL_C\tbior.Vep",
-                p.next());
-        assertEquals("val1A\tval1B\tval1C",
-                p.next());
+        for(int i=0; p.hasNext(); i++){
+            assertEquals(toolout.get(i), p.next());
+        }
+
     }
 
-    //todo add test to do a tool followed by a drill
+    public final List<String> tooldrillout = Arrays.asList(
+            "##header1",
+            "##BIOR=<ID=\"bior.Vep\",Operation=\"bior_vep\",DataType=\"JSON\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\">",
+            "##BIOR=<ID=\"bior.Vep.FOO\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"FOO\",FieldDescription=\"\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\">",
+            "##BIOR=<ID=\"bior.Vep.BAR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"BAR\",FieldDescription=\"\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\">",
+            "#COL_A\tCOL_B\tCOL_C\tbior.Vep.FOO\tbior.Vep.BAR\tbior.Vep",
+            "val1A\tval1B\tval1C",
+            "val2A\tval2B\tval2C"
+    );
+
+    /**
+     * test inserting a tool followed by a drill  - just the metadata not the data rows
+     */
+    @Test
+    public void testToolDrill(){
+        History.clearMetaData();
+        System.out.println("Test Tool Drill");
+        String paths[] = new String[]{"FOO", "BAR"};
+        Metadata mddrill = new Metadata(-1, "bior_drill", true, paths);
+        HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
+        Pipe<String, History> p = new Pipeline<String, History>(hinDrill, new HistoryOutPipe());
+        p.setStarts(toolout);
+
+        for(int i=0; p.hasNext(); i++){
+            System.out.println(p.next());
+            //assertEquals(tooldrillout.get(i), p.next());
+        }
+        return;
+    }
 
 
     public final List<String> querryout = Arrays.asList(
