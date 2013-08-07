@@ -50,11 +50,11 @@ public class AddMetadataLines {
 	}
 
     /**
-     * checks the canidate ID to see if it is unique, if it is not unique, then it 'increments' it
+     * checks the candidate ID to see if it is unique, if it is not unique, then it 'increments' it
      * @param h
-     * @param canidate - what we would like the uniqueID to be
+     * @param candidate - what we would like the uniqueID to be
      */
-    public String getID(History h, String canidate){
+    public String getID(History h, String candidate){
         List<String> lines = History.getMetaData().getOriginalHeader();
         HashMap<String,LinkedHashMap> hm = new HashMap<String, LinkedHashMap>();
         for(int i = 0; i< lines.size(); i++){
@@ -64,13 +64,13 @@ public class AddMetadataLines {
                 hm.put(props.get("ID").toString(), props);
             }
         }
-        String canidate2 = canidate;
-        LinkedHashMap props = hm.get(canidate);
+        String candidate2 = candidate;
+        LinkedHashMap props = hm.get(candidate);
         for(Integer numberOfFails = 2; props != null; numberOfFails++){
-            canidate2 = canidate + "." + numberOfFails;
-            props = hm.get(BiorMetaControlledVocabulary.BIOR + canidate2);
+            candidate2 = candidate + "." + numberOfFails;
+            props = hm.get(BiorMetaControlledVocabulary.BIOR + candidate2);
         }
-        return canidate2;
+        return candidate2;
     }
 
 
@@ -348,7 +348,6 @@ public class AddMetadataLines {
             }else {
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()));
             }
-
             attributes.put(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(dpath));
         } catch (IOException e) {
             //else there is not a columns.properties file, so we can't add a description
