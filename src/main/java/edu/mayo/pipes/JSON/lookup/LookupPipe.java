@@ -146,7 +146,8 @@ public class LookupPipe extends AbstractPipe<History,History> {
     @Override
     public History processNextStart() throws NoSuchElementException {
     	setup();
-    	
+
+        List<String> oheader = History.getMetaData().getOriginalHeader();
         while(true){
 	        //If the queue has another result, append the result to the history
 	        if(mPosqueue.size() > 0) {

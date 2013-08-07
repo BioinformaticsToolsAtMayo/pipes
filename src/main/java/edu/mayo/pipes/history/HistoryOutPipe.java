@@ -34,11 +34,16 @@ public class HistoryOutPipe extends AbstractPipe<History, String>{
 			// it's necessary to pull the 1st row to get things started
 			History history = this.starts.next();
 
-			// add the header lines to the queue first so they appear in the
+            List<String> originalHeader = History.getMetaData().getOriginalHeader();
+            int p = 1; //by default add all header lines except for the LAST line which is the old column header line
+            if(originalHeader.get(originalHeader.size()-1).startsWith("##")){ // the last header row is not a column header but a ## metadata line, don't delete
+                p = 0;
+            }
+            // add the header lines to the queue first so they appear in the
 			// output first
 			final int origHeaderSize = History.getMetaData().getOriginalHeader().size();
 			// add all header lines except for LAST line, which is the column header row
-			for (int i=0; i < (origHeaderSize - 1); i++) {
+			for (int i=0; i < (origHeaderSize - p); i++) {
 				String headerLine = History.getMetaData().getOriginalHeader().get(i);
 				mQueue.add(headerLine);					
 			}

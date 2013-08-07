@@ -35,7 +35,6 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 	private int mIdxJsonCol;
 	boolean mIsFirst = true;
 	private Injector[] mInjectors;
-	public static final String NEW_JSON_HEADER = "bior_injectIntoJson";
 	private JsonParser mParser = new JsonParser();
 	private boolean mIsCreateNewJsonColumn = false;
 	
@@ -69,8 +68,7 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 
 	/** 
 	 * Constructor - User injects data into the last column, which must be JSON
-	 * @param injectors	One or more injectors that will inject new content into the designated JSON 
-	 * @param isCreateNewJsonColumn  If true, create new json column on end, else use last column.
+	 * @param injectors	One or more injectors that will inject new content into the designated JSON
 	 */
 	public InjectIntoJsonPipe(Injector... injectors) {
 		this(false, injectors);
@@ -107,7 +105,6 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 			mIdxJsonCol = historyOut.size() + 1;
 			historyOut.add("{}");
 			if( mIsFirst ) {
-				addNewJsonColumnHeader();
 				mIsFirst = false;
 			}
 		}
@@ -134,14 +131,6 @@ public class InjectIntoJsonPipe  extends AbstractPipe<History, History> {
 
 	private boolean isAJsonColumn(String json) {
 		return json.startsWith("{")  &&  json.endsWith("}");
-	}
-	
-	/** Only add the next header to the HistoryMetaData if the HistoryMetaData exists.
-	 *  This should only be called ONCE! */
-	private void addNewJsonColumnHeader() {
-		List<ColumnMetaData> headers = History.getMetaData().getColumns();
-		if( headers != null && headers.size() > 0 )
-			headers.add(new ColumnMetaData(NEW_JSON_HEADER));
 	}
 	
 	// We should throw an error if the JSON column is the same as a column we want to add
