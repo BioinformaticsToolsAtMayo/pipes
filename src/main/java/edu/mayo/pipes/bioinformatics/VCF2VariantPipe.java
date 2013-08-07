@@ -202,7 +202,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         root.addProperty(COL_HEADERS[COL_FILTER], history.get(COL_FILTER).trim());
         
         // parse and shred INFO column
-        JsonObject info = buildInfoJSON(history.get(COL_INFO).trim());
+        JsonObject info = buildInfoJSON(history.get(COL_INFO).trim(), history);
         root.add(COL_HEADERS[COL_INFO], info);
         
         // add core attributes to be used by downstream pipes
@@ -219,7 +219,16 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         
         return root.toString();    	
     }
-    
+
+    public String reformat(List<String> line){
+        StringBuilder sb = new StringBuilder();
+        for(String s : line){
+            sb.append(s);
+            sb.append("\t");
+        }
+        String r = sb.toString();
+        return r.substring(0,r.length()-2);
+    }
     /**
      * Examines the INFO column and shreds it into a JSON friendly structure based
      * on INFO field metadata mined from the VCF header.
@@ -227,7 +236,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
      * @param infoCol The INFO column
      * @return JSON object
      */
-    private JsonObject buildInfoJSON(String infoCol) {
+    private JsonObject buildInfoJSON(String infoCol, List<String> dataLine) {
 
     	// used where an INFO field is not defined in the header
     	// in these special cases, treat as a string
@@ -260,12 +269,21 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             	    	switch (meta.type) {
             	    	case Integer:
             				if (!isMissingValue(s)) {
-            					arr.add(new JsonPrimitive(Integer.parseInt(s.trim())));
+                                try {
+                                    arr.add(new JsonPrimitive(Integer.parseInt(s.trim())));
+                                } catch (Exception e){
+
+                                    System.err.println("Invalid VCF Line: " + reformat(dataLine));
+                                }
             				}
                 			break;
             	    	case Float:
             				if (!isMissingValue(s)) {
-            					arr.add(new JsonPrimitive(Float.parseFloat(s.trim())));
+                                try {
+            					    arr.add(new JsonPrimitive(Float.parseFloat(s.trim())));
+                                }catch (Exception e){
+                                    System.err.println("Invalid VCF Line: " + reformat(dataLine));
+                                }
             				}
             	    		break;
             	    	case Character:
