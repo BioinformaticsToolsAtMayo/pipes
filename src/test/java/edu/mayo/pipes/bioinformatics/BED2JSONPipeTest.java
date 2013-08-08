@@ -34,7 +34,7 @@ public class BED2JSONPipeTest {
 
     public final List<String> out = Arrays.asList(
             "##BIOR=<ID=\"bior.ToTJson\",Operation=\"bed_to_tjson\",DataType=\"JSON\",ShortUniqueName=\"ToTJson\">",
-            "#chrom\tchromStart\tchromEnd\tname\tscore\tstrand\tthickStart\tthickEnd\titemRgb\tbior.ToTJson\tBED2JSON",
+            "#chrom\tchromStart\tchromEnd\tname\tscore\tstrand\tthickStart\tthickEnd\titemRgb\tbior.ToTJson",
             "chr7\t127471196\t127472363\tPos1\t0\t+\t127471196\t127472363\t255,0,0\t{\"chrom\":\"chr7\",\"_landmark\":\"7\",\"chromStart\":\"127471196\",\"_minBP\":127471197,\"chromEnd\":\"127472363\",\"_maxBP\":127472363,\"name\":\"Pos1\",\"score\":\"0\",\"strand\":\"+\",\"thickStart\":\"127471196\",\"thickEnd\":\"127472363\",\"itemRgb\":\"255,0,0\"}",
             "chr7\t127472363\t127473530\tPos2\t0\t+\t127472363\t127473530\t255,0,0\t{\"chrom\":\"chr7\",\"_landmark\":\"7\",\"chromStart\":\"127472363\",\"_minBP\":127472364,\"chromEnd\":\"127473530\",\"_maxBP\":127473530,\"name\":\"Pos2\",\"score\":\"0\",\"strand\":\"+\",\"thickStart\":\"127472363\",\"thickEnd\":\"127473530\",\"itemRgb\":\"255,0,0\"}",
             "chr7\t127473530\t127474697\tPos3\t0\t+\t127473530\t127474697\t255,0,0\t{\"chrom\":\"chr7\",\"_landmark\":\"7\",\"chromStart\":\"127473530\",\"_minBP\":127473531,\"chromEnd\":\"127474697\",\"_maxBP\":127474697,\"name\":\"Pos3\",\"score\":\"0\",\"strand\":\"+\",\"thickStart\":\"127473530\",\"thickEnd\":\"127474697\",\"itemRgb\":\"255,0,0\"}",

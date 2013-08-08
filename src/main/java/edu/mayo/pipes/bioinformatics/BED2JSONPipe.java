@@ -148,9 +148,7 @@ public class BED2JSONPipe extends AbstractPipe<History,History> {
             if(h.size() > 11){
                 cmd = new ColumnMetaData("blockStarts");
                 columns.set(11, cmd);
-            }   
-            cmd = new ColumnMetaData("BED2JSON");
-            columns.add(cmd);
+            }
 
         }
         return h;
@@ -231,7 +229,7 @@ public class BED2JSONPipe extends AbstractPipe<History,History> {
             json.addProperty("blockSizes", h.get(10).trim());
         } 
         if(h.size() > 11){
-            json.addProperty("blockStarts", h.get(5).trim());
+            json.addProperty("blockStarts", h.get(11).trim());
         }
         return json;
         
