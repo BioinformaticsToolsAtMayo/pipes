@@ -301,12 +301,22 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         	    	switch (meta.type) {
         	    	case Integer:
         				if (!isMissingValue(value)) {
-        					info.addProperty(id, Integer.parseInt(value.trim()));
+                            try {
+                                info.addProperty(id, Integer.parseInt(value.trim()));
+                            }catch (Exception e){
+                                System.err.println("Invalid VCF Line: " + reformat(dataLine));
+                            }
+
         				}
             			break;
         	    	case Float:    	    		
         				if (!isMissingValue(value)) {
-        					info.addProperty(id, Float.parseFloat(value.trim()));
+                            try {
+                                info.addProperty(id, Float.parseFloat(value.trim()));
+                            }catch (Exception e){
+                                System.err.println("Invalid VCF Line: " + reformat(dataLine));
+                            }
+
         				}
         	    		break;
         	    	case Character:

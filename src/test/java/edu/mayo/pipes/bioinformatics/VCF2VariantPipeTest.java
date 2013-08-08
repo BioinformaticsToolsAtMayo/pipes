@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.mayo.pipes.UNIX.GrepEPipe;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -127,6 +128,34 @@ public class VCF2VariantPipeTest {
             fail("");
         } catch (RuntimeException re) {
         	//expected
+        }
+    }
+
+    @Test
+    public void testDoubleDot(){
+        //sometimes users give VCF files with a number that can not be parsed, for example ..2 instead of 0.2
+        //while we may be able to correct these problems on a case by case basis, we don't know what the correction is
+        // for any case we may get.  This tests, that if the the parse fails - the attribute is just not added to the json and
+        // the parser continues processing.
+        Pipeline p = new Pipeline(
+                new CatPipe(),
+                new HistoryInPipe(),
+                new VCF2VariantPipe(),
+                new HistoryOutPipe(),
+                new GrepEPipe("#")
+        );
+        String line1 = "chr1\t914964\t.\tC\tA\t8.46\tLowQual\tAC=2;AF=0.25;AN=8;BaseQRankSum=-1.904;DP=174;Dels=0.00;FS=0.000;HRun=0;HaplotypeScore=0.2080;MQ=146.61;MQ0=3;MQRankSum=..501;QD=4.23;ReadPosRankSum=-1.286;SB=-37.62;SNPEFF_EFFECT=DOWNSTREAM;SNPEFF_FUNCTIONAL_CLASS=NONE;SNPEFF_GENE_NAME=PLEKHN1;SNPEFF_IMPACT=MODIFIER;SNPEFF_TRANSCRIPT_ID=NM_001160184;set=FilteredInAll;CSQ=NA|NA\tGT:AD:DP:GQ:PL\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t0/0:170,0:170:99:0,451,6234\t0/0:1,0:1:3.01:0,3,42\t1/1:0,2:2:3.01:45,3,0\t0/0:1,0:1:3.01:0,3,41\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t0\t{\"CHROM\":\"chr1\",\"POS\":\"914964\",\"ID\":\".\",\"REF\":\"C\",\"ALT\":\"A\",\"QUAL\":\"8.46\",\"FILTER\":\"LowQual\",\"INFO\":{\"AC\":[2],\"AF\":[0.25],\"AN\":8,\"BaseQRankSum\":-1.904,\"DP\":174,\"Dels\":0.0,\"FS\":0.0,\"HRun\":0,\"HaplotypeScore\":0.208,\"MQ\":146.61,\"MQ0\":3,\"QD\":4.23,\"ReadPosRankSum\":-1.286,\"SB\":-37.62,\"SNPEFF_EFFECT\":\"DOWNSTREAM\",\"SNPEFF_FUNCTIONAL_CLASS\":\"NONE\",\"SNPEFF_GENE_NAME\":\"PLEKHN1\",\"SNPEFF_IMPACT\":\"MODIFIER\",\"SNPEFF_TRANSCRIPT_ID\":\"NM_001160184\",\"set\":\"FilteredInAll\",\"CSQ\":[\"NA|NA\"]},\"_id\":\".\",\"_type\":\"variant\",\"_landmark\":\"1\",\"_refAllele\":\"C\",\"_altAlleles\":[\"A\"],\"_minBP\":914964,\"_maxBP\":914964}";
+        String line2 = "chr1\t1291078\t.\tC\tG\t10.45\tLowQual\tAC=2;AF=0.50;AN=4;BaseQRankSum=0.480;DP=10;Dels=0.00;FS=0.000;HRun=1;HaplotypeScore=0.3943;MQ=135.49;MQ0=0;MQRankSum=-1.271;QD=5.23;ReadPosRankSum=0.000;SB=-38.36;SNPEFF_AMINO_ACID_CHANGE=S43T;SNPEFF_AMINO_ACID_LENGTH=442;SNPEFF_CODON_CHANGE=aGc/aCc;SNPEFF_EFFECT=NON_SYNONYMOUS_CODING;SNPEFF_EXON_ID=NM_032348.ex.8;SNPEFF_FUNCTIONAL_CLASS=MISSENSE;SNPEFF_GENE_NAME=MXRA8;SNPEFF_IMPACT=MODERATE;SNPEFF_TRANSCRIPT_ID=NM_032348;set=FilteredInAll;CSQ=benign|tolerated\tGT:AD:DP:GQ:PL\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t0/0:8,0:8:21.07:0,21,290\t./.\t./.\t1/1:0,2:2:3.01:45,3,0\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t./.\t0\t{\"CHROM\":\"chr1\",\"POS\":\"1291078\",\"ID\":\".\",\"REF\":\"C\",\"ALT\":\"G\",\"QUAL\":\"10.45\",\"FILTER\":\"LowQual\",\"INFO\":{\"AC\":[2],\"AF\":[0.5],\"AN\":4,\"BaseQRankSum\":0.48,\"DP\":10,\"Dels\":0.0,\"FS\":0.0,\"HRun\":1,\"HaplotypeScore\":0.3943,\"MQ\":135.49,\"MQ0\":0,\"MQRankSum\":-1.271,\"QD\":5.23,\"ReadPosRankSum\":0.0,\"SB\":-38.36,\"SNPEFF_AMINO_ACID_CHANGE\":\"S43T\",\"SNPEFF_AMINO_ACID_LENGTH\":\"442\",\"SNPEFF_CODON_CHANGE\":\"aGc/aCc\",\"SNPEFF_EFFECT\":\"NON_SYNONYMOUS_CODING\",\"SNPEFF_EXON_ID\":\"NM_032348.ex.8\",\"SNPEFF_FUNCTIONAL_CLASS\":\"MISSENSE\",\"SNPEFF_GENE_NAME\":\"MXRA8\",\"SNPEFF_IMPACT\":\"MODERATE\",\"SNPEFF_TRANSCRIPT_ID\":\"NM_032348\",\"set\":\"FilteredInAll\",\"CSQ\":[\"benign|tolerated\"]},\"_id\":\".\",\"_type\":\"variant\",\"_landmark\":\"1\",\"_refAllele\":\"C\",\"_altAlleles\":[\"G\"],\"_minBP\":1291078,\"_maxBP\":1291078}";
+        p.setStarts(Arrays.asList("src/test/resources/testData/badMQRankSum.vcf"));
+        for(int i=1; p.hasNext(); i++){
+            String s = (String) p.next();
+            if(i==1){
+                assertEquals(line1, s);
+            }
+            if(i==2){
+                assertEquals(line2, s);
+            }
+            //System.out.println(s);
         }
     }
     
