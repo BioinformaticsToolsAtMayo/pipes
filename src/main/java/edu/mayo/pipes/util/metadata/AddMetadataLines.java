@@ -349,10 +349,14 @@ public class AddMetadataLines {
             Properties properties;
             if(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()) != null){
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()));
-            }else {
+                attributes.put(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(dpath));
+            }else if (datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()) != null) {
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()));
+                attributes.put(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(dpath));
+            }else {
+                 ; //can't add properties from a properties file
             }
-            attributes.put(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(dpath));
+
         } catch (IOException e) {
             //else there is not a columns.properties file, so we can't add a description
             attributes.put(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), "");

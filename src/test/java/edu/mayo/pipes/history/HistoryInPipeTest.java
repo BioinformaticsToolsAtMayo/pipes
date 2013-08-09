@@ -9,7 +9,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.mayo.pipes.JSON.DrillPipe;
 import edu.mayo.pipes.JSON.lookup.LookupPipe;
+import edu.mayo.pipes.UNIX.CatPipe;
+import edu.mayo.pipes.UNIX.GrepEPipe;
+import edu.mayo.pipes.bioinformatics.VCF2VariantPipe;
 import edu.mayo.pipes.util.metadata.AddMetadataLines;
 import edu.mayo.pipes.util.metadata.Metadata;
 import org.junit.Test;
@@ -193,6 +197,58 @@ public class HistoryInPipeTest
                 p.next());
         assertEquals("val1A\tval1B\tval1C",
                 p.next());
+    }
+
+    //note that for this example there is no metadata because it came (optionally) in the input
+    public final List<String> jsondrill = Arrays.asList(
+            "##fileformat=VCFv4.0",
+            "##fileDate=20120616",
+            "##source=dbSNP",
+            "##dbSNP_BUILD_ID=137",
+            "##reference=GRCh37.p5",
+            "##phasing=partial",
+            "##variationPropertyDocumentationUrl=ftp://ftp.ncbi.nlm.nih.gov/snp/specs/dbSNP_BitField_latest.pdf\t",
+            "##FILTER=<ID=NC,Description=\"Inconsistent Genotype Submission For At Least One Sample\">",
+            "##BIOR=<ID=\"bior.ToTJson\",Operation=\"bior_vcf_to_tjson\",DataType=\"JSON\",ShortUniqueName=\"ToTJson\">",
+            "##BIOR=<ID=\"bior.ToTJson.INFO.RSPOS\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.RSPOS\",ShortUniqueName=\"ToTJson\">",
+            "##BIOR=<ID=\"bior.ToTJson.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",ShortUniqueName=\"ToTJson\">",
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.ToTJson.INFO.RSPOS\tbior.ToTJson.INFO.SSR",
+            "1\t10144\trs144773400\tTA\tT\t.\t.\tRSPOS=10145;dbSNPBuildID=134;SSR=0;SAO=0;VP=050000000005000002000200;WGT=1;VC=DIV;ASP;OTHERKG\t10145\t0",
+            "1\t10177\trs201752861\tA\tC\t.\t.\tRSPOS=10177;dbSNPBuildID=137;SSR=0;SAO=0;VP=050000000005000002000100;WGT=1;VC=SNV;ASP;OTHERKG\t10177\t0",
+            "1\t10180\trs201694901\tT\tC\t.\t.\tRSPOS=10180;dbSNPBuildID=137;SSR=0;SAO=0;VP=050000000005000002000100;WGT=1;VC=SNV;ASP;OTHERKG\t10180\t0",
+            "1\t10228\trs143255646\tTA\tT\t.\t.\tRSPOS=10229;dbSNPBuildID=134;SSR=0;SAO=0;VP=050000000005000002000200;WGT=1;VC=DIV;ASP;OTHERKG\t10229\t0",
+            "1\t10228\trs200462216\tTAACCCCTAACCCTAACCCTAAACCCTA\tT\t.\t.\tRSPOS=10229;dbSNPBuildID=137;SSR=0;SAO=0;VP=050000000005000002000200;WGT=1;VC=DIV;ASP;OTHERKG\t10229\t0",
+            "1\t10231\trs200279319\tC\tA\t.\t.\tRSPOS=10231;dbSNPBuildID=137;SSR=0;SAO=0;VP=050000000005000002000100;WGT=1;VC=SNV;ASP;OTHERKG\t10231\t0",
+            "1\t10234\trs145599635\tC\tT\t.\t.\tRSPOS=10234;dbSNPBuildID=134;SSR=0;SAO=0;VP=050000000005000002000100;WGT=1;VC=SNV;ASP;OTHERKG\t10234\t0"
+    );
+
+    /**
+     * Test toJSON followed by a Drill
+     * -- note, this also tess the case where there is no catalog
+     */
+    @Test
+    public void testToJSONDrill(){
+        History.clearMetaData();
+        Metadata md = new Metadata("bior_vcf_to_tjson");
+        String paths[] = new String[]{"INFO.RSPOS", "INFO.SSR"};
+        Metadata mddrill = new Metadata(-1, "bior_drill", false, paths);
+        ArrayList<Metadata> ops = new ArrayList<Metadata>();
+        ops.add(md);
+        ops.add(mddrill);
+        HistoryInPipe historyIn = new HistoryInPipe(ops);
+        Pipe<String, History> p = new Pipeline<String, History>(
+                new CatPipe(),
+                historyIn,
+                new VCF2VariantPipe(),
+                new DrillPipe(false, paths),
+                new HistoryOutPipe(),
+                new GrepEPipe("##INFO.*")
+        );
+        p.setStarts(Arrays.asList("src/test/resources/testData/example.vcf"));
+
+        for(int i=0; jsondrill.size() > i; i++){
+            assertEquals(jsondrill.get(i), p.next());
+        }
     }
 
 
