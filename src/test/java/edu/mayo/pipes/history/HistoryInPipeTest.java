@@ -570,7 +570,7 @@ public class HistoryInPipeTest
     public final List<String> escapequotes = Arrays.asList(
             "##header1",
             "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.dbSNP137.INFO.VP\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.VP\",FieldDescription=\"Variation <q>Property.<q>  Documentation is at ftp://ftp.ncbi.nlm.nih.gov/snp/specs/dbSNP_BitField_latest.pdf\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.VP\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.VP\",FieldDescription=\"Variation \\\"Property.\\\"  Documentation is at ftp://ftp.ncbi.nlm.nih.gov/snp/specs/dbSNP_BitField_latest.pdf\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
             "#COL_A\tCOL_B\tCOL_C\tbior.dbSNP137.INFO.VP\tbior.dbSNP137",
             "val1A\tval1B\tval1C",
             "val2A\tval2B\tval2C" //note the absence of data, data is tested in Drill and other functions that deal with data

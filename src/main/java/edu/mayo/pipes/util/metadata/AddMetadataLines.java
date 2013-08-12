@@ -114,7 +114,7 @@ public class AddMetadataLines {
         if(value == null){
             value = "";
         }
-        attributes.put(key,value.replaceAll("\"","<q>"));
+        attributes.put(key,value.replaceAll("\"","\\\\\""));
     }
 
 
