@@ -495,8 +495,100 @@ public class HistoryInPipeTest
         }
     }
 
+    public final List<String> drillarrayout = Arrays.asList(
+            "##Header start",
+            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137._altAlleles[0]\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"_altAlleles\",FieldDescription=\"BioR required field - alternate alleles (from ALT field) - JSON array\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137._altAlleles[0]\tbior.dbSNP137",
+            "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}" //note the absence of data, data is tested in Drill and other functions that deal with data
+    );
+
+    //test case for json array
+    @Test
+    public void testJsonArrayMetadata(){
+        History.clearMetaData();
+        String paths[] = new String[]{"_altAlleles[0]"};
+        Metadata mddrill = new Metadata(-1, "bior_drill", true, paths);
+        HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
+        Pipe<String, History> p2 = new Pipeline<String, History>(hinDrill, new HistoryOutPipe());
+        p2.setStarts(outputLookup);
+        for(int i=0; p2.hasNext(); i++){
+            assertEquals(drillarrayout.get(i), p2.next());
+        }
+
+    }
 
 
-    //test case for a second column with the same datasource different version
+    public final List<String> querryouterr = Arrays.asList(
+            "##header1",
+            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"\",Build=\"\",Path=\"src/test/resources/testData/metadata/fieldsNotFilledIn/00-All_GRCh37.tsv.bgz\">",
+            "#COL_A\tCOL_B\tCOL_C\tbior.dbSNP137",
+            "val1A\tval1B\tval1C",
+            "val2A\tval2B\tval2C"
+    );
+
+
+    //test cases for when properties are not defined.
+    public final String catalogMessedUpFile = "src/test/resources/testData/metadata/fieldsNotFilledIn/00-All_GRCh37.tsv.bgz";
+    @Test
+    public void testDatasourcePropertiesNotComplete(){
+        History.clearMetaData();
+        Metadata md = new Metadata(catalogMessedUpFile, "bior_lookup");
+        HistoryInPipe historyIn = new HistoryInPipe(md);
+        Pipe<String, History> p = new Pipeline<String, History>(historyIn, new HistoryOutPipe());
+        p.setStarts(input);
+
+        for(int i=0; p.hasNext(); i++){
+            assertEquals(querryouterr.get(i), p.next());
+        }
+    }
+
+    //then the drill
+    public final List<String> drillmessedout = Arrays.asList(
+            "##header1",
+            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"\",Build=\"\",Path=\"src/test/resources/testData/metadata/fieldsNotFilledIn/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"\",Build=\"\",Path=\"src/test/resources/testData/metadata/fieldsNotFilledIn/00-All_GRCh37.tsv.bgz\">",
+            "#COL_A\tCOL_B\tCOL_C\tbior.dbSNP137.INFO.SSR\tbior.dbSNP137",
+            "val1A\tval1B\tval1C",
+            "val2A\tval2B\tval2C" //note the absence of data, data is tested in Drill and other functions that deal with data
+    );
+
+    @Test
+    public void testMetadataDrillMessedProps(){
+        History.clearMetaData();
+        String paths[] = new String[]{"INFO.SSR"};
+        Metadata mddrill = new Metadata(-1, "bior_drill", true, paths);
+        HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
+        Pipe<String, History> p2 = new Pipeline<String, History>(hinDrill, new HistoryOutPipe());
+        p2.setStarts(querryouterr);
+        for(int i=0; p2.hasNext(); i++){
+            assertEquals(drillmessedout.get(i), p2.next());
+        }
+
+    }
+
+    public final List<String> escapequotes = Arrays.asList(
+            "##header1",
+            "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.VP\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.VP\",FieldDescription=\"Variation <q>Property.<q>  Documentation is at ftp://ftp.ncbi.nlm.nih.gov/snp/specs/dbSNP_BitField_latest.pdf\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "#COL_A\tCOL_B\tCOL_C\tbior.dbSNP137.INFO.VP\tbior.dbSNP137",
+            "val1A\tval1B\tval1C",
+            "val2A\tval2B\tval2C" //note the absence of data, data is tested in Drill and other functions that deal with data
+    );
+
+    @Test
+    public void testEscapeQuotes(){
+        History.clearMetaData();
+        String paths[] = new String[]{"INFO.VP"};
+        Metadata mddrill = new Metadata(-1, "bior_drill", true, paths);
+        HistoryInPipe hinDrill = new HistoryInPipe(mddrill);
+        Pipe<String, History> p2 = new Pipeline<String, History>(hinDrill, new HistoryOutPipe());
+        p2.setStarts(querryout);
+        for(int i=0; p2.hasNext(); i++){
+            assertEquals(escapequotes.get(i), p2.next());
+        }
+    }
+
+
 
 }

@@ -97,15 +97,26 @@ public class AddMetadataLines {
         String catalogVersion = propsUtil.get(BiorMetaControlledVocabulary.VERSION.toString());
         String catalogBuild = propsUtil.get(BiorMetaControlledVocabulary.BUILD.toString());
 
-        attributes.put(BiorMetaControlledVocabulary.SHORTNAME.toString(), catalogShortUniqueName);
-        attributes.put(BiorMetaControlledVocabulary.SOURCE.toString(), catalogSource);
-        attributes.put(BiorMetaControlledVocabulary.DESCRIPTION.toString(), description);
-        attributes.put(BiorMetaControlledVocabulary.VERSION.toString(), catalogVersion);
-        attributes.put(BiorMetaControlledVocabulary.BUILD.toString(), catalogBuild);
-        attributes.put(BiorMetaControlledVocabulary.PATH.toString(), catalogPath);
+        put(attributes, BiorMetaControlledVocabulary.SHORTNAME.toString(), catalogShortUniqueName);
+        put(attributes, BiorMetaControlledVocabulary.SOURCE.toString(), catalogSource);
+        put(attributes, BiorMetaControlledVocabulary.DESCRIPTION.toString(), description);
+        put(attributes, BiorMetaControlledVocabulary.VERSION.toString(), catalogVersion);
+        put(attributes, BiorMetaControlledVocabulary.BUILD.toString(), catalogBuild);
+        put(attributes, BiorMetaControlledVocabulary.PATH.toString(), catalogPath);
 
         return attributes;
     }
+
+    public void put(LinkedHashMap attributes, String key, String value){
+        if(key == null){
+            return;
+        }
+        if(value == null){
+            value = "";
+        }
+        attributes.put(key,value.replaceAll("\"","<q>"));
+    }
+
 
     public Properties parseColumnProperties(String catalogPath) throws IOException {
         String rootpath = catalogPath;
@@ -163,9 +174,9 @@ public class AddMetadataLines {
     			
     			datasourceName = colNameSplit[1];
     			//System.out.println("ColumnName="+column_name+"; DatasourceName="+datasourceName);
-                attributes.put("ID", getID(history, columnName));
-                attributes.put(BiorMetaControlledVocabulary.OPERATION.toString(), operation);
-                attributes.put(BiorMetaControlledVocabulary.DATATYPE.toString(), dataType);
+                put(attributes,"ID", getID(history, columnName));
+                put(attributes,BiorMetaControlledVocabulary.OPERATION.toString(), operation);
+                put(attributes,BiorMetaControlledVocabulary.DATATYPE.toString(), dataType);
                 attributes = this.parseDatasourceProperties(catalogFile, attributes);
 
                 List<String> head = history.getMetaData().getOriginalHeader();
@@ -186,10 +197,10 @@ public class AddMetadataLines {
      */
     public History constructToJsonLine(History h, String operation, String operationType){
         LinkedHashMap<String,String> attributes = new LinkedHashMap();
-        attributes.put("ID", getID(h,BiorMetaControlledVocabulary.BIOR + operationType));
-        attributes.put(BiorMetaControlledVocabulary.OPERATION.toString(), operation);
-        attributes.put(BiorMetaControlledVocabulary.DATATYPE.toString(), "JSON");
-        attributes.put(BiorMetaControlledVocabulary.SHORTNAME.toString(), operationType);
+        put(attributes,"ID", getID(h,BiorMetaControlledVocabulary.BIOR + operationType));
+        put(attributes,BiorMetaControlledVocabulary.OPERATION.toString(), operation);
+        put(attributes,BiorMetaControlledVocabulary.DATATYPE.toString(), "JSON");
+        put(attributes,BiorMetaControlledVocabulary.SHORTNAME.toString(), operationType);
         List<String> head = h.getMetaData().getOriginalHeader();
         if(head.size() > 0){
             head.add(head.size()-1, buildHeaderLine(attributes));
@@ -211,11 +222,11 @@ public class AddMetadataLines {
         LinkedHashMap<String,String> temp = new LinkedHashMap();
         LinkedHashMap<String,String> attributes = new LinkedHashMap();
         parseDatasourceProperties(catalogPath, temp);
-        attributes.put("ID",getID(h,BiorMetaControlledVocabulary.BIOR + temp.get(BiorMetaControlledVocabulary.SHORTNAME.toString())));
-        attributes.put(BiorMetaControlledVocabulary.OPERATION.toString(), operation);
-        attributes.put(BiorMetaControlledVocabulary.DATATYPE.toString(), "JSON");
+        put(attributes,"ID",getID(h,BiorMetaControlledVocabulary.BIOR + temp.get(BiorMetaControlledVocabulary.SHORTNAME.toString())));
+        put(attributes,BiorMetaControlledVocabulary.OPERATION.toString(), operation);
+        put(attributes,BiorMetaControlledVocabulary.DATATYPE.toString(), "JSON");
         for( String key : temp.keySet()){
-            attributes.put(key, temp.get(key));
+            put(attributes,key, temp.get(key));
         }
         List<String> head = h.getMetaData().getOriginalHeader();
         head.add(head.size()-1, buildHeaderLine(attributes));
@@ -235,12 +246,11 @@ public class AddMetadataLines {
         String[] split = catalogPath.split("/");
         String filename = split[split.length-1];
         String substituteShort = (filename).replaceAll(".tsv.bgz","");
-        attributes.put("ID",getID(h,BiorMetaControlledVocabulary.BIOR.toString() + substituteShort));
-        attributes.put(BiorMetaControlledVocabulary.OPERATION.toString(), operation);
-        attributes.put(BiorMetaControlledVocabulary.DATATYPE.toString(), "JSON");
-        attributes.put(BiorMetaControlledVocabulary.SHORTNAME.toString(), substituteShort);
-        //attributes.put()
-        attributes.put(BiorMetaControlledVocabulary.PATH.toString(), catalogPath);
+        put(attributes,"ID",getID(h,BiorMetaControlledVocabulary.BIOR.toString() + substituteShort));
+        put(attributes,BiorMetaControlledVocabulary.OPERATION.toString(), operation);
+        put(attributes,BiorMetaControlledVocabulary.DATATYPE.toString(), "JSON");
+        put(attributes,BiorMetaControlledVocabulary.SHORTNAME.toString(), substituteShort);
+        put(attributes,BiorMetaControlledVocabulary.PATH.toString(), catalogPath);
         List<String> head = h.getMetaData().getOriginalHeader();
         int addline = head.size()-1;
         if(addline == -1){
@@ -262,15 +272,15 @@ public class AddMetadataLines {
     public String constructToolLine(History h, String datasourcepath, String columnpath, String operation) throws IOException {
         PropertiesFileUtil props = new PropertiesFileUtil(datasourcepath);
         LinkedHashMap<String,String> attributes = new LinkedHashMap();
-        attributes.put("ID", getID(h,BiorMetaControlledVocabulary.BIOR + props.get(BiorMetaControlledVocabulary.SHORTNAME.toString())));
-        attributes.put(BiorMetaControlledVocabulary.OPERATION.toString(), operation);
-        attributes.put(BiorMetaControlledVocabulary.DATATYPE.toString(), "JSON");
-        attributes.put(BiorMetaControlledVocabulary.SHORTNAME.toString(), props.get(BiorMetaControlledVocabulary.SHORTNAME.toString()));
-        attributes.put(BiorMetaControlledVocabulary.DESCRIPTION.toString(), props.get(BiorMetaControlledVocabulary.DESCRIPTION.toString()));
-        attributes.put(BiorMetaControlledVocabulary.VERSION.toString(), props.get(BiorMetaControlledVocabulary.VERSION.toString()));
-        attributes.put(BiorMetaControlledVocabulary.BUILD.toString(),props.get(BiorMetaControlledVocabulary.BUILD.toString()));
-        attributes.put(BiorMetaControlledVocabulary.DATASOURCEPROPERTIES.toString(), datasourcepath);
-        attributes.put(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString(), columnpath);
+        put(attributes,"ID", getID(h,BiorMetaControlledVocabulary.BIOR + props.get(BiorMetaControlledVocabulary.SHORTNAME.toString())));
+        put(attributes,BiorMetaControlledVocabulary.OPERATION.toString(), operation);
+        put(attributes,BiorMetaControlledVocabulary.DATATYPE.toString(), "JSON");
+        put(attributes,BiorMetaControlledVocabulary.SHORTNAME.toString(), props.get(BiorMetaControlledVocabulary.SHORTNAME.toString()));
+        put(attributes,BiorMetaControlledVocabulary.DESCRIPTION.toString(), props.get(BiorMetaControlledVocabulary.DESCRIPTION.toString()));
+        put(attributes,BiorMetaControlledVocabulary.VERSION.toString(), props.get(BiorMetaControlledVocabulary.VERSION.toString()));
+        put(attributes,BiorMetaControlledVocabulary.BUILD.toString(),props.get(BiorMetaControlledVocabulary.BUILD.toString()));
+        put(attributes,BiorMetaControlledVocabulary.DATASOURCEPROPERTIES.toString(), datasourcepath);
+        put(attributes,BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString(), columnpath);
         List<String> head = h.getMetaData().getOriginalHeader();
         head.add(head.size()-1, buildHeaderLine(attributes));
         return attributes.get("ID").substring(5); //remove .bior for consistency
@@ -340,26 +350,26 @@ public class AddMetadataLines {
         HashMap<String,String> datasourceattr = parseHeaderLine(preLine);
         String catalogPath = datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString());
         LinkedHashMap<String,String> attributes = new LinkedHashMap<String, String>();
-        attributes.put("ID",getID(h,BiorMetaControlledVocabulary.BIOR + datasourceattr.get(BiorMetaControlledVocabulary.SHORTNAME.toString()) + "." + dpath));
-        attributes.put(BiorMetaControlledVocabulary.OPERATION.toString(), operation);
-        attributes.put(BiorMetaControlledVocabulary.DATATYPE.toString(), "STRING");
-        attributes.put(BiorMetaControlledVocabulary.FIELD.toString(), dpath);
+        put(attributes,"ID",getID(h,BiorMetaControlledVocabulary.BIOR + datasourceattr.get(BiorMetaControlledVocabulary.SHORTNAME.toString()) + "." + dpath));
+        put(attributes,BiorMetaControlledVocabulary.OPERATION.toString(), operation);
+        put(attributes,BiorMetaControlledVocabulary.DATATYPE.toString(), "STRING");
+        put(attributes,BiorMetaControlledVocabulary.FIELD.toString(), fixArrayDrillPath(dpath));
         try {
             //attributes = parseDatasourceProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()), attributes);
             Properties properties;
             if(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()) != null){
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()));
-                attributes.put(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(dpath));
+                put(attributes,BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(this.fixArrayDrillPath(dpath)));
             }else if (datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()) != null) {
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()));
-                attributes.put(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(dpath));
+                put(attributes,BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(this.fixArrayDrillPath(dpath)));
             }else {
                  ; //can't add properties from a properties file
             }
 
         } catch (IOException e) {
             //else there is not a columns.properties file, so we can't add a description
-            attributes.put(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), "");
+            put(attributes,BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), "");
         }
         //copy all of the properties from the catalog to the ##BIOR-drill-line
         for( String key : datasourceattr.keySet()){
@@ -371,11 +381,27 @@ public class AddMetadataLines {
                     ){
                 ;   // do nothing
             }else { // add it
-                    attributes.put(key, datasourceattr.get(key));
+                    put(attributes,key, datasourceattr.get(key));
             }
         }
         List<String> head = h.getMetaData().getOriginalHeader();
         head.add(head.size()-1, buildHeaderLine(attributes));
+    }
+
+    /**
+     *
+     * @param path the drill path that could contain 1 or many array designations
+     *             e.g. path = foo[0].bar.baz[*].x
+     * @return   a path without the array desinations for the purpose of looking up the metadata on the leaf node
+     *             e.g. path =  foo.bar.baz.x
+     */
+    public String fixArrayDrillPath(String path){
+        if(path.contains("[")){
+            String ret = path.replaceAll("\\[[\\*|\\d+]\\]","");
+            return ret;
+        }else {
+            return path;
+        }
     }
 
     /**
@@ -453,11 +479,11 @@ public class AddMetadataLines {
             }
 
             LinkedHashMap<String,String> attributes = new LinkedHashMap();
-            attributes.put("ID", getID(history, columnName));
-            attributes.put(BiorMetaControlledVocabulary.OPERATION.toString(), operation);
-            attributes.put(BiorMetaControlledVocabulary.DATATYPE.toString(), "STRING");
-            attributes.put(BiorMetaControlledVocabulary.FIELD.toString(), datasourceColumnName);
-            attributes.put(BiorMetaControlledVocabulary.DESCRIPTION.toString(), description);
+            put(attributes,"ID", getID(history, columnName));
+            put(attributes,BiorMetaControlledVocabulary.OPERATION.toString(), operation);
+            put(attributes,BiorMetaControlledVocabulary.DATATYPE.toString(), "STRING");
+            put(attributes,BiorMetaControlledVocabulary.FIELD.toString(), datasourceColumnName);
+            put(attributes,BiorMetaControlledVocabulary.DESCRIPTION.toString(), description);
             attributes = this.parseDatasourceProperties(phead.get(BiorMetaControlledVocabulary.PATH.toString()), attributes);
 
             List<String> head = history.getMetaData().getOriginalHeader();

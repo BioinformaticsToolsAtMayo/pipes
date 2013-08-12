@@ -49,6 +49,17 @@ public class AddMetadataLinesTest {
         assertEquals("dbSNP version 137, Patch 10, Human",hm.get("Description"));
     }
 
+    @Test
+    public void testJsonArray(){
+        System.out.println("TestJsonArray...");
+        AddMetadataLines amdl = new AddMetadataLines();
+        assertEquals("foo.bar.baz",amdl.fixArrayDrillPath("foo.bar.baz"));
+        assertEquals("foo.bar.baz",amdl.fixArrayDrillPath("foo[0].bar.baz"));
+        assertEquals("foo.bar.baz",amdl.fixArrayDrillPath("foo[*].bar.baz"));
+        assertEquals("foo.bar.baz",amdl.fixArrayDrillPath("foo[*].bar[1].baz"));
+        assertEquals("foo.bar.baz",amdl.fixArrayDrillPath("foo[*].bar[1].baz[3]"));
+    }
+
     //this code should be dead after the changes to HistoryInPipe
     //    @Test
 //    public void testConstructDrillLine() throws IOException {
