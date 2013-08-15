@@ -1,0 +1,14 @@
+## Key is the column name
+## Type can be one of: Json, JsonArray, String, Float, Integer, Boolean
+## Count is typically an integer to represent the exact number of values that can occur for a key.
+##   If the type is Boolean, then count should be 0.  If a key always has one value it should be one.
+##   If the number of values can vary, a dot ('.') should be used
+## Description is the definition of the column name
+#Key	Type	Count	Desc
+CHROM	String	1	Chromosome
+POS	Integer	1	Starting position within the chromosome
+_altAlleles	JsonArray	1	A list of Alternate alleles (starts and ends with '[' and ']')
+FILTER	String	1	Filter
+INFO.AVGPOST	Float	1	Some info field description
+_id	String	1	The variant's rsID
+isInDbSNP	Boolean	0	Whether the variant is in dbSNP (true/false)

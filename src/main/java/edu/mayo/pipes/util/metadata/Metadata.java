@@ -6,29 +6,30 @@ package edu.mayo.pipes.util.metadata;
  * Date created: Aug 1, 2013
  */
 public class Metadata {
-	public static enum CmdType { Query, Drill, ToTJson, Tool };
+	public static enum CmdType { Query, Drill, ToTJson, Tool, Annotate };
 	
 	private CmdType mCmdType;
 
-    private String operator;
+    private String 	mOperator;
 	private String  mFullCanonicalPath;
-    private String datasourcepath;
-    private String columnspath;
+    private String 	mDatasourcePath;
+    private String 	mColumnsPath;
 	private int     mColNum =-1;
 	private String[] mDrillPaths;
-    private boolean keepJSON = false; //used for drill
+    private boolean mKeepJSON = false; //used for drill
+    private String[] mNewColNamesForDrillPaths; // Used for bior_annotate
 
 	
 	/** Use for bior_vcf_to_tjson and other to_tjson commands ; basically input functions*/
 	public Metadata(String operator) {
 		this.mCmdType = CmdType.ToTJson;
-        this.operator = operator;
+        this.mOperator = operator;
 	}
 
 	/** Use for bior_overlap, bior_same_variant, bior_lookup ; basically all query functions that use a catalog */
 	public Metadata(String mFullCanonicalPath, String operator) {
         this.mCmdType = CmdType.Query;
-        this.operator = operator;
+        this.mOperator = operator;
         this.mFullCanonicalPath = mFullCanonicalPath;
 	}
 
@@ -36,81 +37,108 @@ public class Metadata {
 	public Metadata(int colNum, String operator, boolean keepJSON, String... drillPaths ) {
         mDrillPaths = drillPaths;
         this.mCmdType = CmdType.Drill;
-        this.operator = operator;
-        this.keepJSON = keepJSON;
+        this.mOperator = operator;
+        this.mKeepJSON = keepJSON;
         this.mColNum = colNum;
 	}
 
     /** use for any tool */
     public Metadata(String fullCanonicalPathDataSourceProps, String fullCanonicalPathColumnProps,  String operator) {
         this.mCmdType = CmdType.Tool;
-        this.columnspath = fullCanonicalPathColumnProps;
-        this.datasourcepath = fullCanonicalPathDataSourceProps;
-        this.operator = operator;
+        this.mColumnsPath = fullCanonicalPathColumnProps;
+        this.mDatasourcePath = fullCanonicalPathDataSourceProps;
+        this.mOperator = operator;
     }
+    
+	/** Use for bior_annotate, where you want to remove a bunch of columns and add your own in.
+	 *  To just remove a column (such as a drilled column which was used in the middle of bior_annotate)
+	 *  without adding another, just pass in null for the colNameToAdd 
+	 *  @param operator   The script name that was run (such as "bior_annotate")
+	 *  @param colNamesToAdd   A String array of the column names to add (this will be user-specified columns, NOT the drill paths)
+	 *  @param fullCanonicalPathCatalog   The full path to the catalog from which the data came
+	 **/
+	public Metadata(String operator, String fullCanonicalPathCatalog, String[] colNamesToAdd, String[] drillPaths ) {
+        this.mOperator = operator;
+        this.mFullCanonicalPath = fullCanonicalPathCatalog;
+        this.mNewColNamesForDrillPaths = colNamesToAdd;
+        this.mDrillPaths = drillPaths;
+        this.mCmdType = CmdType.Annotate;
+	}
 
-    public CmdType getmCmdType() {
+	
+
+    public CmdType getCmdType() {
         return mCmdType;
     }
 
-    public void setmCmdType(CmdType mCmdType) {
-        this.mCmdType = mCmdType;
+    public void setCmdType(CmdType cmdType) {
+        this.mCmdType = cmdType;
     }
 
 
-    public String getmFullCanonicalPath() {
+    public String getFullCanonicalPath() {
         return mFullCanonicalPath;
     }
 
-    public void setmFullCanonicalPath(String mFullCanonicalPath) {
-        this.mFullCanonicalPath = mFullCanonicalPath;
+    public void setFullCanonicalPath(String fullCanonicalPath) {
+        this.mFullCanonicalPath = fullCanonicalPath;
     }
 
-    public int getmColNum() {
+    public int getColNum() {
         return mColNum;
     }
 
-    public void setmColNum(int mColNum) {
-        this.mColNum = mColNum;
+    public void setColNum(int colNum) {
+        this.mColNum = colNum;
     }
 
-    public String[] getmDrillPaths() {
+    public String[] getDrillPaths() {
         return mDrillPaths;
     }
 
-    public void setmDrillPaths(String[] mDrillPaths) {
-        this.mDrillPaths = mDrillPaths;
+    public void setDrillPaths(String[] drillPaths) {
+        this.mDrillPaths = drillPaths;
     }
 
     public String getOperator() {
-        return operator;
+        return mOperator;
     }
 
     public void setOperator(String operator) {
-        this.operator = operator;
+        this.mOperator = operator;
     }
 
     public boolean isKeepJSON() {
-        return keepJSON;
+        return mKeepJSON;
     }
 
     public void setKeepJSON(boolean keepJSON) {
-        this.keepJSON = keepJSON;
+        this.mKeepJSON = keepJSON;
     }
 
-    public String getDatasourcepath() {
-        return datasourcepath;
+    public String getDatasourcePath() {
+        return mDatasourcePath;
     }
 
-    public void setDatasourcepath(String datasourcepath) {
-        this.datasourcepath = datasourcepath;
+    public void setDatasourcePath(String datasourcePath) {
+        this.mDatasourcePath = datasourcePath;
     }
 
-    public String getColumnspath() {
-        return columnspath;
+    public String getColumnsPath() {
+        return mColumnsPath;
     }
 
-    public void setColumnspath(String columnspath) {
-        this.columnspath = columnspath;
+    public void setColumnsPath(String columnsPath) {
+        this.mColumnsPath = columnsPath;
     }
+    
+	public String[] getNewColNamesForDrillPaths() {
+		return mNewColNamesForDrillPaths;
+	}
+
+	public void setNewColNamesForDrillPaths(String[] newColNamesForDrillPaths) {
+		this.mNewColNamesForDrillPaths = newColNamesForDrillPaths;
+	}
+
+
 }
