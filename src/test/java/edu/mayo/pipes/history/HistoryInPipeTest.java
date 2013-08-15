@@ -210,8 +210,8 @@ public class HistoryInPipeTest
             "##variationPropertyDocumentationUrl=ftp://ftp.ncbi.nlm.nih.gov/snp/specs/dbSNP_BitField_latest.pdf\t",
             "##FILTER=<ID=NC,Description=\"Inconsistent Genotype Submission For At Least One Sample\">",
             "##BIOR=<ID=\"bior.ToTJson\",Operation=\"bior_vcf_to_tjson\",DataType=\"JSON\",ShortUniqueName=\"ToTJson\">",
-            "##BIOR=<ID=\"bior.ToTJson.INFO.RSPOS\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.RSPOS\",ShortUniqueName=\"ToTJson\">",
-            "##BIOR=<ID=\"bior.ToTJson.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",ShortUniqueName=\"ToTJson\">",
+            "##BIOR=<ID=\"bior.ToTJson.INFO.RSPOS\",Operation=\"bior_drill\",DataType=\"String\",Field=\"INFO.RSPOS\",ShortUniqueName=\"ToTJson\">",
+            "##BIOR=<ID=\"bior.ToTJson.INFO.SSR\",Operation=\"bior_drill\",DataType=\"String\",Field=\"INFO.SSR\",ShortUniqueName=\"ToTJson\">",
             "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.ToTJson.INFO.RSPOS\tbior.ToTJson.INFO.SSR",
             "1\t10144\trs144773400\tTA\tT\t.\t.\tRSPOS=10145;dbSNPBuildID=134;SSR=0;SAO=0;VP=050000000005000002000200;WGT=1;VC=DIV;ASP;OTHERKG\t10145\t0",
             "1\t10177\trs201752861\tA\tC\t.\t.\tRSPOS=10177;dbSNPBuildID=137;SSR=0;SAO=0;VP=050000000005000002000100;WGT=1;VC=SNV;ASP;OTHERKG\t10177\t0",
@@ -277,8 +277,8 @@ public class HistoryInPipeTest
     public final List<String> tooldrillout = Arrays.asList(
             "##header1",
             "##BIOR=<ID=\"bior.Vep\",Operation=\"bior_vep\",DataType=\"JSON\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.columns.properties\">",
-            "##BIOR=<ID=\"bior.Vep.FOO\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"FOO\",FieldDescription=\"\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.columns.properties\">",
-            "##BIOR=<ID=\"bior.Vep.BAR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"BAR\",FieldDescription=\"\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.columns.properties\">",
+            "##BIOR=<ID=\"bior.Vep.FOO\",Operation=\"bior_drill\",DataType=\"String\",Field=\"FOO\",FieldDescription=\"\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.columns.properties\">",
+            "##BIOR=<ID=\"bior.Vep.BAR\",Operation=\"bior_drill\",DataType=\"String\",Field=\"BAR\",FieldDescription=\"\",ShortUniqueName=\"Vep\",Description=\"ENSEMBL VARIANT EFFECT PREDICTOR\",Version=\"2.7\",Build=\"GRCh37\",DataSourceProperties=\"src/test/resources/testData/metadata/vep.datasource.properties\",ColumnProperties=\"src/test/resources/testData/metadata/vep.columns.properties\">",
             "#COL_A\tCOL_B\tCOL_C\tbior.Vep.FOO\tbior.Vep.BAR\tbior.Vep",
             "val1A\tval1B\tval1C",
             "val2A\tval2B\tval2C"
@@ -371,7 +371,7 @@ public class HistoryInPipeTest
     public final List<String> drillout = Arrays.asList(
             "##Header start",
             "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"String\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
             "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137.INFO.SSR\tbior.dbSNP137",
             "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}" //note the absence of data, data is tested in Drill and other functions that deal with data
     );
@@ -403,8 +403,8 @@ public class HistoryInPipeTest
     public final List<String> multidrillout = Arrays.asList(
             "##Header start",
             "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.dbSNP137.INFO.VC\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.VC\",FieldDescription=\"Variation Class\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"String\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.VC\",Operation=\"bior_drill\",DataType=\"String\",Field=\"INFO.VC\",FieldDescription=\"Variation Class\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
             "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137.INFO.SSR\tbior.dbSNP137.INFO.VC\tbior.dbSNP137",
             "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}" //note the absence of data, data is tested in Drill and other functions that deal with data
     );
@@ -426,8 +426,8 @@ public class HistoryInPipeTest
     public final List<String> multidrilloutdashk = Arrays.asList(
             "##Header start",
             "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.dbSNP137.INFO.VC\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.VC\",FieldDescription=\"Variation Class\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"String\",Field=\"INFO.SSR\",FieldDescription=\"Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.VC\",Operation=\"bior_drill\",DataType=\"String\",Field=\"INFO.VC\",FieldDescription=\"Variation Class\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
             "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137.INFO.SSR\tbior.dbSNP137.INFO.VC",
             "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}" //note the absence of data, data is tested in Drill and other functions that deal with data
     );
@@ -450,7 +450,7 @@ public class HistoryInPipeTest
     public final List<String> drillnoprops = Arrays.asList(
             "##header1",
             "##BIOR=<ID=\"bior.00-All_GRCh37\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"00-All_GRCh37\",Path=\"some/file/that/does/not/exist/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.00-All_GRCh37.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"\",ShortUniqueName=\"00-All_GRCh37\",Path=\"some/file/that/does/not/exist/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.00-All_GRCh37.INFO.SSR\",Operation=\"bior_drill\",DataType=\"String\",Field=\"INFO.SSR\",FieldDescription=\"\",ShortUniqueName=\"00-All_GRCh37\",Path=\"some/file/that/does/not/exist/00-All_GRCh37.tsv.bgz\">",
             "#COL_A\tCOL_B\tCOL_C\tbior.00-All_GRCh37.INFO.SSR",
             "val1A\tval1B\tval1C",
             "val2A\tval2B\tval2C"
@@ -498,7 +498,7 @@ public class HistoryInPipeTest
     public final List<String> drillarrayout = Arrays.asList(
             "##Header start",
             "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.dbSNP137._altAlleles[0]\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"_altAlleles\",FieldDescription=\"BioR required field - alternate alleles (from ALT field) - JSON array\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137._altAlleles[0]\",Operation=\"bior_drill\",DataType=\"String\",Field=\"_altAlleles\",FieldDescription=\"BioR required field - alternate alleles (from ALT field) - JSON array\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
             "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137._altAlleles[0]\tbior.dbSNP137",
             "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}" //note the absence of data, data is tested in Drill and other functions that deal with data
     );
@@ -547,7 +547,7 @@ public class HistoryInPipeTest
     public final List<String> drillmessedout = Arrays.asList(
             "##header1",
             "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"\",Build=\"\",Path=\"src/test/resources/testData/metadata/fieldsNotFilledIn/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.SSR\",FieldDescription=\"\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"\",Build=\"\",Path=\"src/test/resources/testData/metadata/fieldsNotFilledIn/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.SSR\",Operation=\"bior_drill\",DataType=\"String\",Field=\"INFO.SSR\",FieldDescription=\"\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"\",Build=\"\",Path=\"src/test/resources/testData/metadata/fieldsNotFilledIn/00-All_GRCh37.tsv.bgz\">",
             "#COL_A\tCOL_B\tCOL_C\tbior.dbSNP137.INFO.SSR\tbior.dbSNP137",
             "val1A\tval1B\tval1C",
             "val2A\tval2B\tval2C" //note the absence of data, data is tested in Drill and other functions that deal with data
@@ -570,7 +570,7 @@ public class HistoryInPipeTest
     public final List<String> escapequotes = Arrays.asList(
             "##header1",
             "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.dbSNP137.INFO.VP\",Operation=\"bior_drill\",DataType=\"STRING\",Field=\"INFO.VP\",FieldDescription=\"Variation \\\"Property.\\\"  Documentation is at ftp://ftp.ncbi.nlm.nih.gov/snp/specs/dbSNP_BitField_latest.pdf\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137.INFO.VP\",Operation=\"bior_drill\",DataType=\"String\",Field=\"INFO.VP\",FieldDescription=\"Variation \\\"Property.\\\"  Documentation is at ftp://ftp.ncbi.nlm.nih.gov/snp/specs/dbSNP_BitField_latest.pdf\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
             "#COL_A\tCOL_B\tCOL_C\tbior.dbSNP137.INFO.VP\tbior.dbSNP137",
             "val1A\tval1B\tval1C",
             "val2A\tval2B\tval2C" //note the absence of data, data is tested in Drill and other functions that deal with data
