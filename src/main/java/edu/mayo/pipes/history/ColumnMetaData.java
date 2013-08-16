@@ -71,4 +71,32 @@ public class ColumnMetaData {
         }
         return descriptions;
     }
+
+    public void setColumnName(String columnName) {
+        this.columnName = columnName;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public String getCount() {
+        return count;
+    }
+
+    public void setCount(String count) {
+        this.count = count;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 }
