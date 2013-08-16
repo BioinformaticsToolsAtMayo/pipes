@@ -32,6 +32,7 @@ public class AddMetadataLines {
         SOURCE("Source"),
         VERSION("Version"),
         BUILD("Build"),
+        NUMBER("Number"), //if the field has one or more values (same as VCF - but multiple values will be a JSON)
         DESCRIPTION("Description"),
         // PATH is the full canonical path to a catalog (tsv.bgz file) that has accompanying "datasource" and "columns" properties files 
         PATH("Path"),
@@ -381,29 +382,36 @@ public class AddMetadataLines {
         LinkedHashMap<String,String> attributes = new LinkedHashMap<String, String>();
         put(attributes, BiorMetaControlledVocabulary.ID.toString(),			getID(h,BiorMetaControlledVocabulary.BIOR + datasourceattr.get(BiorMetaControlledVocabulary.SHORTNAME.toString()) + "." + dpath));
         put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), 	operation);
-        put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.String.toString());
         put(attributes, BiorMetaControlledVocabulary.FIELD.toString(), 		fixArrayDrillPath(dpath));
         try {
             //attributes = parseDatasourceProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()), attributes);
             HashMap<String,ColumnMetaData> properties;
             if(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()) != null){
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()));
+                put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), properties.get(this.fixArrayDrillPath(dpath)).getType().toString());
+                put(attributes, BiorMetaControlledVocabulary.NUMBER.toString(), properties.get(this.fixArrayDrillPath(dpath)).getCount());
                 put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(this.fixArrayDrillPath(dpath)).getDescription());
             }else if (datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()) != null) {
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()));
+                put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), properties.get(this.fixArrayDrillPath(dpath)).getType().toString());
+                put(attributes, BiorMetaControlledVocabulary.NUMBER.toString(), properties.get(this.fixArrayDrillPath(dpath)).getCount());
                 put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(this.fixArrayDrillPath(dpath)).getDescription());
             }else {
                  ; //can't add properties from a properties file
             }
 
         } catch (IOException e) {
-            //else there is not a columns.tsv file, so we can't add a description
+            //else there is not a columns.tsv file, so we can't add a description or datatype
+            put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.String.toString());
+            put(attributes, BiorMetaControlledVocabulary.NUMBER.toString(), ".");
             put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), "");
         }
         //copy all of the properties from the catalog to the ##BIOR-drill-line
         for( String key : datasourceattr.keySet()){
             if(     key.equalsIgnoreCase(BiorMetaControlledVocabulary.ID.toString()) ||
                     key.equalsIgnoreCase(BiorMetaControlledVocabulary.DATATYPE.toString()) ||
+                    key.equalsIgnoreCase(BiorMetaControlledVocabulary.NUMBER.toString()) ||
+                    key.equalsIgnoreCase(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString()) ||
                     key.equalsIgnoreCase(BiorMetaControlledVocabulary.OPERATION.toString()) ||
                     key.equalsIgnoreCase(BiorMetaControlledVocabulary.FIELD.toString()) ||
                     key.equalsIgnoreCase(BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString())
@@ -452,77 +460,6 @@ public class AddMetadataLines {
             i++;
         }
         return -1;
-    }
-
-
-
-    /**
-     * if the operation is drill, then in the header we want to do something like this instead:
-     * ##BIOR=<ID=bior.dbSNP137.INFO.SSR,Operation="bior_drill",DataType="String",Key="INFO.SSR",Description="Variant suspect reason code (0 - unspecified, 1 - paralog, 2 - byEST, 3 - Para_EST, 4 - oldAlign, 5 - other)",CatalogShortUniqueName="dbSNP137",CatalogSource="dbSNP",CatalogVersion="137",CatalogBuild="GRCh37.p10",CatalogPath="/data5/bsi/catalogs/bior/v1/dbSNP/137/00-All-GRCh37.tsv.bgz">
-     *
-     * @param history
-     * @param columnName
-     * @return
-     */
-    public History constructDrillLine(History history, String columnName) throws IOException {
-        String datasourceName = null;
-        String datasourceColumnName = null;  //what the datasource calls the column
-        String operation = "DrillPipe";
-
-        LinkedHashMap<String, String> phead = null;
-        int biorline = -1; //by default there is no line and we can add no metadata.
-        //find the line in the History that the column came from
-        if (columnName.contains("bior")) {
-            String[] colNameSplit = columnName.split("\\.");
-
-            if (colNameSplit.length >= 2) {
-                datasourceName = colNameSplit[1];
-
-                //construct the drill path for the column by replacing the datasource with nothing
-                datasourceColumnName = columnName.replaceAll(".*"+datasourceName + "\\.", "");
-
-                for(int i = 0; i< History.getMetaData().getOriginalHeader().size(); i++){
-                    String headerLine = History.getMetaData().getOriginalHeader().get(i);
-                    if(headerLine.startsWith("##BIOR")){
-                        phead = parseHeaderLine(headerLine); //the parsed header
-                        if(phead.get(BiorMetaControlledVocabulary.SHORTNAME.toString()).equalsIgnoreCase(datasourceName)){
-                            biorline = i;
-                            i =  History.getMetaData().getOriginalHeader().size() + 1; //break loop
-                        }
-                    }
-                }
-            }
-        }
-
-
-        if(biorline == -1){
-            return history;
-        }else {
-            //parse the column.properties file to get a description for the key if it exists
-            HashMap<String,ColumnMetaData> prop = parseColumnProperties(phead.get(BiorMetaControlledVocabulary.PATH.toString()));
-            //for each drill path, append another ##BIOR column to the header
-
-            String description = "";
-            description = (String) prop.get(datasourceColumnName).description;
-            if(description == null){
-                description = "";
-            }
-
-            LinkedHashMap<String,String> attributes = new LinkedHashMap();
-            put(attributes, BiorMetaControlledVocabulary.ID.toString(), 			getID(history, columnName));
-            put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), 	operation);
-            put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.JSON.toString());
-            put(attributes, BiorMetaControlledVocabulary.FIELD.toString(), 		datasourceColumnName);
-            put(attributes, BiorMetaControlledVocabulary.DESCRIPTION.toString(), description);
-            attributes = this.parseDatasourceProperties(phead.get(BiorMetaControlledVocabulary.PATH.toString()), attributes);
-
-            List<String> head = history.getMetaData().getOriginalHeader();
-            head.add(head.size()-1, buildHeaderLine(attributes));
-
-        }
-
-
-        return history;
     }
 
 	
