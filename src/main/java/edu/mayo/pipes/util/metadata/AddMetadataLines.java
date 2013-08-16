@@ -1,6 +1,8 @@
 package edu.mayo.pipes.util.metadata;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
@@ -77,6 +79,7 @@ public class AddMetadataLines {
     }
 
 
+
     /**
      * For a given catalog, parses the .datasource.properties file and returns a hashmap of they key-value pairs in the file
      *
@@ -116,9 +119,9 @@ public class AddMetadataLines {
 
 
     
-    /** Get the path to the columns.properties file from the full catalogPath */
+    /** Get the path to the columns.tsv file from the full catalogPath */
     private String getColumnsPropsPath(String catalogPath) {
-    	return getPropsFilePath(catalogPath, ".columns.properties");
+    	return getPropsFilePath(catalogPath, ".columns.tsv");
     }
 
     /** Get the path to the datasource.properties file from the full catalogPath */
@@ -127,9 +130,9 @@ public class AddMetadataLines {
     }
     
     
-    /** Generic method to get the full path to the columns.properties or datasource.properties files from the full catalog path
+    /** Generic method to get the full path to the columns.tsv or datasource.properties files from the full catalog path
      *  @param  catalogPath   The full path to the catalog (.tsv.bgz file)
-     *  @param  propsFileExtension   The extension to look for in the properties file path (".columns.properties" or ".datasource.properties")  */
+     *  @param  propsFileExtension   The extension to look for in the properties file path (".columns.tsv" or ".datasource.properties")  */
     private String getPropsFilePath(String catalogPath, final String propsFileExtension) {
     	final String CTLG_EXT = ".tsv.bgz";
     	
@@ -144,8 +147,12 @@ public class AddMetadataLines {
     		return catalogPath + propsFileExtension;
     }
 
-    public Properties parseColumnProperties(String catalogPath) throws IOException {
-    	return new PropertiesFileUtil(getColumnsPropsPath(catalogPath)).getProperties();
+
+
+    public HashMap<String,ColumnMetaData> parseColumnProperties(String catalogPath) throws IOException {
+        ColumnMetaData cmd = new ColumnMetaData("foo");
+        HashMap<String,ColumnMetaData> descriptions = cmd.parseColumnProperties(getColumnsPropsPath(catalogPath));
+    	return descriptions;
     }
 
 
@@ -191,7 +198,7 @@ public class AddMetadataLines {
             put(attributes, key, temp.get(key));
         }
         List<String> head = h.getMetaData().getOriginalHeader();
-        head.add(head.size()-1, buildHeaderLine(attributes));
+        head.add(head.size() - 1, buildHeaderLine(attributes));
         return attributes.get(BiorMetaControlledVocabulary.ID.toString()).substring(5); //remove .bior for consistency
     }
 
@@ -250,7 +257,7 @@ public class AddMetadataLines {
 
     /** Construct a few ##BIOR lines that pertain to a particular catalog, and add it to the metadata header. 
      *  Use for bior_annotate command.
-    * @param h             - the history that we need to change
+    * @param history             - the history that we need to change
     * @param catalogPath   - path to the property file for the tool
     * @param operation     - the name of the tool that was called
     * @param newColNamesToAdd - A list of new column names to add (one ##BIOR line for each)
@@ -258,7 +265,7 @@ public class AddMetadataLines {
     */
    public void constructAnnotateLine(History history, String catalogPath,  String operation, String[] newColNamesToAdd, String[] drilledColNames) throws IOException {
        LinkedHashMap<String,String> datasourceProps = new LinkedHashMap<String,String>();
-       Properties columnsProps = new Properties();
+       HashMap<String,ColumnMetaData> columnsProps = new HashMap<String,ColumnMetaData>();
        
        boolean isDatasourcePropsFileExists =  catalogPath != null  
     		   &&  catalogPath.trim().length() > 0  
@@ -282,7 +289,8 @@ public class AddMetadataLines {
 	       
 	       // Keys for drilled columns - Add field description if Columns properties file is available, or empty string if it is not
 	       put(attributes, BiorMetaControlledVocabulary.FIELD.toString(),		drilledColNames[i]);
-	       String fieldDesc = isColumnsPropsFileExists  ?  columnsProps.getProperty(drilledColNames[i])  :  "";
+	       String fieldDesc = isColumnsPropsFileExists  ?  columnsProps.get(drilledColNames[i]).description  :  "";
+           //TODO: add other props
 	       put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), fieldDesc);
 	       
 	       // Keys specific to drilled columns: - add each field if datasource properties file available or empty string if it is not
@@ -377,19 +385,19 @@ public class AddMetadataLines {
         put(attributes, BiorMetaControlledVocabulary.FIELD.toString(), 		fixArrayDrillPath(dpath));
         try {
             //attributes = parseDatasourceProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()), attributes);
-            Properties properties;
+            HashMap<String,ColumnMetaData> properties;
             if(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()) != null){
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()));
-                put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(this.fixArrayDrillPath(dpath)));
+                put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(this.fixArrayDrillPath(dpath)).getDescription());
             }else if (datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()) != null) {
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()));
-                put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(this.fixArrayDrillPath(dpath)));
+                put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(this.fixArrayDrillPath(dpath)).getDescription());
             }else {
                  ; //can't add properties from a properties file
             }
 
         } catch (IOException e) {
-            //else there is not a columns.properties file, so we can't add a description
+            //else there is not a columns.tsv file, so we can't add a description
             put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), "");
         }
         //copy all of the properties from the catalog to the ##BIOR-drill-line
@@ -491,11 +499,11 @@ public class AddMetadataLines {
             return history;
         }else {
             //parse the column.properties file to get a description for the key if it exists
-            Properties prop = parseColumnProperties(phead.get(BiorMetaControlledVocabulary.PATH.toString()));
+            HashMap<String,ColumnMetaData> prop = parseColumnProperties(phead.get(BiorMetaControlledVocabulary.PATH.toString()));
             //for each drill path, append another ##BIOR column to the header
 
             String description = "";
-            description = (String) prop.get(datasourceColumnName);
+            description = (String) prop.get(datasourceColumnName).description;
             if(description == null){
                 description = "";
             }
