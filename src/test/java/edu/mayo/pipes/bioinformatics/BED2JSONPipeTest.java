@@ -21,6 +21,7 @@ import java.util.List;
 public class BED2JSONPipeTest {
 
     public final List<String> input = Arrays.asList(
+    		"#chrom\tchromStart\tchromEnd\tname\tscore\tstrand\tthickStart\tthickEnd\titemRgb",
             "chr7\t127471196\t127472363\tPos1\t0\t+\t127471196\t127472363\t255,0,0" ,
             "chr7\t127472363\t127473530\tPos2\t0\t+\t127472363\t127473530\t255,0,0",
             "chr7\t127473530\t127474697\tPos3\t0\t+\t127473530\t127474697\t255,0,0",
