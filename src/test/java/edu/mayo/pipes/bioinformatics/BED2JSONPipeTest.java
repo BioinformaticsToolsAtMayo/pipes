@@ -1,15 +1,17 @@
 package edu.mayo.pipes.bioinformatics;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Test;
+
 import com.tinkerpop.pipes.util.Pipeline;
+
 import edu.mayo.pipes.history.HistoryInPipe;
 import edu.mayo.pipes.history.HistoryOutPipe;
 import edu.mayo.pipes.util.metadata.Metadata;
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -48,6 +50,7 @@ public class BED2JSONPipeTest {
 
     @Test
     public void testBEDwithMetadata(){
+    	new HistoryInPipe().reset();
         Metadata md = new Metadata("bed_to_tjson");
         Pipeline p = new Pipeline(new HistoryInPipe(md), new BED2JSONPipe(), new HistoryOutPipe());
         p.setStarts(input);
@@ -56,10 +59,6 @@ public class BED2JSONPipeTest {
             System.out.println(line);
             assertEquals(out.get(i), line);
         }
-
-
-
+    	new HistoryInPipe().reset();
     }
-
-
 }
