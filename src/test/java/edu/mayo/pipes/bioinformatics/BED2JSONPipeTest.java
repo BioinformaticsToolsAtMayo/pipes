@@ -5,6 +5,8 @@ import static org.junit.Assert.assertEquals;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.tinkerpop.pipes.util.Pipeline;
@@ -48,9 +50,18 @@ public class BED2JSONPipeTest {
             "chr7\t127480532\t127481699\tNeg4\t0\t-\t127480532\t127481699\t0,0,255\t{\"chrom\":\"chr7\",\"_landmark\":\"7\",\"chromStart\":\"127480532\",\"_minBP\":127480533,\"chromEnd\":\"127481699\",\"_maxBP\":127481699,\"name\":\"Neg4\",\"score\":\"0\",\"strand\":\"-\",\"thickStart\":\"127480532\",\"thickEnd\":\"127481699\",\"itemRgb\":\"0,0,255\"}"
     );
 
+    @Before
+    public void before() {
+    	new HistoryInPipe().reset();
+    }
+
+    @After
+    public void after() {
+    	new HistoryInPipe().reset();
+    }
+    
     @Test
     public void testBEDwithMetadata(){
-    	new HistoryInPipe().reset();
         Metadata md = new Metadata("bed_to_tjson");
         Pipeline p = new Pipeline(new HistoryInPipe(md), new BED2JSONPipe(), new HistoryOutPipe());
         p.setStarts(input);
@@ -59,6 +70,5 @@ public class BED2JSONPipeTest {
             System.out.println(line);
             assertEquals(out.get(i), line);
         }
-    	new HistoryInPipe().reset();
     }
 }
