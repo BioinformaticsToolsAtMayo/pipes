@@ -18,7 +18,7 @@ import org.apache.commons.io.FileExistsException;
  * and later in the ##INFO lines when converting the file to VCF format.
  */
 
-public class ColumnMetaData {
+public class ColumnMetaData implements Comparable<ColumnMetaData> {
 	/** The column headers that appear in the catalog.columns.tsv files */
 	public enum PropertiesFileHeaders { ColumnName, Type, Count, Description };
 	
@@ -171,4 +171,10 @@ public class ColumnMetaData {
     public void setDescription(String description) {
         this.description = description;
     }
+
+	/* Compare by columnName */
+	@Override
+	public int compareTo(ColumnMetaData other) {
+		return this.columnName.compareToIgnoreCase(other.columnName);
+	}
 }
