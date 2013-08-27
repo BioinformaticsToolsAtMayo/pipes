@@ -24,13 +24,13 @@ public class ColumnMetaData implements Comparable<ColumnMetaData> {
 	
 	public enum Type { JSON, JSONArray, String, Float, Integer, Boolean };
 	
-	public String columnName;
-	public Type   type;
+	public String columnName = "";
+	public Type   type = Type.String;
 	/** Count is typically an integer to represent the exact number of values that can occur for a key.
 	 *  If the type is Boolean, then count should be 0.  If a key always has one value it should be one.
 	 *  If the number of values can vary, a dot ('.') should be used */
-	public String count;
-	public String description;
+	public String count = "";
+	public String description = "";
 
 	
 	/**
@@ -138,6 +138,9 @@ public class ColumnMetaData implements Comparable<ColumnMetaData> {
                     }
                     ColumnMetaData cd = new ColumnMetaData(split[0], split[1], split[2], desc);
                     descriptions.put(split[0],cd); //key is the fieldName
+                }else if(split.length > 1) { //malformed description, insert defalts
+                    ColumnMetaData cd = new ColumnMetaData(split[0], Type.String.toString(), "", "");
+                    descriptions.put(split[0],cd);
                 }
             }
         }

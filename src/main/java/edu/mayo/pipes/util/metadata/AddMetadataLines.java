@@ -282,37 +282,43 @@ public class AddMetadataLines {
        
        // There may be multiple columns that were drilled from each catalog
        for(int i=0; i < newColNamesToAdd.length; i++) {
-	       LinkedHashMap<String,String> attributes = new LinkedHashMap();
-	       // Keys that are in every metadata line
-	       put(attributes, BiorMetaControlledVocabulary.ID.toString(), 			newColNamesToAdd[i]);
-	       put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), 	operation);
-	       put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.JSON.toString());
-	       
-	       // Keys for drilled columns - Add field description if Columns properties file is available, or empty string if it is not
-	       put(attributes, BiorMetaControlledVocabulary.FIELD.toString(),		drilledColNames[i]);
-	       String fieldDesc = isColumnsPropsFileExists  ?  columnsProps.get(drilledColNames[i]).description  :  "";
-           //TODO: add other props
-	       put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), fieldDesc);
-	       
-	       // Keys specific to drilled columns: - add each field if datasource properties file available or empty string if it is not
-	       String shortName = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SHORTNAME.toString())  	:  "";
-	       String source    = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SOURCE.toString())		:  "";
-	       String version 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.VERSION.toString())		:  "";
-	       String build 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.BUILD.toString())		:  "";
-	       String desc 		= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.DESCRIPTION.toString())	:  "";
-	       put(attributes, BiorMetaControlledVocabulary.SHORTNAME.toString(), 	shortName);
-	       put(attributes, BiorMetaControlledVocabulary.SOURCE.toString(), 		source);
-	       put(attributes, BiorMetaControlledVocabulary.VERSION.toString(), 		version);
-	       put(attributes, BiorMetaControlledVocabulary.BUILD.toString(),		build);
-	       put(attributes, BiorMetaControlledVocabulary.DESCRIPTION.toString(), 	desc);
-	       
-	       // Catalog path
-	       put(attributes, BiorMetaControlledVocabulary.PATH.toString(),	 		catalogPath);
-	       
-	       // Build the header line and add it to the header
-	       String biorHeaderLine = buildHeaderLine(attributes);
-	       List<String> head = History.getMetaData().getOriginalHeader();
-	       head.add(head.size()-1, biorHeaderLine);
+           if(newColNamesToAdd[i] != null){
+               LinkedHashMap<String,String> attributes = new LinkedHashMap();
+               // Keys that are in every metadata line
+               put(attributes, BiorMetaControlledVocabulary.ID.toString(), 			newColNamesToAdd[i]);
+               put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), 	operation);
+               put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.JSON.toString());
+
+               // Keys for drilled columns - Add field description if Columns properties file is available, or empty string if it is not
+               put(attributes, BiorMetaControlledVocabulary.FIELD.toString(),		drilledColNames[i]);
+               ColumnMetaData cmd = columnsProps.get(drilledColNames[i]);
+               String fieldDesc = "";
+               if(cmd != null && isColumnsPropsFileExists ){
+                   fieldDesc  =  cmd.description;
+               }
+               //TODO: add other props
+               put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), fieldDesc);
+
+               // Keys specific to drilled columns: - add each field if datasource properties file available or empty string if it is not
+               String shortName = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SHORTNAME.toString())  	:  "";
+               String source    = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SOURCE.toString())		:  "";
+               String version 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.VERSION.toString())		:  "";
+               String build 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.BUILD.toString())		:  "";
+               String desc 		= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.DESCRIPTION.toString())	:  "";
+               put(attributes, BiorMetaControlledVocabulary.SHORTNAME.toString(), 	shortName);
+               put(attributes, BiorMetaControlledVocabulary.SOURCE.toString(), 		source);
+               put(attributes, BiorMetaControlledVocabulary.VERSION.toString(), 		version);
+               put(attributes, BiorMetaControlledVocabulary.BUILD.toString(),		build);
+               put(attributes, BiorMetaControlledVocabulary.DESCRIPTION.toString(), 	desc);
+
+               // Catalog path
+               put(attributes, BiorMetaControlledVocabulary.PATH.toString(),	 		catalogPath);
+
+               // Build the header line and add it to the header
+               String biorHeaderLine = buildHeaderLine(attributes);
+               List<String> head = History.getMetaData().getOriginalHeader();
+               head.add(head.size()-1, biorHeaderLine);
+           }
        }
    }
     
@@ -371,6 +377,25 @@ public class AddMetadataLines {
     }
 
     /**
+     * puts type, number and field description into the attributes map
+     * @param properties
+     * @param attributes
+     * @param dpath
+     * @return
+     */
+    public LinkedHashMap<String,String> put3(HashMap<String,ColumnMetaData> properties, LinkedHashMap<String,String> attributes, String dpath){
+        if(properties != null){
+            String type = properties.get(this.fixArrayDrillPath(dpath)).getType().toString();
+            String number = properties.get(this.fixArrayDrillPath(dpath)).getCount();
+            String field =  (String) properties.get(this.fixArrayDrillPath(dpath)).getDescription();
+            if(type != null && type.length() > 0) put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), type);
+            if(number != null && number.length() > 0) put(attributes, BiorMetaControlledVocabulary.NUMBER.toString(), number);
+            if(field != null && field.length() > 0) put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), field);
+        }
+        return attributes;
+    }
+
+    /**
      *
      * @param h
      * @param preLine - the header line that describes the JSON column we are drilling -- many of it's attributes will be copied
@@ -388,14 +413,10 @@ public class AddMetadataLines {
             HashMap<String,ColumnMetaData> properties;
             if(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()) != null){
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString()));
-                put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), properties.get(this.fixArrayDrillPath(dpath)).getType().toString());
-                put(attributes, BiorMetaControlledVocabulary.NUMBER.toString(), properties.get(this.fixArrayDrillPath(dpath)).getCount());
-                put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(this.fixArrayDrillPath(dpath)).getDescription());
+                attributes = put3(properties, attributes, dpath);
             }else if (datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()) != null) {
                 properties = parseColumnProperties(datasourceattr.get(BiorMetaControlledVocabulary.COLUMNPROPERTIES.toString()));
-                put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), properties.get(this.fixArrayDrillPath(dpath)).getType().toString());
-                put(attributes, BiorMetaControlledVocabulary.NUMBER.toString(), properties.get(this.fixArrayDrillPath(dpath)).getCount());
-                put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), (String) properties.get(this.fixArrayDrillPath(dpath)).getDescription());
+                attributes = put3(properties, attributes, dpath);
             }else {
                  ; //can't add properties from a properties file
             }
