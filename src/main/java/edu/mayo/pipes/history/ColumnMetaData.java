@@ -45,15 +45,26 @@ public class ColumnMetaData implements Comparable<ColumnMetaData> {
 	
 
     public ColumnMetaData(String colName, String type, String count, String desc){
-        this(colName, Type.valueOf(type),count,desc);
+        Type cast = Type.valueOf("String");
+        try{
+           cast = Type.valueOf(type);
+        }catch (Exception e){
+            //don't know the type, treat it as string
+            cast = Type.valueOf("String");
+        }
+        init(colName, cast,count,desc);
     }
 
 	public ColumnMetaData(String colName, Type type, String count, String desc) {
-		this.columnName = colName;
-		this.type = type;
-		this.count = count;
-		this.description = desc;
+        init(colName, type, count, desc);
 	}
+
+    private void init(String colName, Type type, String count, String desc){
+        this.columnName = colName;
+        this.type = type;
+        this.count = count;
+        this.description = desc;
+    }
 	
 	public String getColumnName() {
 		return columnName;
