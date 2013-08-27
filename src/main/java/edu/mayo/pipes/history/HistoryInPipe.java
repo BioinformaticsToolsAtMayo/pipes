@@ -21,7 +21,7 @@ import edu.mayo.pipes.util.metadata.Metadata;
  */
 public class HistoryInPipe extends AbstractPipe<String, History> {
 
-    ArrayList<Metadata> metadata = new ArrayList<Metadata>();
+    List<Metadata> metadata = new ArrayList<Metadata>();
 
     /**
      * Make a new HistoryInPipe with metadata operations pending
@@ -33,7 +33,7 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
          metadata.add(md);
     }
 
-    public HistoryInPipe(ArrayList<Metadata> md){
+    public HistoryInPipe(List<Metadata> md){
         metadata = md;
     }
 
