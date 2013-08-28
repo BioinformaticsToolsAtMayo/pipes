@@ -308,8 +308,13 @@ public class AddMetadataLines {
       //         put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.JSON.toString());
                put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	datatype);
                // Keys for drilled columns - Add field description if Columns properties file is available, or empty string if it is not
+               String count = "";
+               if(cmd != null && isColumnsPropsFileExists ){
+                   count  =  cmd.getCount();
+               }
+
                put(attributes, BiorMetaControlledVocabulary.FIELD.toString(),		drilledColNames[i]);
-               
+               put(attributes,BiorMetaControlledVocabulary.NUMBER.toString(),count);
                String fieldDesc = "";
                if(cmd != null && isColumnsPropsFileExists ){
                    fieldDesc  =  cmd.getDescription();
@@ -381,11 +386,18 @@ public class AddMetadataLines {
               if(cmd != null && isColumnsPropsFileExists ){
                   datatype  =  cmd.getType().name();
               }
-              put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.JSON.toString());
+      //        put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.JSON.toString());
+              
               put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	datatype);
+             
+              String number = "";
+              if(cmd != null && isColumnsPropsFileExists ){
+                  number  =  cmd.getCount();
+              }
+            
               // Keys for drilled columns - Add field description if Columns properties file is available, or empty string if it is not
               put(attributes, BiorMetaControlledVocabulary.FIELD.toString(),		drilledColNames[i]);
-            
+              put(attributes,BiorMetaControlledVocabulary.NUMBER.toString(), number);
               String fieldDesc = "";
               if(cmd != null && isColumnsPropsFileExists ){
                   fieldDesc  =  cmd.getDescription();
@@ -592,7 +604,6 @@ public class AddMetadataLines {
 	public String buildHeaderLine(LinkedHashMap<String,String> attributes) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("##BIOR=<");
-		
 		String delim="";
 		for(String key : attributes.keySet()) {
             String value = attributes.get(key);
