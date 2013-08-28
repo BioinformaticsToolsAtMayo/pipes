@@ -213,7 +213,10 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
                 //type = Annotate
                 else if( meta.getCmdType().equals(Metadata.CmdType.Annotate) ) {
                 	try {
-	                    amdl.constructAnnotateLine(h, meta.getFullCanonicalPath(), meta.getOperator(), meta.getNewColNamesForDrillPaths(), meta.getDrillPaths());
+                		if (meta.getmDataSourceCanonicalPath()!= null)
+                		    amdl.constructAnnotateLine(h, meta.getmDataSourceCanonicalPath(), meta.getmColumnCanonicalPath(),  meta.getOperator(), meta.getNewColNamesForDrillPaths(), meta.getDrillPaths());
+                		else	
+	                        amdl.constructAnnotateLine(h, meta.getFullCanonicalPath(), meta.getOperator(), meta.getNewColNamesForDrillPaths(), meta.getDrillPaths());
 	                    //for each new column, add it to the column header row
 	                    for(String colName : meta.getNewColNamesForDrillPaths())
 	                        hMeta.getColumns().add(new ColumnMetaData(colName));
