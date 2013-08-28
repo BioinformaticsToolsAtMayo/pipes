@@ -296,17 +296,23 @@ public class AddMetadataLines {
        for(int i=0; i < newColNamesToAdd.length; i++) {
            if(newColNamesToAdd[i] != null){
                LinkedHashMap<String,String> attributes = new LinkedHashMap();
+               ColumnMetaData cmd = columnsProps.get(drilledColNames[i]);
                // Keys that are in every metadata line
                put(attributes, BiorMetaControlledVocabulary.ID.toString(), 			newColNamesToAdd[i]);
                put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), 	operation);
-               put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.JSON.toString());
-
+               String datatype = "";
+               if(cmd != null && isColumnsPropsFileExists ){
+                   datatype  =  cmd.type.toString();
+               }
+               
+      //         put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.JSON.toString());
+               put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	datatype);
                // Keys for drilled columns - Add field description if Columns properties file is available, or empty string if it is not
                put(attributes, BiorMetaControlledVocabulary.FIELD.toString(),		drilledColNames[i]);
-               ColumnMetaData cmd = columnsProps.get(drilledColNames[i]);
+               
                String fieldDesc = "";
                if(cmd != null && isColumnsPropsFileExists ){
-                   fieldDesc  =  cmd.description;
+                   fieldDesc  =  cmd.getDescription();
                }
                //TODO: add other props
                put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), fieldDesc);
@@ -363,19 +369,28 @@ public class AddMetadataLines {
       // There may be multiple columns that were drilled from each catalog
       for(int i=0; i < newColNamesToAdd.length; i++) {
           if(newColNamesToAdd[i] != null){
+        	  
               LinkedHashMap<String,String> attributes = new LinkedHashMap();
+              ColumnMetaData cmd = columnsProps.get(drilledColNames[i]);
+           
               // Keys that are in every metadata line
               put(attributes, BiorMetaControlledVocabulary.ID.toString(), 			newColNamesToAdd[i]);
               put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), 	operation);
+             
+              String datatype = "";
+              if(cmd != null && isColumnsPropsFileExists ){
+                  datatype  =  cmd.getType().name();
+              }
               put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.JSON.toString());
-
+              put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	datatype);
               // Keys for drilled columns - Add field description if Columns properties file is available, or empty string if it is not
               put(attributes, BiorMetaControlledVocabulary.FIELD.toString(),		drilledColNames[i]);
-              ColumnMetaData cmd = columnsProps.get(drilledColNames[i]);
+            
               String fieldDesc = "";
               if(cmd != null && isColumnsPropsFileExists ){
-                  fieldDesc  =  cmd.description;
+                  fieldDesc  =  cmd.getDescription();
               }
+             
               //TODO: add other props
               put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), fieldDesc);
 
