@@ -7,9 +7,11 @@ package edu.mayo.pipes.util.metadata;
  */
 public class Metadata {
 	public static enum CmdType { Query, Drill, ToTJson, Tool, Annotate };
-	
+
 	private CmdType mCmdType;
 
+    private String mDataSourceCanonicalPath;
+    private String mColumnCanonicalPath;
     private String 	mOperator;
 	private String  mFullCanonicalPath;
     private String 	mDatasourcePath;
@@ -19,7 +21,6 @@ public class Metadata {
     private boolean mKeepJSON = false; //used for drill
     private String[] mNewColNamesForDrillPaths; // Used for bior_annotate
 
-	
 	/** Use for bior_vcf_to_tjson and other to_tjson commands ; basically input functions*/
 	public Metadata(String operator) {
 		this.mCmdType = CmdType.ToTJson;
@@ -57,24 +58,41 @@ public class Metadata {
 	 *  @param colNamesToAdd   A String array of the column names to add (this will be user-specified columns, NOT the drill paths)
 	 *  @param fullCanonicalPathCatalog   The full path to the catalog from which the data came
 	 **/
-	public Metadata(String operator, String fullCanonicalPathCatalog, String[] colNamesToAdd, String[] drillPaths ) {
-        this.mOperator = operator;
+	public Metadata(String operator, String fullCanonicalPathCatalog, String[] colNamesToAdd, String[] drillPaths) {
+        
+		this.mOperator = operator;
         this.mFullCanonicalPath = fullCanonicalPathCatalog;
         this.mNewColNamesForDrillPaths = colNamesToAdd;
         this.mDrillPaths = drillPaths;
         this.mCmdType = CmdType.Annotate;
 	}
 
-	
+	/** Use for bior_annotate when drill path is on tool JSON column, where you want to remove a bunch of columns and add your own in.
+	 *  To just remove a column (such as a drilled column which was used in the middle of bior_annotate)
+	 *  without adding another, just pass in null for the colNameToAdd 
+	 *  @param operator   The script name that was run (such as "bior_annotate")
+	 *  @param colNamesToAdd   A String array of the column names to add (this will be user-specified columns, NOT the drill paths)
+	 *  @param fullCanonicalPathCatalog   The full path to the catalog from which the data came
+	 **/
 
-    public CmdType getCmdType() {
+    public Metadata(String operator, String dataSourcecanonicalPath, String columnsCanonicalPath,
+			String[] colNamesToAdd, String[] drillPaths) {
+    	this.mOperator = operator;
+        this.mDataSourceCanonicalPath = dataSourcecanonicalPath;
+        this.mColumnCanonicalPath =  columnsCanonicalPath;
+        this.mNewColNamesForDrillPaths = colNamesToAdd;
+        this.mDrillPaths = drillPaths;
+        this.mCmdType = CmdType.Annotate;
+		
+	}
+
+	public CmdType getCmdType() {
         return mCmdType;
     }
 
     public void setCmdType(CmdType cmdType) {
         this.mCmdType = cmdType;
     }
-
 
     public String getFullCanonicalPath() {
         return mFullCanonicalPath;
@@ -138,6 +156,22 @@ public class Metadata {
 
 	public void setNewColNamesForDrillPaths(String[] newColNamesForDrillPaths) {
 		this.mNewColNamesForDrillPaths = newColNamesForDrillPaths;
+	}
+
+	public String getmDataSourceCanonicalPath() {
+		return mDataSourceCanonicalPath;
+	}
+
+	public void setmDataSourceCanonicalPath(String mDataSourceCanonicalPath) {
+		this.mDataSourceCanonicalPath = mDataSourceCanonicalPath;
+	}
+
+	public String getmColumnCanonicalPath() {
+		return mColumnCanonicalPath;
+	}
+
+	public void setmColumnCanonicalPath(String mColumnCanonicalPath) {
+		this.mColumnCanonicalPath = mColumnCanonicalPath;
 	}
 
 
