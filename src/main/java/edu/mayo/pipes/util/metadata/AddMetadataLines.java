@@ -319,7 +319,7 @@ public class AddMetadataLines {
                if(cmd != null && isColumnsPropsFileExists ){
                    fieldDesc  =  cmd.getDescription();
                }
-               //TODO: add other props
+               //T_ODO: add other props
                put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), fieldDesc);
 
                // Keys specific to drilled columns: - add each field if datasource properties file available or empty string if it is not
