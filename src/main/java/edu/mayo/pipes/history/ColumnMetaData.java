@@ -22,7 +22,7 @@ public class ColumnMetaData implements Comparable<ColumnMetaData> {
 	/** The column headers that appear in the catalog.columns.tsv files */
 	public enum PropertiesFileHeaders { ColumnName, Type, Count, Description };
 	
-	public enum Type { JSON, JSONArray, String, Float, Integer, Boolean };
+	public enum Type { JSON, String, Float, Integer, Boolean };
 	
 	public String columnName = "";
 	public Type   type = Type.String;
@@ -134,28 +134,24 @@ public class ColumnMetaData implements Comparable<ColumnMetaData> {
 	
 
     public static HashMap<String,ColumnMetaData> parseColumnProperties(String columnPropertiesPath) throws IOException {
-        HashMap<String,ColumnMetaData> descriptions = new HashMap<String,ColumnMetaData>();
+        HashMap<String,ColumnMetaData> colMetaMap = new HashMap<String,ColumnMetaData>();
         BufferedReader bReader = new BufferedReader(new FileReader(columnPropertiesPath));
         String line;
         while ((line = bReader.readLine()) != null) {
-            if(line.startsWith("#")){//it is a comment, chuck it
-                ;
-            }else {  //contains data
-                String[] split = line.split("\t");
-                if(split.length > 3){
-                    String desc = "";
-                    for(int i=3; split.length > i; i++){ //if the description had tabs -- remove them
-                        desc = desc + split[i];
-                    }
-                    ColumnMetaData cd = new ColumnMetaData(split[0], split[1], split[2], desc);
-                    descriptions.put(split[0],cd); //key is the fieldName
-                }else if(split.length > 1) { //malformed description, insert defalts
-                    ColumnMetaData cd = new ColumnMetaData(split[0], Type.String.toString(), "", "");
-                    descriptions.put(split[0],cd);
-                }
-            }
+        	// If comment or blank line, then skip
+            if(line.startsWith("#") || line.trim().length() == 0 )
+            	continue;
+            
+            // Else, it contains data - max # of splits is 4, so tabs are kept in last column (description) - we will remove any tabs
+            String[] split = line.split("\t", 4);
+            String key   = split[0].trim();
+            String type  = (split.length > 1) ? split[1].trim() : Type.String.toString();
+            String count = (split.length > 2) ? split[2].trim() : ".";
+            String desc  = (split.length > 3) ? split[3].replaceAll("\t", " ").trim() : ""; // If no desc given, use empty string. Replace all tabs with spaces.
+            ColumnMetaData colMeta = new ColumnMetaData(key, type, count, desc);
+            colMetaMap.put(key, colMeta); //key is the fieldName
         }
-        return descriptions;
+        return colMetaMap;
     }
 
     public void setColumnName(String columnName) {

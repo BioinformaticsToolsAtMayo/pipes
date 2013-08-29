@@ -1,26 +1,23 @@
 package edu.mayo.pipes.history;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import edu.mayo.pipes.JSON.DrillPipe;
-import edu.mayo.pipes.JSON.lookup.LookupPipe;
-import edu.mayo.pipes.UNIX.CatPipe;
-import edu.mayo.pipes.UNIX.GrepEPipe;
-import edu.mayo.pipes.bioinformatics.VCF2VariantPipe;
-import edu.mayo.pipes.util.metadata.AddMetadataLines;
-import edu.mayo.pipes.util.metadata.Metadata;
 import org.junit.Test;
 
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.util.Pipeline;
 
+import edu.mayo.pipes.JSON.DrillPipe;
+import edu.mayo.pipes.UNIX.CatPipe;
+import edu.mayo.pipes.UNIX.GrepEPipe;
+import edu.mayo.pipes.bioinformatics.VCF2VariantPipe;
+import edu.mayo.pipes.util.metadata.Metadata;
 import edu.mayo.pipes.util.test.PipeTestUtils;
 
 public class HistoryInPipeTest
@@ -498,7 +495,7 @@ public class HistoryInPipeTest
     public final List<String> drillarrayout = Arrays.asList(
             "##Header start",
             "##BIOR=<ID=\"bior.dbSNP137\",Operation=\"bior_lookup\",DataType=\"JSON\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
-            "##BIOR=<ID=\"bior.dbSNP137._altAlleles[0]\",Operation=\"bior_drill\",Field=\"_altAlleles\",DataType=\"JSONArray\",Number=\".\",FieldDescription=\"BioR required field - alternate alleles (from ALT field) - JSON array\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
+            "##BIOR=<ID=\"bior.dbSNP137._altAlleles[0]\",Operation=\"bior_drill\",Field=\"_altAlleles\",DataType=\"String\",Number=\".\",FieldDescription=\"BioR required field - alternate alleles (from ALT field) - JSON array\",ShortUniqueName=\"dbSNP137\",Source=\"dbSNP\",Description=\"dbSNP version 137, Patch 10, Human\",Version=\"137\",Build=\"GRCh37.p10\",Path=\"src/test/resources/testData/metadata/00-All_GRCh37.tsv.bgz\">",
             "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.dbSNP137._altAlleles[0]\tbior.dbSNP137",
             "1\t10144\trs144773400\tTA\tT\t.\t.\t.\t{\"Key\":\"Value\"}" //note the absence of data, data is tested in Drill and other functions that deal with data
     );
