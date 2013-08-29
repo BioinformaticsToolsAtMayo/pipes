@@ -7,7 +7,7 @@
 #Key	Type	Count	Desc
 CHROM	String	1	Chromosome
 POS	Integer	1	Starting position within the chromosome
-_altAlleles	JsonArray	1	A list of Alternate alleles (starts and ends with '[' and ']')
+_altAlleles	String	.	A list of Alternate alleles (starts and ends with '[' and ']')
 FILTER	String	1	Filter
 INFO.AVGPOST	Float	1	Some info field description
 _id	String	1	The variant's rsID
