@@ -34,6 +34,8 @@ public class AddMetadataLines {
         BUILD("Build"),
         NUMBER("Number"), //if the field has one or more values (same as VCF - but multiple values will be a JSON)
         DESCRIPTION("Description"),
+        /** Used by bior_compress to denote the delimiter that splits values */
+        DELIMITER("Delimiter"),
         // PATH is the full canonical path to a catalog (tsv.bgz file) that has accompanying "datasource" and "columns" properties files 
         PATH("Path"),
         // Since tools will not have a catalog path, we must point to the "datasource" and "properties" files directly to get info about the tool or drilled columns 
