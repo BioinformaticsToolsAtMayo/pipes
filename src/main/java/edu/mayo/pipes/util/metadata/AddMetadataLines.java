@@ -10,6 +10,7 @@ import edu.mayo.pipes.bioinformatics.vocab.Undefined;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.util.PropertiesFileUtil;
+import edu.mayo.pipes.util.StringUtils;
 
 public class AddMetadataLines {
 
@@ -350,7 +351,6 @@ public class AddMetadataLines {
    /** Construct a few ##BIOR lines that pertain to a particular catalog, and add it to the metadata header. 
     *  Use for bior_annotate command.
    * @param history             - the history that we need to change
-   * @param catalogPath   - path to the property file for the tool
    * @param operation     - the name of the tool that was called
    * @param newColNamesToAdd - A list of new column names to add (one ##BIOR line for each)
    * @param drilledColNames - The JSON path that was used to get the value that will be placed under the column denoted by newColNamesToAdd
@@ -629,18 +629,11 @@ public class AddMetadataLines {
         LinkedHashMap hm = new LinkedHashMap();
         String half = line.replaceFirst("##BIOR=<", "");
         String removeTrailingGreaterThan = half.substring(0, half.length() - 1);
-        String[] split = removeTrailingGreaterThan.split(",");
+
+        List<String> split = StringUtils.split(removeTrailingGreaterThan, Arrays.asList(","));
         //for each key-value pair
-        StringBuilder sb = new StringBuilder();
-        for(int i=0; i< split.length; i++){
-            while(!split[i].endsWith("\"")){
-                sb.append(split[i]);
-                sb.append(",");
-                i++;
-            }
-            sb.append(split[i]);
-            parseChunk(sb.toString(), hm);
-            sb = new StringBuilder();
+        for(int i=0; i< split.size(); i++){
+            parseChunk(split.get(i), hm);
         }
         return hm;
     }
@@ -651,7 +644,7 @@ public class AddMetadataLines {
      * @param hm  key-value pair added to this hash
      */
     private void parseChunk(String s, HashMap<String,String> hm){
-        int idx = s.indexOf("=");
+        int idx = s.indexOf("=");  //the first equals will not be inside quotes
         if(idx < 0) return; //failed to parse pair, don't add anything
         String key = s.substring(0,idx);
         String value = s.substring(idx+2,s.length()-1);
