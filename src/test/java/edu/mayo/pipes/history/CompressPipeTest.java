@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.tinkerpop.pipes.Pipe;
@@ -19,6 +21,16 @@ import edu.mayo.pipes.util.test.PipeTestUtils;
 
 public class CompressPipeTest {
 
+	@Before
+	public void beforeEach() {
+		History.clearMetaData();
+	}
+	
+	@After
+	public void afterEach() {
+		History.clearMetaData();
+	}
+	
     @Test
     public void testProcessNextStart() throws IOException, InterruptedException {
         
