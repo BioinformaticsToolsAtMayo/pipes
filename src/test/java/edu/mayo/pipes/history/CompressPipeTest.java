@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.mayo.pipes.PrintPipe;
+import edu.mayo.pipes.UNIX.CatPipe;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -312,7 +314,29 @@ public class CompressPipeTest {
         line = (List<String>) p.next();
         validate(Arrays.asList("dataC", "foo", "bar"), line);
     	
-    }    
+    }
+
+    @Test
+    public void testCompressWithMetadata(){
+        System.out.println("Test Compress With Metadata");
+        String delimiter = "|";
+        FieldSpecification fieldSpec = new FieldSpecification("9");
+        String escDelimiter = "%%";
+        boolean useSetCompression = true;
+        CompressPipe compress = new CompressPipe(fieldSpec, delimiter, escDelimiter, useSetCompression);
+        HistoryInPipe hin =  new HistoryInPipe(compress.getMetadata());
+        Pipeline p = new Pipeline(
+                new CatPipe(),
+                hin,
+                compress,
+                new HistoryOutPipe(),
+                new PrintPipe()
+        );
+        p.setStarts(Arrays.asList("/Users/m102417/workspace/pipes/src/test/resources/testData/compress/exampleCompressInput.tjson"));
+        for(int i=0; p.hasNext(); i++){
+            p.next();
+        }
+    }
     
     @Test
     public void testWithHistory()
