@@ -35,8 +35,10 @@ public class AddMetadataLines {
         BUILD("Build"),
         NUMBER("Number"), //if the field has one or more values (same as VCF - but multiple values will be a JSON)
         DESCRIPTION("Description"),
-        /** Used by bior_compress to denote the delimiter that splits values */
+        /** Used by bior_compress to denote the delimiter that splits values,
+         *  and the escaped delimiter to replace if the delimiter character should occur in the value */
         DELIMITER("Delimiter"),
+        ESCAPEDDELIMITER("EscapedDelimiter"),
         // PATH is the full canonical path to a catalog (tsv.bgz file) that has accompanying "datasource" and "columns" properties files 
         PATH("Path"),
         // Since tools will not have a catalog path, we must point to the "datasource" and "properties" files directly to get info about the tool or drilled columns 
@@ -137,8 +139,8 @@ public class AddMetadataLines {
 
     /** Get the path to the datasource.properties file from the full catalogPath */
     private String getDatasourcePropsPath(String catalogPath) {
-    	if (!catalogPath.endsWith(".datasource.properties"))
-    	return getPropsFilePath(catalogPath, ".datasource.properties");
+    	if( ! catalogPath.endsWith(".datasource.properties"))
+    		return getPropsFilePath(catalogPath, ".datasource.properties");
     	else
     		return catalogPath;
     }
@@ -271,163 +273,95 @@ public class AddMetadataLines {
 
     /** Construct a few ##BIOR lines that pertain to a particular catalog, and add it to the metadata header. 
      *  Use for bior_annotate command.
-    * @param history             - the history that we need to change
-    * @param catalogPath   - path to the property file for the tool
+    * @param history       - the history that we need to change
+    * @param catalogPath   - path to the catalog file where the data comes from
     * @param operation     - the name of the tool that was called
     * @param newColNamesToAdd - A list of new column names to add (one ##BIOR line for each)
     * @param drilledColNames - The JSON path that was used to get the value that will be placed under the column denoted by newColNamesToAdd
     */
-   public void constructAnnotateLine(History history, String catalogPath,  String operation, String[] newColNamesToAdd, String[] drilledColNames) throws IOException {
-       LinkedHashMap<String,String> datasourceProps = new LinkedHashMap<String,String>();
-       HashMap<String,ColumnMetaData> columnsProps = new HashMap<String,ColumnMetaData>();
-       boolean isColumnsPropsFileExists = false;
-	   boolean isDatasourcePropsFileExists = false;
-      
-        isDatasourcePropsFileExists =  catalogPath != null  
-    		   &&  catalogPath.trim().length() > 0  
-    		   &&  new File(getDatasourcePropsPath(catalogPath)).exists();
-       if( isDatasourcePropsFileExists )
-    	   datasourceProps = parseDatasourceProperties(catalogPath, new LinkedHashMap<String,String>());
-       
-       isColumnsPropsFileExists = catalogPath != null  
-    		   &&  catalogPath.trim().length() > 0  
-    		   &&  new File(getColumnsPropsPath(catalogPath)).exists();
-       if( isColumnsPropsFileExists )
-    	   columnsProps = parseColumnProperties(catalogPath);
-       
-       // There may be multiple columns that were drilled from each catalog
-       for(int i=0; i < newColNamesToAdd.length; i++) {
-           if(newColNamesToAdd[i] != null){
-               LinkedHashMap<String,String> attributes = new LinkedHashMap();
-               ColumnMetaData cmd = columnsProps.get(drilledColNames[i]);
-               // Keys that are in every metadata line
-               put(attributes, BiorMetaControlledVocabulary.ID.toString(), 			newColNamesToAdd[i]);
-               put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), 	operation);
-               String datatype = "";
-               if(cmd != null && isColumnsPropsFileExists ){
-                   datatype  =  cmd.type.toString();
-               }
-               
-      //         put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.JSON.toString());
-               put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	datatype);
-               // Keys for drilled columns - Add field description if Columns properties file is available, or empty string if it is not
-               String count = "";
-               if(cmd != null && isColumnsPropsFileExists ){
-                   count  =  cmd.getCount();
-               }
-
-               put(attributes, BiorMetaControlledVocabulary.FIELD.toString(),		drilledColNames[i]);
-               put(attributes,BiorMetaControlledVocabulary.NUMBER.toString(),count);
-               String fieldDesc = "";
-               if(cmd != null && isColumnsPropsFileExists ){
-                   fieldDesc  =  cmd.getDescription();
-               }
-               //T_ODO: add other props
-               put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), fieldDesc);
-
-               // Keys specific to drilled columns: - add each field if datasource properties file available or empty string if it is not
-               String shortName = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SHORTNAME.toString())  	:  "";
-               String source    = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SOURCE.toString())		:  "";
-               String version 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.VERSION.toString())		:  "";
-               String build 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.BUILD.toString())		:  "";
-               String desc 		= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.DESCRIPTION.toString())	:  "";
-               put(attributes, BiorMetaControlledVocabulary.SHORTNAME.toString(), 	shortName);
-               put(attributes, BiorMetaControlledVocabulary.SOURCE.toString(), 		source);
-               put(attributes, BiorMetaControlledVocabulary.VERSION.toString(), 		version);
-               put(attributes, BiorMetaControlledVocabulary.BUILD.toString(),		build);
-               put(attributes, BiorMetaControlledVocabulary.DESCRIPTION.toString(), 	desc);
-
-               // Catalog path
-               put(attributes, BiorMetaControlledVocabulary.PATH.toString(),	 		catalogPath);
-
-               // Build the header line and add it to the header
-               String biorHeaderLine = buildHeaderLine(attributes);
-               List<String> head = History.getMetaData().getOriginalHeader();
-               head.add(head.size()-1, biorHeaderLine);
-           }
-       }
+   public void constructAnnotateLine(History history, String catalogPath, String operation, String[] newColNamesToAdd, String[] drilledColNames) throws IOException {
+	   boolean isCatalogPathExists = catalogPath != null && catalogPath.trim().length() > 0 && new File(catalogPath).exists();
+	   String dataSourcePropsPath = isCatalogPathExists ? getDatasourcePropsPath(catalogPath) 	: null;
+	   String columnsPropsPath    = isCatalogPathExists ? getColumnsPropsPath(catalogPath) 		: null;
+	   this.constructAnnotateLine(history, dataSourcePropsPath, columnsPropsPath, catalogPath, operation, newColNamesToAdd, drilledColNames);
    }
     
    /** Construct a few ##BIOR lines that pertain to a particular catalog, and add it to the metadata header. 
     *  Use for bior_annotate command.
-   * @param history             - the history that we need to change
+   * @param history          - the history that we need to change
+   * @param dataSourcePath   - path to the datasource properties file for the tool
+   * @param dataSourcePath   - path to the datasource properties file for the tool
+   * @param pathToUseForPathField - Path to use in the "Path" field in the ##BIOR line. 
+   *                                This should be the dataSource path if a tool, else it should be the catalog path.
    * @param operation     - the name of the tool that was called
    * @param newColNamesToAdd - A list of new column names to add (one ##BIOR line for each)
    * @param drilledColNames - The JSON path that was used to get the value that will be placed under the column denoted by newColNamesToAdd
    */
-  public void constructAnnotateLine(History history, String dataSourcePath,String columnsDatapath,  String operation, String[] newColNamesToAdd, String[] drilledColNames) throws IOException {
+  public void constructAnnotateLine(History history, String dataSourcePath, String columnsDatapath, String pathToUseForPathField, String operation, String[] newColNamesToAdd, String[] drilledColNames) throws IOException {
       LinkedHashMap<String,String> datasourceProps = new LinkedHashMap<String,String>();
       HashMap<String,ColumnMetaData> columnsProps = new HashMap<String,ColumnMetaData>();
-      boolean isColumnsPropsFileExists = false;
-	   boolean isDatasourcePropsFileExists = false;
-     
-       isDatasourcePropsFileExists =  dataSourcePath != null  
+	  boolean isDatasourcePropsFileExists = dataSourcePath != null  
    		   &&  dataSourcePath.trim().length() > 0  
    		   &&  new File(dataSourcePath).exists();
       if( isDatasourcePropsFileExists )
-   	   datasourceProps = parseDatasourceProperties(dataSourcePath, new LinkedHashMap<String,String>());
+    	  datasourceProps = parseDatasourceProperties(dataSourcePath, new LinkedHashMap<String,String>());
       
-      isColumnsPropsFileExists = columnsDatapath != null  
+      boolean isColumnsPropsFileExists = columnsDatapath != null  
    		   &&  columnsDatapath.trim().length() > 0  
    		   &&  new File(columnsDatapath).exists();
       if( isColumnsPropsFileExists )
-   	   columnsProps = parseColumnProperties(columnsDatapath);
+    	  columnsProps = parseColumnProperties(columnsDatapath);
       
       // There may be multiple columns that were drilled from each catalog
       for(int i=0; i < newColNamesToAdd.length; i++) {
-          if(newColNamesToAdd[i] != null){
+          if(newColNamesToAdd[i] == null)
+        	  continue;
         	  
-              LinkedHashMap<String,String> attributes = new LinkedHashMap();
-              ColumnMetaData cmd = columnsProps.get(drilledColNames[i]);
-           
-              // Keys that are in every metadata line
-              put(attributes, BiorMetaControlledVocabulary.ID.toString(), 			newColNamesToAdd[i]);
-              put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), 	operation);
-             
-              String datatype = "";
-              if(cmd != null && isColumnsPropsFileExists ){
-                  datatype  =  cmd.getType().name();
-              }
-      //        put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	ColumnMetaData.Type.JSON.toString());
-              
-              put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), 	datatype);
-             
-              String number = "";
-              if(cmd != null && isColumnsPropsFileExists ){
-                  number  =  cmd.getCount();
-              }
-            
-              // Keys for drilled columns - Add field description if Columns properties file is available, or empty string if it is not
-              put(attributes, BiorMetaControlledVocabulary.FIELD.toString(),		drilledColNames[i]);
-              put(attributes,BiorMetaControlledVocabulary.NUMBER.toString(), number);
-              String fieldDesc = "";
-              if(cmd != null && isColumnsPropsFileExists ){
-                  fieldDesc  =  cmd.getDescription();
-              }
-             
-              //TODO: add other props
-              put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), fieldDesc);
-
-              // Keys specific to drilled columns: - add each field if datasource properties file available or empty string if it is not
-              String shortName = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SHORTNAME.toString())  	:  "";
-              String source    = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SOURCE.toString())		:  "";
-              String version 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.VERSION.toString())		:  "";
-              String build 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.BUILD.toString())		:  "";
-              String desc 		= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.DESCRIPTION.toString())	:  "";
-              put(attributes, BiorMetaControlledVocabulary.SHORTNAME.toString(), 	shortName);
-              put(attributes, BiorMetaControlledVocabulary.SOURCE.toString(), 		source);
-              put(attributes, BiorMetaControlledVocabulary.VERSION.toString(), 		version);
-              put(attributes, BiorMetaControlledVocabulary.BUILD.toString(),		build);
-              put(attributes, BiorMetaControlledVocabulary.DESCRIPTION.toString(), 	desc);
-
-              // Catalog path
-              put(attributes, BiorMetaControlledVocabulary.PATH.toString(),	 		dataSourcePath);
-
-              // Build the header line and add it to the header
-              String biorHeaderLine = buildHeaderLine(attributes);
-              List<String> head = History.getMetaData().getOriginalHeader();
-              head.add(head.size()-1, biorHeaderLine);
+          LinkedHashMap<String,String> attributes = new LinkedHashMap();
+          ColumnMetaData cmd = columnsProps.get(drilledColNames[i]);
+       
+          // Keys that are in every metadata line
+          put(attributes, BiorMetaControlledVocabulary.ID.toString(), 			newColNamesToAdd[i]);
+          put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), 	operation);
+         
+          String datatype = "";
+          if(cmd != null && isColumnsPropsFileExists ){
+              datatype  =  cmd.getType().toString();
           }
+          
+          put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(),datatype);
+          // Keys for drilled columns - Add field description if Columns properties file is available, or empty string if it is not
+          put(attributes, BiorMetaControlledVocabulary.FIELD.toString(),	drilledColNames[i]);
+          // Count for bior_annotate will always be "." because of compress that is called at the end  
+          put(attributes, BiorMetaControlledVocabulary.NUMBER.toString(),	".");
+          // Delimiter for compress will always be '|' for bior_annotate
+          put(attributes, BiorMetaControlledVocabulary.DELIMITER.toString(), "|");
+          // Escaped delimiter for compress will always be '\|' for bior_annotate
+          put(attributes, BiorMetaControlledVocabulary.ESCAPEDDELIMITER.toString(), "\\|");
+          String fieldDesc = "";
+          if(cmd != null && isColumnsPropsFileExists )
+              fieldDesc  =  cmd.getDescription();
+          put(attributes, BiorMetaControlledVocabulary.FIELDDESCRIPTION.toString(), fieldDesc);
+
+          // Keys specific to drilled columns: - add each field if datasource properties file available or empty string if it is not
+          String shortName = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SHORTNAME.toString())  	:  "";
+          String source    = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SOURCE.toString())		:  "";
+          String version 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.VERSION.toString())		:  "";
+          String build 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.BUILD.toString())		:  "";
+          String desc 		= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.DESCRIPTION.toString())	:  "";
+          put(attributes, BiorMetaControlledVocabulary.SHORTNAME.toString(), 	shortName);
+          put(attributes, BiorMetaControlledVocabulary.SOURCE.toString(), 		source);
+          put(attributes, BiorMetaControlledVocabulary.VERSION.toString(), 		version);
+          put(attributes, BiorMetaControlledVocabulary.BUILD.toString(),		build);
+          put(attributes, BiorMetaControlledVocabulary.DESCRIPTION.toString(), 	desc);
+
+          // Catalog path
+          put(attributes, BiorMetaControlledVocabulary.PATH.toString(),	 		pathToUseForPathField);
+
+          // Build the header line and add it to the header
+          String biorHeaderLine = buildHeaderLine(attributes);
+          List<String> head = History.getMetaData().getOriginalHeader();
+          head.add(head.size()-1, biorHeaderLine);
       }
   }
    
@@ -605,52 +539,47 @@ public class AddMetadataLines {
 	 */
 	public String buildHeaderLine(LinkedHashMap<String,String> attributes) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("##BIOR=<");
-		String delim="";
-		for(String key : attributes.keySet()) {
-            String value = attributes.get(key);
-            String kv = key + "=\"" + value + "\"";
-			sb.append(delim).append(kv);
-			delim = ",";
+		String[] keys = attributes.keySet().toArray(new String[attributes.size()]);
+		for(int i = 0; i < keys.length; i++) {
+            String value = attributes.get(keys[i]);
+            // Don't add delimiter in front of first value
+            String delim = i == 0 ? "" : ",";
+            sb.append(delim).append(keys[i]).append("=").append("\"").append(value).append("\"");
 		}
-		sb.append(">");
-		
+		sb.insert(0, "##BIOR=<").append(">");
 		return sb.toString();
 	}
 
     /**
      * take a line like:
      * ##BIOR=<ID="bior.dbSNP137",CatalogShortUniqueName="dbSNP137",CatalogSource="dbSNP",CatalogVersion="137",CatalogBuild="GRCh37.p10">
-     * and construct a hashmap out of it
+     * and construct a hashmap out of each key=value pair
      * @param line
      * @return
      */
-    public LinkedHashMap<String,String> parseHeaderLine(String line){
-        LinkedHashMap hm = new LinkedHashMap();
-        String half = line.replaceFirst("##BIOR=<", "");
-        String removeTrailingGreaterThan = half.substring(0, half.length() - 1);
-
-        List<String> split = StringUtils.split(removeTrailingGreaterThan, Arrays.asList(","));
-        //for each key-value pair
-        for(int i=0; i< split.size(); i++){
-            parseChunk(split.get(i), hm);
+    public LinkedHashMap<String,String> parseHeaderLine(String biorHeaderLine){
+        LinkedHashMap<String,String> biorHeaderMap = new LinkedHashMap<String,String>();
+        
+        biorHeaderLine = biorHeaderLine.trim();
+        
+        // If the line does not begin with "##BIOR=<" and end with ">", then just return empty map
+        if( ! biorHeaderLine.startsWith("##BIOR=<")  && ! biorHeaderLine.endsWith(">") )
+        	return biorHeaderMap;
+        
+        // Remove the "##BIOR=<" off front of string and the ">" at end 
+        biorHeaderLine = biorHeaderLine.substring(8, biorHeaderLine.length()-1);
+        
+        // Split all keys into key=value pairs first (split by comma)
+        List<String> keyValuePairs = StringUtils.split(biorHeaderLine, Arrays.asList(","));
+        
+        // Now split all of those by "=" and add to map
+        for(String keyValPair : keyValuePairs) {
+        	List<String> keyVal = StringUtils.split(keyValPair, Arrays.asList("="));
+        	if( keyVal.size() >= 2 )
+        		biorHeaderMap.put(keyVal.get(0), StringUtils.stripOutsideQuotes(keyVal.get(1)));
         }
-        return hm;
+        
+        return biorHeaderMap;
     }
-
-    /**
-     *
-     * @param s   - something like: Build="GRCh37.p10" this will get parsed to a k-v pair
-     * @param hm  key-value pair added to this hash
-     */
-    private void parseChunk(String s, HashMap<String,String> hm){
-        int idx = s.indexOf("=");  //the first equals will not be inside quotes
-        if(idx < 0) return; //failed to parse pair, don't add anything
-        String key = s.substring(0,idx);
-        String value = s.substring(idx+2,s.length()-1);
-        hm.put(key,value);
-    }
-
-
-		
+    
 }

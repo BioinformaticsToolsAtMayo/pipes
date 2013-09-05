@@ -1,15 +1,15 @@
 package edu.mayo.pipes.history;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.tinkerpop.pipes.AbstractPipe;
 
-import edu.mayo.pipes.util.StringUtils;
 import edu.mayo.pipes.util.metadata.AddMetadataLines;
+import edu.mayo.pipes.util.metadata.AddMetadataLines.BiorMetaControlledVocabulary;
 import edu.mayo.pipes.util.metadata.Metadata;
 
 /**
@@ -213,8 +213,10 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
                 //type = Annotate
                 else if( meta.getCmdType().equals(Metadata.CmdType.Annotate) ) {
                 	try {
-                		if (meta.getmDataSourceCanonicalPath()!= null)
-                		    amdl.constructAnnotateLine(h, meta.getmDataSourceCanonicalPath(), meta.getmColumnCanonicalPath(),  meta.getOperator(), meta.getNewColNamesForDrillPaths(), meta.getDrillPaths());
+                		// If we do not have a catalog (for instance if it is tool like SnpEff or Vep), then use the tool's datasource and columns props files
+                		if (meta.getDataSourceCanonicalPath()!= null)
+                		    amdl.constructAnnotateLine(h, meta.getDataSourceCanonicalPath(), meta.getColumnCanonicalPath(),
+                		    		meta.getDataSourceCanonicalPath(), meta.getOperator(), meta.getNewColNamesForDrillPaths(), meta.getDrillPaths());
                 		else	
 	                        amdl.constructAnnotateLine(h, meta.getFullCanonicalPath(), meta.getOperator(), meta.getNewColNamesForDrillPaths(), meta.getDrillPaths());
 	                    //for each new column, add it to the column header row
@@ -224,8 +226,46 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
                 		throw new RuntimeException("Could not construct the metadata line for one of the columns.  " + e.getMessage());
                 	}
                 }
+                // type = bior_compress
+                else if( meta.getCmdType().equals(Metadata.CmdType.Compress) ) {
+                	modifyCompressHeaders(meta);
+                }
             }
 
         }
     }
+    
+    private void modifyCompressHeaders(Metadata meta) {
+    	try {
+    		// From the list of column indexes, derive the column name, then get the ##BioR line that matches it
+    		Integer[] colIdxs = meta.getColsToCompress();
+    		List<String> headerNames = getColNames(colIdxs);
+    		AddMetadataLines adder = new AddMetadataLines();
+    		for(String colName : headerNames) {
+    			int metaLineNum = adder.getHistoryMetadataLine4HeaderValue(colName);
+    			// Parse the metadata line into a map, modify Number field, 
+    			// add Delimiter field, rebuild the line, and replace the old one
+    			String metaLine = History.getMetaData().getOriginalHeader().get(metaLineNum);
+    			LinkedHashMap<String,String> attribs = adder.parseHeaderLine(metaLine);
+    			attribs.put(BiorMetaControlledVocabulary.NUMBER.toString(),    ".");
+    			attribs.put(BiorMetaControlledVocabulary.DELIMITER.toString(), meta.getDelimiter());
+    			attribs.put(BiorMetaControlledVocabulary.ESCAPEDDELIMITER.toString(), meta.getEscapedDelimiter());
+    			String newMetaLine = adder.buildHeaderLine(attribs);
+    			History.getMetaData().getOriginalHeader().remove(metaLineNum);
+    			History.getMetaData().getOriginalHeader().add(newMetaLine);
+    		}
+    	}catch(Exception e) {
+    		throw new RuntimeException("Could not construct the metadata line for the compress function.  " + e.getMessage());
+        }
+    }
+
+    /** Get the column header names from a list of column indexes */
+	private List<String> getColNames(Integer[] colIdxs) {
+		List<ColumnMetaData> columns = History.getMetaData().getColumns();
+		List<String> colNames = new ArrayList<String>();
+		for(Integer i : colIdxs) 
+			colNames.add(columns.get(i).columnName);
+		return colNames;
+	}
+	
 }

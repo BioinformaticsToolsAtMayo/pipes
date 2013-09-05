@@ -6,7 +6,7 @@ package edu.mayo.pipes.util.metadata;
  * Date created: Aug 1, 2013
  */
 public class Metadata {
-	public static enum CmdType { Query, Drill, ToTJson, Tool, Annotate };
+	public static enum CmdType { Query, Drill, ToTJson, Tool, Annotate, Compress };
 
 	private CmdType mCmdType;
 
@@ -17,9 +17,13 @@ public class Metadata {
     private String 	mDatasourcePath;
     private String 	mColumnsPath;
 	private int     mColNum =-1;
-	private String[] mDrillPaths;
+	private String[] mDrillPaths; // Used for drill
     private boolean mKeepJSON = false; //used for drill
     private String[] mNewColNamesForDrillPaths; // Used for bior_annotate
+    
+    private String  mDelimiter; // Used by bior_compress to note how the values are separated
+    private String  mEscDelimiter; // Used by bior_compress as the escaped delimiter that will replace any naturally occurrences of the delimiter character in the value
+	private Integer[] mColsToCompress; // bior_compress must know which columns to compress so it can change the "Number" field to "."
 
 	/** Use for bior_vcf_to_tjson and other to_tjson commands ; basically input functions*/
 	public Metadata(String operator) {
@@ -86,6 +90,21 @@ public class Metadata {
 		
 	}
 
+    /** Use for bior_compress which will need to modify existing ##BIOR lines 
+     *  and change the Number field, and add a Delimiter field 
+     * @param delimiter  The separator of multiple values
+     * @param escapedDelimiter  The substitute string to be used whenever the delimiter string is encountered in the value 
+     *                         (for example: say you have 3 values: "1", "2|3", "4".  If the delimiter was "|" and the escaped delimiter was "\|", 
+     *                         then the compressed value will be "1|2\|3|4" because the delimiter character already occurred within the value. 
+     * @param colsToCompress  0-based indexes that point to the columns that are to be compressed
+     */
+    public Metadata(String delimiter, String escapedDelimiter, Integer[] colsToCompress) {
+    	mDelimiter = delimiter;
+    	mEscDelimiter = escapedDelimiter;
+    	mColsToCompress = colsToCompress;
+    	this.mCmdType = CmdType.Compress;
+    }
+    
 	public CmdType getCmdType() {
         return mCmdType;
     }
@@ -158,20 +177,44 @@ public class Metadata {
 		this.mNewColNamesForDrillPaths = newColNamesForDrillPaths;
 	}
 
-	public String getmDataSourceCanonicalPath() {
+	public String getDataSourceCanonicalPath() {
 		return mDataSourceCanonicalPath;
 	}
 
-	public void setmDataSourceCanonicalPath(String mDataSourceCanonicalPath) {
-		this.mDataSourceCanonicalPath = mDataSourceCanonicalPath;
+	public void setDataSourceCanonicalPath(String dataSourceCanonicalPath) {
+		this.mDataSourceCanonicalPath = dataSourceCanonicalPath;
 	}
 
-	public String getmColumnCanonicalPath() {
+	public String getColumnCanonicalPath() {
 		return mColumnCanonicalPath;
 	}
 
-	public void setmColumnCanonicalPath(String mColumnCanonicalPath) {
-		this.mColumnCanonicalPath = mColumnCanonicalPath;
+	public void setColumnCanonicalPath(String columnCanonicalPath) {
+		this.mColumnCanonicalPath = columnCanonicalPath;
+	}
+	
+    public String getDelimiter() {
+		return mDelimiter;
+	}
+
+	public void setDelimiter(String delimiter) {
+		this.mDelimiter = delimiter;
+	}
+
+    public String getEscapedDelimiter() {
+		return mEscDelimiter;
+	}
+
+	public void setEscapedDelimiter(String escapedDelimiter) {
+		this.mEscDelimiter = escapedDelimiter;
+	}
+
+	public Integer[] getColsToCompress() {
+		return mColsToCompress;
+	}
+
+	public void setColsToCompress(Integer[] colsToCompress) {
+		this.mColsToCompress = colsToCompress;
 	}
 
 

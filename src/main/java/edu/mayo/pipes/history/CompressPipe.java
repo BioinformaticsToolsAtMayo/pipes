@@ -9,6 +9,7 @@ import com.tinkerpop.pipes.AbstractPipe;
 
 import edu.mayo.pipes.util.FieldSpecification;
 import edu.mayo.pipes.util.FieldSpecification.FieldType;
+import edu.mayo.pipes.util.metadata.Metadata;
 
 /**
  * Compresses multiple "similar" rows into 1 row.  Rows are defined to be "similar"
@@ -27,7 +28,7 @@ public class CompressPipe extends AbstractPipe<History, History>
 			
 	private List<List<String>> mBuffer    = new ArrayList<List<String>>();
 	private List<String>       mBufferKey = null;
-
+ 
 	private boolean mFieldsInitialized = false;
 
 	// NOTE: Since fields are 1-based, accessing the corresponding field value
@@ -369,5 +370,18 @@ public class CompressPipe extends AbstractPipe<History, History>
 			key.add(line.get(index - 1));
 		}
 		return key;
+	}
+
+	/** Compress will have a special Metadata item that includes the 
+	 *  column numbers that will be modified (1-based)
+	 *  as well as the delimiter that will be used to separate values
+	 * @return
+	 */
+	public Metadata getMetadata() {
+		// Convert the 1-based column indexes to 0-based
+		Integer[] zeroBasedIndexes = new Integer[mCompressFields.size()];
+		for(int i=0; i < mCompressFields.size(); i++) 
+			zeroBasedIndexes[i] = mCompressFields.get(i) - 1;
+		return new Metadata(mDelimiter, mEscDelimiter, zeroBasedIndexes);
 	}
 }

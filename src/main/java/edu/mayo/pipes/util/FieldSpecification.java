@@ -131,8 +131,8 @@ public class FieldSpecification
 					range = new FieldRange();
 					range.type = Type.NTH_TO_MTH;
 					String[] arr = rangeStr.split("-");
-					range.nthField = new Integer(arr[0]);					
-					range.mthField = new Integer(arr[1]);					
+					range.nthField = new Integer(arr[0]);
+					range.mthField = new Integer(arr[1]);
 				}				
 			}
 			else

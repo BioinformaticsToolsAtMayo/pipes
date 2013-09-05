@@ -201,5 +201,10 @@ public class StringUtils {
 		return indentedStr;
 	}
 
+	/** Strips any outside quotes if there are any, else just returns the original string */
+    public static String stripOutsideQuotes(String s) {
+    	boolean isQuoted = s.length() >= 2 && s.startsWith("\"") && s.endsWith("\"");
+    	return  isQuoted  ?  s.substring(1,s.length()-1)  :  s;
+    }
 
 }
