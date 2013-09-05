@@ -145,6 +145,17 @@ public class FieldSpecification
 		}
 	}
 
+	/** Get all columns affected by the compress command (1-based column indexes) */
+	public List<Integer> getColumnsAffected(int numColumns) {
+		return getFields(numColumns).get(FieldType.MATCH);
+	}
+
+	/** Get all columns NOT affected by the compress command (1-based column indexes) */
+	public List<Integer> getColumnsNotAffected(int numColumns) {
+		return getFields(numColumns).get(FieldType.NON_MATCH);
+	}
+	
+
 	/**
 	 * Gets a list of fields based on this {@link FieldSpecification}.
 	 * 

@@ -1,5 +1,7 @@
 package edu.mayo.pipes.util.metadata;
 
+import edu.mayo.pipes.util.FieldSpecification;
+
 /**
  * This class is used in the constructor to the HistoryInPipe
  * @author Michael Meiners (m054457)
@@ -23,7 +25,7 @@ public class Metadata {
     
     private String  mDelimiter; // Used by bior_compress to note how the values are separated
     private String  mEscDelimiter; // Used by bior_compress as the escaped delimiter that will replace any naturally occurrences of the delimiter character in the value
-	private Integer[] mColsToCompress; // bior_compress must know which columns to compress so it can change the "Number" field to "."
+	private FieldSpecification mCompressFieldSpecs; // bior_compress must know which columns to compress so it can change the "Number" field to "."
 
 	/** Use for bior_vcf_to_tjson and other to_tjson commands ; basically input functions*/
 	public Metadata(String operator) {
@@ -98,10 +100,10 @@ public class Metadata {
      *                         then the compressed value will be "1|2\|3|4" because the delimiter character already occurred within the value. 
      * @param colsToCompress  0-based indexes that point to the columns that are to be compressed
      */
-    public Metadata(String delimiter, String escapedDelimiter, Integer[] colsToCompress) {
+    public Metadata(String delimiter, String escapedDelimiter, FieldSpecification fieldSpecs) {
     	mDelimiter = delimiter;
     	mEscDelimiter = escapedDelimiter;
-    	mColsToCompress = colsToCompress;
+    	mCompressFieldSpecs = fieldSpecs;
     	this.mCmdType = CmdType.Compress;
     }
     
@@ -209,12 +211,12 @@ public class Metadata {
 		this.mEscDelimiter = escapedDelimiter;
 	}
 
-	public Integer[] getColsToCompress() {
-		return mColsToCompress;
+	public FieldSpecification getCompressFieldSpecs() {
+		return mCompressFieldSpecs;
 	}
 
-	public void setColsToCompress(Integer[] colsToCompress) {
-		this.mColsToCompress = colsToCompress;
+	public void setCompressFieldSpecs(FieldSpecification fieldSpecs) {
+		this.mCompressFieldSpecs = fieldSpecs;
 	}
 
 

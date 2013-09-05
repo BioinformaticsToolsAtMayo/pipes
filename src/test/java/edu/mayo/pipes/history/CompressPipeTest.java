@@ -14,6 +14,7 @@ import com.tinkerpop.pipes.util.Pipeline;
 
 import edu.mayo.pipes.util.FieldSpecification;
 import edu.mayo.pipes.util.FieldSpecification.FieldDirection;
+import edu.mayo.pipes.util.test.PipeTestUtils;
 
 
 public class CompressPipeTest {
@@ -299,6 +300,56 @@ public class CompressPipeTest {
         line = (List<String>) p.next();
         validate(Arrays.asList("dataC", "foo", "bar"), line);
     	
+    }    
+    
+    @Test
+    public void testWithHistory()
+    {
+    	try {
+	        CompressPipe compressPipe = new CompressPipe(new FieldSpecification("2,3"), "|", "%%", true);
+	
+			Pipeline pipeline = new Pipeline(
+					new HistoryInPipe(compressPipe.getMetadata()),
+					compressPipe,
+					new HistoryOutPipe()
+					);
+	
+	        List<String> in = Arrays.asList(
+	        	"##BIOR=<ID=\"Data\",Number=\"1\",DataType=\"String\">",
+	        	"##BIOR=<ID=\"Foobar\",Number=\"1\",DataType=\"String\">",
+	        	"##BIOR=<ID=\"Letters\",Number=\"1\",DataType=\"String\">",
+	        	"##BIOR=<ID=\"MyNumbers\",Number=\"1\",DataType=\"Integer\">",
+	        	"#Data\tFoobar\tLetters\tMyNumbers",
+	        	"dataA\tfoo\tA\t0",
+	        	"dataA\tfoo\tB\t0",
+	        	"dataA\tfoo\tC\t2",
+	        	"dataB\t100\tbar\t3",
+	        	"dataB\t101\tbar\t3",
+	        	"dataB\t333\tbar\t3",        		
+	        	"dataC\tfoo\tbar\t7",
+	        	"dataC\tfoo\tbar\t7",
+	        	"dataC\tfoo\tbar\t100"        		
+	        	);
+	
+	        pipeline.setStarts(in);
+	
+	        List<String> actual = PipeTestUtils.getResults(pipeline);
+	        List<String> expected = Arrays.asList(
+	        		"##BIOR=<ID=\"Data\",Number=\"1\",DataType=\"String\">",
+	        		"##BIOR=<ID=\"Foobar\",Number=\".\",DataType=\"String\",Delimiter=\"|\",EscapedDelimiter=\"%%\">",
+	        		"##BIOR=<ID=\"Letters\",Number=\".\",DataType=\"String\",Delimiter=\"|\",EscapedDelimiter=\"%%\">",
+	        		"##BIOR=<ID=\"MyNumbers\",Number=\"1\",DataType=\"Integer\">",
+		        	"#Data\tFoobar\tLetters\tMyNumbers",
+	                "dataA\tfoo\tA|B\t0",
+	                "dataA\tfoo\tC\t2",
+	                "dataB\t100|101|333\tbar\t3",
+	                "dataC\tfoo\tbar\t7",
+	                "dataC\tfoo\tbar\t100"
+	        		);
+	        PipeTestUtils.assertListsEqual(expected, actual);
+    	}catch(Exception e) {
+    		e.printStackTrace();
+    	}
     }    
     
     private void validate(List<String> list1, List<String> list2)

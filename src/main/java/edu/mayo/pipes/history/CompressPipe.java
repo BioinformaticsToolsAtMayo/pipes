@@ -153,7 +153,7 @@ public class CompressPipe extends AbstractPipe<History, History>
 		Map<FieldType, List<Integer>> m = mFieldSpec.getFields(numFields);
 		
 		mCompressFields = m.get(FieldType.MATCH);
-		mKeyFields = m.get(FieldType.NON_MATCH);		
+		mKeyFields = m.get(FieldType.NON_MATCH);
 	}
 	
 	/**
@@ -378,10 +378,6 @@ public class CompressPipe extends AbstractPipe<History, History>
 	 * @return
 	 */
 	public Metadata getMetadata() {
-		// Convert the 1-based column indexes to 0-based
-		Integer[] zeroBasedIndexes = new Integer[mCompressFields.size()];
-		for(int i=0; i < mCompressFields.size(); i++) 
-			zeroBasedIndexes[i] = mCompressFields.get(i) - 1;
-		return new Metadata(mDelimiter, mEscDelimiter, zeroBasedIndexes);
+		return new Metadata(mDelimiter, mEscDelimiter, mFieldSpec);
 	}
 }
