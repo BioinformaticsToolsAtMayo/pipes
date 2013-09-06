@@ -35,48 +35,29 @@ public class CompressPipeTest {
 	
     @Test
     public void testProcessNextStart() throws IOException, InterruptedException {
+        CompressPipe compress = new CompressPipe(new FieldSpecification("2,3"), "|");
+        List<List<String>> in = Arrays.asList(
+        		Arrays.asList("dataA", "1", 	"A"),
+        		Arrays.asList("dataA", "2", 	"B"),
+        		Arrays.asList("dataA", "3", 	"C"),
+        		Arrays.asList("dataB", "100", 	"W"),
+        		Arrays.asList("dataB", "101", 	"X"),
+        		Arrays.asList("dataC", "333", 	"."),        		
+        		Arrays.asList("dataC", "334",	"."),        		
+        		Arrays.asList("dataD", "555",	"Z")
+        		);
+
+        Pipeline p = new Pipeline(compress);
+        p.setStarts(in);
+        List<String> actual = PipeTestUtils.getResults(p);
         
-    	String delimiter = "|";
-        FieldSpecification fieldSpec = new FieldSpecification("2,3");
-        CompressPipe compress = new CompressPipe(fieldSpec, delimiter);
-        
-        List<List<String>> asList = Arrays.asList
-        	(
-        		Arrays.asList("dataA", "1", "A"),
-        		Arrays.asList("dataA", "2", "B"),
-        		Arrays.asList("dataA", "3", "C"),
-        		Arrays.asList("dataB", "100", "W"),
-        		Arrays.asList("dataB", "101", "X"),
-        		Arrays.asList("dataC", "333", "."),        		
-        		Arrays.asList("dataC", "334", "."),        		
-        		Arrays.asList("dataD", "555", "Z")        		
-        	);
-
-        Pipe<List<String>, List<String>> p = new Pipeline<List<String>, List<String>>(compress);
-
-        p.setStarts(asList);
-
-        List<String> line;
-        
-        // 1ST compressed line
-        assertTrue(p.hasNext());
-        line = (List<String>) p.next();
-        validate(Arrays.asList("dataA", "1|2|3", "A|B|C"), line);
-        
-        // 2ND compressed line
-        assertTrue(p.hasNext());
-        line = (List<String>) p.next();
-        validate(Arrays.asList("dataB", "100|101", "W|X"), line);
-
-        // 3RD compressed line
-        assertTrue(p.hasNext());
-        line = (List<String>) p.next();
-        validate(Arrays.asList("dataC", "333|334", ".|."), line);
-
-        // 4TH compressed line
-        assertTrue(p.hasNext());
-        line = (List<String>) p.next();
-        validate(Arrays.asList("dataD", "555", "Z"), line);
+        List<String> expected = Arrays.asList(
+        		"dataA	1|2|3	A|B|C",
+        		"dataB	100|101	W|X",
+        		"dataC	333|334	.|.",
+        		"dataD	555	Z"
+        		);
+        PipeTestUtils.assertListsEqual(expected, actual);
     }
 
     @Test
@@ -316,15 +297,6 @@ public class CompressPipeTest {
     	
     }
     
-    public final List<String> compressout = Arrays.asList(
-    	"##BIOR=<ID=\"bior.ToTJson\",Operation=\"bior_vcf_to_tjson\",DataType=\"JSON\",ShortUniqueName=\"ToTJson\">",
-        "##BIOR=<ID=\"bior.gene37p10\",Operation=\"bior_overlap\",DataType=\"JSON\",ShortUniqueName=\"gene37p10\",Source=\"NCBIGene\",Description=\"NCBI's Gene Annotation directly from the gbs file\",Version=\"37p10\",Build=\"GRCh37.p10\",Path=\"/Volumes/data5/bsi/catalogs/bior/v1/NCBIGene/GRCh37_p10/genes.tsv.bgz\">",
-        "##BIOR=<ID=\"bior.gene37p10.gene\",Operation=\"bior_drill\",Field=\"gene\",DataType=\"String\",Number=\".\",FieldDescription=\"Official Gene Symbol provided by HGNC\",ShortUniqueName=\"gene37p10\",Source=\"NCBIGene\",Description=\"NCBI's Gene Annotation directly from the gbs file\",Version=\"37p10\",Build=\"GRCh37.p10\",Path=\"foo.tsv.bgz\",Delimiter=\"|\",EscapedDelimiter=\"%%\">",
-        "##BIOR=<ID=\"bior.name\",Operation=\"bior_drill\",Field=\"name\",DataType=\"String\",Number=\".\",FieldDescription=\"Official Gene Symbol provided by HGNC\",ShortUniqueName=\"name\",Source=\"names\",Description=\"some name\",Version=\"37p10\",Build=\"GRCh37.p10\",Path=\"bar.tsv.bgz\",Delimiter=\"|\",EscapedDelimiter=\"%%\">",
-        "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.gene37p10.gene\tbior.name",
-        "1\t876499\trs4372192\tA\tG\t66.21\t.\t.\tGENE1|GENE2|GENE3\tI%%Love%%PIPES|I%%Hate%%PIPES"
-    );
-
     @Test
     public void testCompressWithMetadata(){
     	System.out.println("Test Compress With Metadata");
@@ -341,11 +313,18 @@ public class CompressPipeTest {
     			new HistoryOutPipe(),
     			new PrintPipe()
     			);
-    	p.setStarts(Arrays.asList("/Users/m102417/workspace/pipes/src/test/resources/testData/compress/exampleCompressInput.tjson"));
-    	for(int i=0; p.hasNext(); i++){
-    		String s = (String) p.next();
-    		assertEquals(compressout.get(i),s);
-    	}
+    	p.setStarts(Arrays.asList("src/test/resources/testData/compress/exampleCompressInput.tjson"));
+
+        List<String> expected = Arrays.asList(
+            	"##BIOR=<ID=\"bior.ToTJson\",Operation=\"bior_vcf_to_tjson\",DataType=\"JSON\",ShortUniqueName=\"ToTJson\">",
+                "##BIOR=<ID=\"bior.gene37p10\",Operation=\"bior_overlap\",DataType=\"JSON\",ShortUniqueName=\"gene37p10\",Source=\"NCBIGene\",Description=\"NCBI's Gene Annotation directly from the gbs file\",Version=\"37p10\",Build=\"GRCh37.p10\",Path=\"/Volumes/data5/bsi/catalogs/bior/v1/NCBIGene/GRCh37_p10/genes.tsv.bgz\">",
+                "##BIOR=<ID=\"bior.gene37p10.gene\",Operation=\"bior_drill\",Field=\"gene\",DataType=\"String\",Number=\".\",FieldDescription=\"Official Gene Symbol provided by HGNC\",ShortUniqueName=\"gene37p10\",Source=\"NCBIGene\",Description=\"NCBI's Gene Annotation directly from the gbs file\",Version=\"37p10\",Build=\"GRCh37.p10\",Path=\"foo.tsv.bgz\",Delimiter=\"|\",EscapedDelimiter=\"%%\">",
+                "##BIOR=<ID=\"bior.name\",Operation=\"bior_drill\",Field=\"name\",DataType=\"String\",Number=\".\",FieldDescription=\"Official Gene Symbol provided by HGNC\",ShortUniqueName=\"name\",Source=\"names\",Description=\"some name\",Version=\"37p10\",Build=\"GRCh37.p10\",Path=\"bar.tsv.bgz\",Delimiter=\"|\",EscapedDelimiter=\"%%\">",
+                "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tbior.gene37p10.gene\tbior.name",
+                "1\t876499\trs4372192\tA\tG\t66.21\t.\t.\tGENE1|GENE2|GENE3\tI%%Love%%PIPES|I%%Hate%%PIPES"
+            );
+        List<String> actual = PipeTestUtils.getResults(p);
+        PipeTestUtils.assertListsEqual(expected, actual);
     }
         
     @Test
