@@ -315,9 +315,9 @@ public class CompressPipeTest {
         validate(Arrays.asList("dataC", "foo", "bar"), line);
     	
     }
-
+    
     public final List<String> compressout = Arrays.asList(
-        "##BIOR=<ID=\"bior.ToTJson\",Operation=\"bior_vcf_to_tjson\",DataType=\"JSON\",ShortUniqueName=\"ToTJson\">",
+    	"##BIOR=<ID=\"bior.ToTJson\",Operation=\"bior_vcf_to_tjson\",DataType=\"JSON\",ShortUniqueName=\"ToTJson\">",
         "##BIOR=<ID=\"bior.gene37p10\",Operation=\"bior_overlap\",DataType=\"JSON\",ShortUniqueName=\"gene37p10\",Source=\"NCBIGene\",Description=\"NCBI's Gene Annotation directly from the gbs file\",Version=\"37p10\",Build=\"GRCh37.p10\",Path=\"/Volumes/data5/bsi/catalogs/bior/v1/NCBIGene/GRCh37_p10/genes.tsv.bgz\">",
         "##BIOR=<ID=\"bior.gene37p10.gene\",Operation=\"bior_drill\",Field=\"gene\",DataType=\"String\",Number=\".\",FieldDescription=\"Official Gene Symbol provided by HGNC\",ShortUniqueName=\"gene37p10\",Source=\"NCBIGene\",Description=\"NCBI's Gene Annotation directly from the gbs file\",Version=\"37p10\",Build=\"GRCh37.p10\",Path=\"foo.tsv.bgz\",Delimiter=\"|\",EscapedDelimiter=\"%%\">",
         "##BIOR=<ID=\"bior.name\",Operation=\"bior_drill\",Field=\"name\",DataType=\"String\",Number=\".\",FieldDescription=\"Official Gene Symbol provided by HGNC\",ShortUniqueName=\"name\",Source=\"names\",Description=\"some name\",Version=\"37p10\",Build=\"GRCh37.p10\",Path=\"bar.tsv.bgz\",Delimiter=\"|\",EscapedDelimiter=\"%%\">",
@@ -327,27 +327,27 @@ public class CompressPipeTest {
 
     @Test
     public void testCompressWithMetadata(){
-        System.out.println("Test Compress With Metadata");
-        String delimiter = "|";
-        FieldSpecification fieldSpec = new FieldSpecification("9,10");
-        String escDelimiter = "%%";
-        boolean useSetCompression = true;
-        CompressPipe compress = new CompressPipe(fieldSpec, delimiter, escDelimiter, useSetCompression);
-        HistoryInPipe hin =  new HistoryInPipe(compress.getMetadata());
-        Pipeline p = new Pipeline(
-                new CatPipe(),
-                hin,
-                compress,
-                new HistoryOutPipe(),
-                new PrintPipe()
-        );
-        p.setStarts(Arrays.asList("/Users/m102417/workspace/pipes/src/test/resources/testData/compress/exampleCompressInput.tjson"));
-        for(int i=0; p.hasNext(); i++){
-            String s = (String) p.next();
-            assertEquals(compressout.get(i),s);
-        }
+    	System.out.println("Test Compress With Metadata");
+    	String delimiter = "|";
+    	FieldSpecification fieldSpec = new FieldSpecification("9,10");
+    	String escDelimiter = "%%";
+    	boolean useSetCompression = true;
+    	CompressPipe compress = new CompressPipe(fieldSpec, delimiter, escDelimiter, useSetCompression);
+    	HistoryInPipe hin =  new HistoryInPipe(compress.getMetadata());
+    	Pipeline p = new Pipeline(
+    			new CatPipe(),
+    			hin,
+    			compress,
+    			new HistoryOutPipe(),
+    			new PrintPipe()
+    			);
+    	p.setStarts(Arrays.asList("/Users/m102417/workspace/pipes/src/test/resources/testData/compress/exampleCompressInput.tjson"));
+    	for(int i=0; p.hasNext(); i++){
+    		String s = (String) p.next();
+    		assertEquals(compressout.get(i),s);
+    	}
     }
-    
+        
     @Test
     public void testWithHistory()
     {
@@ -366,7 +366,7 @@ public class CompressPipeTest {
 	        	"##BIOR=<ID=\"Letters\",Number=\"1\",DataType=\"String\">",
 	        	"##BIOR=<ID=\"MyNumbers\",Number=\"1\",DataType=\"Integer\">",
 	        	"#Data\tFoobar\tLetters\tMyNumbers",
-	        	"dataA\tfoo\tA\t0",
+	        	"dataA\tfoo\tA|Z\t0",	// <---  NOTE! This line contains the delimiter that will be escaped
 	        	"dataA\tfoo\tB\t0",
 	        	"dataA\tfoo\tC\t2",
 	        	"dataB\t100\tbar\t3",
@@ -386,7 +386,7 @@ public class CompressPipeTest {
 	        		"##BIOR=<ID=\"Letters\",Number=\".\",DataType=\"String\",Delimiter=\"|\",EscapedDelimiter=\"%%\">",
 	        		"##BIOR=<ID=\"MyNumbers\",Number=\"1\",DataType=\"Integer\">",
 		        	"#Data\tFoobar\tLetters\tMyNumbers",
-	                "dataA\tfoo\tA|B\t0",
+	                "dataA\tfoo\tA%%Z|B\t0", //<--- NOTE! This line contains the ESCAPED delimiter
 	                "dataA\tfoo\tC\t2",
 	                "dataB\t100|101|333\tbar\t3",
 	                "dataC\tfoo\tbar\t7",
