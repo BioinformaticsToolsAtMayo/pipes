@@ -382,9 +382,11 @@ public class AddMetadataLines {
         int col = -1;
         //ensure that we are dealing with a negative column
         if(columnNumber > 0){
-            col = columnNumber - h.size() -1;
+            col = columnNumber - h.getMetaData().getColumns().size() -1;
         } else if (columnNumber == 0){
             throw	new RuntimeException("You can't specify column number 0, use negative or positive numbers only!");
+        }else {
+        	col = columnNumber;
         }
         return col;
     }
@@ -414,8 +416,7 @@ public class AddMetadataLines {
                 putDrillMetaLines(h, operation, preLine, path);
             }
         }
-
-
+       
         return cmeta.substring(5); //make sure to remove the bior. for consistency across the functions
     }
 
@@ -448,7 +449,7 @@ public class AddMetadataLines {
         HashMap<String,String> datasourceattr = parseHeaderLine(preLine);
         String catalogPath = datasourceattr.get(BiorMetaControlledVocabulary.PATH.toString());
         LinkedHashMap<String,String> attributes = new LinkedHashMap<String, String>();
-        put(attributes, BiorMetaControlledVocabulary.ID.toString(),			getID(h,BiorMetaControlledVocabulary.BIOR + datasourceattr.get(BiorMetaControlledVocabulary.SHORTNAME.toString()) + "." + dpath));
+        put(attributes, BiorMetaControlledVocabulary.ID.toString(),			getID(h,datasourceattr.get(BiorMetaControlledVocabulary.ID.toString()) + "." + dpath));
         put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), 	operation);
         put(attributes, BiorMetaControlledVocabulary.FIELD.toString(), 		fixArrayDrillPath(dpath));
         try {
