@@ -1,0 +1,8 @@
+##BIOR=<ID="bior.ToTJson",Operation="bior_vcf_to_tjson",DataType="JSON",ShortUniqueName="ToTJson">
+##BIOR=<ID="bior.gene37p10",Operation="bior_overlap",DataType="JSON",ShortUniqueName="gene37p10",Source="NCBIGene",Description="NCBI's Gene Annotation directly from the gbs file",Version="37p10",Build="GRCh37.p10",Path="/Volumes/data5/bsi/catalogs/bior/v1/NCBIGene/GRCh37_p10/genes.tsv.bgz">
+##BIOR=<ID="bior.gene37p10.gene",Operation="bior_drill",Field="gene",DataType="String",Number="1",FieldDescription="Official Gene Symbol provided by HGNC",ShortUniqueName="gene37p10",Source="NCBIGene",Description="NCBI's Gene Annotation directly from the gbs file",Version="37p10",Build="GRCh37.p10",Path="foo.tsv.bgz">
+##BIOR=<ID="bior.name",Operation="bior_drill",Field="name",DataType="String",Number="1",FieldDescription="Official Gene Symbol provided by HGNC",ShortUniqueName="name",Source="names",Description="some name",Version="37p10",Build="GRCh37.p10",Path="bar.tsv.bgz">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	bior.gene37p10.gene	bior.name
+1	876499	rs4372192	A	G	66.21	.	.	GENE1	I|Love|PIPES
+1	876499	rs4372192	A	G	66.21	.	.	GENE2	I|Love|PIPES
+1	876499	rs4372192	A	G	66.21	.	.	GENE3	I|Hate|PIPES
