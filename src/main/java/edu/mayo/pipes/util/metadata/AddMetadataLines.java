@@ -206,17 +206,24 @@ public class AddMetadataLines {
     public String constructQueryLine(History h, String catalogPath, String operation) throws IOException {
         LinkedHashMap<String,String> temp = new LinkedHashMap();
         LinkedHashMap<String,String> attributes = new LinkedHashMap();
-        parseDatasourceProperties(catalogPath, temp);
+         temp =  parseDatasourceProperties(catalogPath, new LinkedHashMap<String,String>());
         put(attributes, BiorMetaControlledVocabulary.ID.toString(),getID(h,BiorMetaControlledVocabulary.BIOR + temp.get(BiorMetaControlledVocabulary.SHORTNAME.toString())));
         put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), operation);
         put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), ColumnMetaData.Type.JSON.toString());
         for( String key : temp.keySet()){
             put(attributes, key, temp.get(key));
-        }
+           }
         List<String> head = h.getMetaData().getOriginalHeader();
-        head.add(head.size() - 1, buildHeaderLine(attributes));
-        return attributes.get(BiorMetaControlledVocabulary.ID.toString()).substring(5); //remove .bior for consistency
-    }
+           if (head.size() > 0) {
+         head.add(head.size() - 1, buildHeaderLine(attributes));
+         } else {
+        	 History.getMetaData().getOriginalHeader().add(buildHeaderLine(attributes));
+        	 
+         }
+        return attributes.get(BiorMetaControlledVocabulary.ID.toString()).substring(5); //remove .bior for consistenc
+
+
+      }
 
     /**
      * When there is no datasource.properties file, then we need to construct a line like this:
@@ -409,7 +416,9 @@ public class AddMetadataLines {
         String cmeta = cmd.getColumnName();
         int pos = getHistoryMetadataLine4HeaderValue(cmeta);
         if(pos == -1){
-            return cmeta; //could not find the column we need to drill, adding metadata failed
+            	for(String path: drillPaths){
+                      constructDrillOnNoMetadataAvailable(h,operation,path,cmeta);
+        	}
         }else {
             String preLine = History.getMetaData().getOriginalHeader().get(pos).toString();
             for(String path: drillPaths){
@@ -489,7 +498,30 @@ public class AddMetadataLines {
         List<String> head = h.getMetaData().getOriginalHeader();
         head.add(head.size()-1, buildHeaderLine(attributes));
     }
-
+       
+       /**
+    * When no ##BIOR lines are available or no header is available bior_drill builds default metadata line
+    * @param h - history that we need to change
+    * @param operation  - name of the operation
+    * @param dpath   - Name of the path in JSON column to be drilled
+    * @param cmeta - JSON Column Name on which drill operation occurs
+    **/
+    
+   private void constructDrillOnNoMetadataAvailable(History h, String operation,String dpath,String cmeta) {
+        LinkedHashMap<String,String> attributes = new LinkedHashMap();
+        put(attributes, BiorMetaControlledVocabulary.ID.toString(),getID(h,BiorMetaControlledVocabulary.BIOR.toString() + "." + cmeta + "." + dpath));
+        put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), operation);
+        put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), ColumnMetaData.Type.String.toString());
+        put(attributes, BiorMetaControlledVocabulary.SHORTNAME.toString(), "");
+        put(attributes, BiorMetaControlledVocabulary.PATH.toString(), "");
+        List<String> head = h.getMetaData().getOriginalHeader();
+        int addline = head.size()-1;
+        if(addline == -1){
+            History.getMetaData().getOriginalHeader().add(buildHeaderLine(attributes));
+        }else {
+            head.add(head.size() - 1, buildHeaderLine(attributes));
+        }
+    }
     
     /**
     *
