@@ -8,6 +8,7 @@ import java.util.NoSuchElementException;
 
 import com.tinkerpop.pipes.AbstractPipe;
 
+import edu.mayo.pipes.history.ColumnMetaData.Type;
 import edu.mayo.pipes.util.FieldSpecification.FieldType;
 import edu.mayo.pipes.util.metadata.AddMetadataLines;
 import edu.mayo.pipes.util.metadata.AddMetadataLines.BiorMetaControlledVocabulary;
@@ -230,46 +231,11 @@ public class HistoryInPipe extends AbstractPipe<String, History> {
                 }
                 // type = bior_compress
                 else if( meta.getCmdType().equals(Metadata.CmdType.Compress) ) {
-                	modifyCompressHeaders(meta);
+                	amdl.modifyCompressHeaders(meta, mNumColumns);
                 }
             }
 
         }
     }
-    
-    private void modifyCompressHeaders(Metadata meta) {
-    	try {
-    		// From the compress field specs, get the column indexes affected by compress
-    		List<Integer> colIdxs = meta.getCompressFieldSpecs().getColumnsAffected(mNumColumns);
-    		// From the list of column indexes, derive the column name, then get the ##BioR line that matches it
-    		List<String> headerNames = getColNames(colIdxs, true);
-    		AddMetadataLines adder = new AddMetadataLines();
-    		for(String colName : headerNames) {
-    			int metaLineNum = adder.getHistoryMetadataLine4HeaderValue(colName);
-    			// Parse the metadata line into a map, modify Number field, 
-    			// add Delimiter field, rebuild the line, and replace the old one
-    			String metaLine = History.getMetaData().getOriginalHeader().get(metaLineNum);
-    			LinkedHashMap<String,String> attribs = adder.parseHeaderLine(metaLine);
-    			attribs.put(BiorMetaControlledVocabulary.NUMBER.toString(),    ".");
-    			attribs.put(BiorMetaControlledVocabulary.DELIMITER.toString(), meta.getDelimiter());
-    			attribs.put(BiorMetaControlledVocabulary.ESCAPEDDELIMITER.toString(), meta.getEscapedDelimiter());
-    			String newMetaLine = adder.buildHeaderLine(attribs);
-    			History.getMetaData().getOriginalHeader().remove(metaLineNum);
-    			History.getMetaData().getOriginalHeader().add(metaLineNum, newMetaLine);
-    		}
-    	}catch(Exception e) {
-    		throw new RuntimeException("Could not construct the metadata line for the compress function.  " + e.getMessage());
-        }
-    }
 
-    /** Get the column header names from a list of column indexes (NOTE: col indexes are 1-based, so need to subtract 1) */
-	private List<String> getColNames(List<Integer> colIdxs, boolean isOneBased) {
-		List<ColumnMetaData> columns = History.getMetaData().getColumns();
-		List<String> colNames = new ArrayList<String>();
-		int subtractFrom = isOneBased ? 1 : 0;
-		for(Integer i : colIdxs) 
-			colNames.add(columns.get(i-subtractFrom).columnName);
-		return colNames;
-	}
-	
 }

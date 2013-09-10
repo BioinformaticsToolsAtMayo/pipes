@@ -35,7 +35,7 @@ public class CompressPipeTest {
 	
     @Test
     public void testProcessNextStart() throws IOException, InterruptedException {
-        CompressPipe compress = new CompressPipe(new FieldSpecification("2,3"), "|");
+        CompressPipe compress = new CompressPipe("bior_compress", new FieldSpecification("2,3"), "|");
         List<List<String>> in = Arrays.asList(
         		Arrays.asList("dataA", "1", 	"A"),
         		Arrays.asList("dataA", "2", 	"B"),
@@ -65,7 +65,7 @@ public class CompressPipeTest {
         
     	String delimiter = "|";
         FieldSpecification fieldSpec = new FieldSpecification("2,3", FieldDirection.RIGHT_TO_LEFT);
-        CompressPipe compress = new CompressPipe(fieldSpec, delimiter);
+        CompressPipe compress = new CompressPipe("bior_compress", fieldSpec, delimiter);
         
         List<List<String>> asList = Arrays.asList
         	(
@@ -109,7 +109,7 @@ public class CompressPipeTest {
         
     	String delimiter = "|";
         FieldSpecification fieldSpec = new FieldSpecification("2");
-        CompressPipe compress = new CompressPipe(fieldSpec, delimiter);
+        CompressPipe compress = new CompressPipe("bior_compress", fieldSpec, delimiter);
         
         List<List<String>> asList = Arrays.asList
         	(
@@ -139,7 +139,7 @@ public class CompressPipeTest {
     	String delimiter = "|";
     	String escDelimiter = "%%";
         FieldSpecification fieldSpec = new FieldSpecification("2");
-        CompressPipe compress = new CompressPipe(fieldSpec, delimiter, escDelimiter, false);
+        CompressPipe compress = new CompressPipe("bior_compress", fieldSpec, delimiter, escDelimiter, false);
         
         List<List<String>> asList = Arrays.asList
         	(
@@ -168,7 +168,7 @@ public class CompressPipeTest {
     {
     	String delimiter = "|";
         FieldSpecification fieldSpec = new FieldSpecification("2,3");
-        CompressPipe compress = new CompressPipe(fieldSpec, delimiter);
+        CompressPipe compress = new CompressPipe("bior_compress", fieldSpec, delimiter);
         
         List<List<String>> asList = Arrays.asList
         	(
@@ -213,7 +213,7 @@ public class CompressPipeTest {
         FieldSpecification fieldSpec = new FieldSpecification("2,3");
     	String escDelimiter = "%%";
     	boolean useSetCompression = true;
-        CompressPipe compress = new CompressPipe(fieldSpec, delimiter, escDelimiter, useSetCompression);
+        CompressPipe compress = new CompressPipe("bior_compress", fieldSpec, delimiter, escDelimiter, useSetCompression);
         
         List<List<String>> asList = Arrays.asList
         	(
@@ -259,7 +259,7 @@ public class CompressPipeTest {
         FieldSpecification fieldSpec = new FieldSpecification("2,3");
     	String escDelimiter = "%%";
     	boolean useSetCompression = true;        
-        CompressPipe compress = new CompressPipe(fieldSpec, delimiter, escDelimiter, useSetCompression);
+        CompressPipe compress = new CompressPipe("bior_compress", fieldSpec, delimiter, escDelimiter, useSetCompression);
         
         List<List<String>> asList = Arrays.asList
         	(
@@ -304,7 +304,7 @@ public class CompressPipeTest {
     	FieldSpecification fieldSpec = new FieldSpecification("9,10");
     	String escDelimiter = "%%";
     	boolean useSetCompression = true;
-    	CompressPipe compress = new CompressPipe(fieldSpec, delimiter, escDelimiter, useSetCompression);
+    	CompressPipe compress = new CompressPipe("bior_compress", fieldSpec, delimiter, escDelimiter, useSetCompression);
     	HistoryInPipe hin =  new HistoryInPipe(compress.getMetadata());
     	Pipeline p = new Pipeline(
     			new CatPipe(),
@@ -331,7 +331,7 @@ public class CompressPipeTest {
     public void testWithHistory()
     {
     	try {
-	        CompressPipe compressPipe = new CompressPipe(new FieldSpecification("2,3"), "|", "%%", true);
+	        CompressPipe compressPipe = new CompressPipe("bior_compress", new FieldSpecification("2,3"), "|", "%%", true);
 	
 			Pipeline pipeline = new Pipeline(
 					new HistoryInPipe(compressPipe.getMetadata()),

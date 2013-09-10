@@ -9,6 +9,7 @@ import java.util.*;
 import edu.mayo.pipes.bioinformatics.vocab.Undefined;
 import edu.mayo.pipes.history.ColumnMetaData;
 import edu.mayo.pipes.history.History;
+import edu.mayo.pipes.history.ColumnMetaData.Type;
 import edu.mayo.pipes.util.PropertiesFileUtil;
 import edu.mayo.pipes.util.StringUtils;
 
@@ -206,24 +207,19 @@ public class AddMetadataLines {
     public String constructQueryLine(History h, String catalogPath, String operation) throws IOException {
         LinkedHashMap<String,String> temp = new LinkedHashMap();
         LinkedHashMap<String,String> attributes = new LinkedHashMap();
-         temp =  parseDatasourceProperties(catalogPath, new LinkedHashMap<String,String>());
+        parseDatasourceProperties(catalogPath, temp);
         put(attributes, BiorMetaControlledVocabulary.ID.toString(),getID(h,BiorMetaControlledVocabulary.BIOR + temp.get(BiorMetaControlledVocabulary.SHORTNAME.toString())));
         put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), operation);
         put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), ColumnMetaData.Type.JSON.toString());
         for( String key : temp.keySet()){
             put(attributes, key, temp.get(key));
-           }
+        }
         List<String> head = h.getMetaData().getOriginalHeader();
-           if (head.size() > 0) {
-         head.add(head.size() - 1, buildHeaderLine(attributes));
-         } else {
-        	 History.getMetaData().getOriginalHeader().add(buildHeaderLine(attributes));
-        	 
-         }
-        return attributes.get(BiorMetaControlledVocabulary.ID.toString()).substring(5); //remove .bior for consistenc
-
-
-      }
+        // Add the new metadata line just before the column header row.
+        // If there is no existing metadata, then just add at position zero.
+        head.add( Math.max(0, head.size()-1), buildHeaderLine(attributes));
+        return attributes.get(BiorMetaControlledVocabulary.ID.toString()).substring(5); //remove .bior for consistency
+    }
 
     /**
      * When there is no datasource.properties file, then we need to construct a line like this:
@@ -353,9 +349,9 @@ public class AddMetadataLines {
           // Keys specific to drilled columns: - add each field if datasource properties file available or empty string if it is not
           String shortName = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SHORTNAME.toString())  	:  "";
           String source    = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.SOURCE.toString())		:  "";
-          String version 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.VERSION.toString())		:  "";
-          String build 	= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.BUILD.toString())		:  "";
-          String desc 		= isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.DESCRIPTION.toString())	:  "";
+          String version   = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.VERSION.toString())		:  "";
+          String build 	   = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.BUILD.toString())		:  "";
+          String desc      = isDatasourcePropsFileExists  ?  datasourceProps.get(BiorMetaControlledVocabulary.DESCRIPTION.toString())	:  "";
           put(attributes, BiorMetaControlledVocabulary.SHORTNAME.toString(), 	shortName);
           put(attributes, BiorMetaControlledVocabulary.SOURCE.toString(), 		source);
           put(attributes, BiorMetaControlledVocabulary.VERSION.toString(), 		version);
@@ -416,8 +412,9 @@ public class AddMetadataLines {
         String cmeta = cmd.getColumnName();
         int pos = getHistoryMetadataLine4HeaderValue(cmeta);
         if(pos == -1){
-            	for(String path: drillPaths){
-                      constructDrillOnNoMetadataAvailable(h,operation,path,cmeta);
+            //could not find the column we need to drill, adding metadata failed
+        	for(String path: drillPaths){
+                constructDrillOnNoMetadataAvailable(h,operation,path,cmeta);
         	}
         }else {
             String preLine = History.getMetaData().getOriginalHeader().get(pos).toString();
@@ -498,30 +495,32 @@ public class AddMetadataLines {
         List<String> head = h.getMetaData().getOriginalHeader();
         head.add(head.size()-1, buildHeaderLine(attributes));
     }
-       
-       /**
-    * When no ##BIOR lines are available or no header is available bior_drill builds default metadata line
-    * @param h - history that we need to change
-    * @param operation  - name of the operation
-    * @param dpath   - Name of the path in JSON column to be drilled
-    * @param cmeta - JSON Column Name on which drill operation occurs
-    **/
+
     
-   private void constructDrillOnNoMetadataAvailable(History h, String operation,String dpath,String cmeta) {
-        LinkedHashMap<String,String> attributes = new LinkedHashMap();
-        put(attributes, BiorMetaControlledVocabulary.ID.toString(),getID(h,BiorMetaControlledVocabulary.BIOR.toString() + "." + cmeta + "." + dpath));
-        put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), operation);
-        put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), ColumnMetaData.Type.String.toString());
-        put(attributes, BiorMetaControlledVocabulary.SHORTNAME.toString(), "");
-        put(attributes, BiorMetaControlledVocabulary.PATH.toString(), "");
-        List<String> head = h.getMetaData().getOriginalHeader();
-        int addline = head.size()-1;
-        if(addline == -1){
-            History.getMetaData().getOriginalHeader().add(buildHeaderLine(attributes));
-        }else {
-            head.add(head.size() - 1, buildHeaderLine(attributes));
-        }
-    }
+    /**
+ * When no ##BIOR lines are available or no header is available bior_drill builds default metadata line
+ * @param h - history that we need to change
+ * @param operation  - name of the operation
+ * @param dpath   - Name of the path in JSON column to be drilled
+ * @param cmeta - JSON Column Name on which drill operation occurs
+ **/
+ 
+private void constructDrillOnNoMetadataAvailable(History h, String operation,String dpath,String cmeta) {
+     LinkedHashMap<String,String> attributes = new LinkedHashMap();
+     put(attributes, BiorMetaControlledVocabulary.ID.toString(),getID(h,BiorMetaControlledVocabulary.BIOR.toString() + "." + cmeta + "." + dpath));
+     put(attributes, BiorMetaControlledVocabulary.OPERATION.toString(), operation);
+     put(attributes, BiorMetaControlledVocabulary.DATATYPE.toString(), ColumnMetaData.Type.String.toString());
+     put(attributes, BiorMetaControlledVocabulary.SHORTNAME.toString(), "");
+     put(attributes, BiorMetaControlledVocabulary.PATH.toString(), "");
+     List<String> head = h.getMetaData().getOriginalHeader();
+     int addline = head.size()-1;
+     if(addline == -1){
+         History.getMetaData().getOriginalHeader().add(buildHeaderLine(attributes));
+     }else {
+         head.add(head.size() - 1, buildHeaderLine(attributes));
+     }
+ }
+
     
     /**
     *
@@ -615,4 +614,94 @@ public class AddMetadataLines {
         return biorHeaderMap;
     }
     
+    
+    //========================================================================================
+    // Compress methods
+    //========================================================================================
+    
+    public void modifyCompressHeaders(Metadata meta, int totalNumColumns) {
+    	try {
+    		// From the compress field specs, get the column indexes affected by compress
+    		List<Integer> colIdxs = meta.getCompressFieldSpecs().getColumnsAffected(totalNumColumns);
+    		AddMetadataLines adder = new AddMetadataLines();
+    		// From the list of column indexes, derive the column name, then get the ##BioR line that matches it
+    		List<String> headerNames = getColNames(colIdxs, true);
+    		for(String colName : headerNames) {
+    			int metaLineNum = adder.getHistoryMetadataLine4HeaderValue(colName);
+    			String compressLine = constructCompressLine(metaLineNum, colName, meta.getDelimiter(), meta.getEscapedDelimiter(), meta.getOperator());
+    			addCompressLineToHeader(metaLineNum, compressLine);
+    		}
+    	}catch(Exception e) {
+    		throw new RuntimeException("Could not construct the metadata line for the compress function.  " + e.getMessage());
+        }
+    }
+
+    /** Adds the given compress line to the correct position in the header
+	 * @param metaLineNum
+	 * @param compressLine
+	 */
+	private void addCompressLineToHeader(int metaLineNum, String compressLine) {
+		List<String> originalHeader = History.getMetaData().getOriginalHeader();
+	
+		// If a ##BIOR line already exist for the header, just modify it 
+		if( metaLineNum != -1 ) {
+			originalHeader.remove(metaLineNum);
+			originalHeader.add(metaLineNum, compressLine);
+		} 
+		// Else, add it right before the header line (that starts with a single '#')
+		// If no current header rows, then just add in at row zero.
+		else {
+			int position = originalHeader.size() <= 1 ? 0 : originalHeader.size() - 1;
+			originalHeader.add(position, compressLine);
+		}
+	}
+
+	/** Modify the compress line if it already exists in the header, or create a new one 
+	 * @param metaLineNum
+	 * @param operation 
+	 * @return
+	 */
+	private String constructCompressLine(int metaLineNum, String columnName, String delim, String escapedDelim, String operation) {
+		AddMetadataLines adder = new AddMetadataLines();
+		List<String> originalHeader = History.getMetaData().getOriginalHeader();
+
+		// Parse the metadata line into a map, modify Number field, 
+		// add Delimiter field, rebuild the line, and replace the old one
+		LinkedHashMap<String,String> attribs = new LinkedHashMap<String,String>();
+		
+		// If the ID was found in a ##BIOR line, then get that line and modify it
+		if( metaLineNum != -1 ) {
+			String metaLine = originalHeader.get(metaLineNum);
+			attribs = adder.parseHeaderLine(metaLine);
+		}
+		// Else, add new fields: ID, Operation, DataType (default=string), 
+		else {
+			attribs.put(BiorMetaControlledVocabulary.ID.toString(), columnName);
+			attribs.put(BiorMetaControlledVocabulary.OPERATION.toString(), operation);
+			attribs.put(BiorMetaControlledVocabulary.DATATYPE.toString(), Type.String.toString());
+		}
+
+		// Change the Number to ".", then add delimiter and escaped delimiter
+		attribs.put(BiorMetaControlledVocabulary.NUMBER.toString(),    ".");
+		attribs.put(BiorMetaControlledVocabulary.DELIMITER.toString(), delim);
+		attribs.put(BiorMetaControlledVocabulary.ESCAPEDDELIMITER.toString(), escapedDelim);
+		String newMetaLine = adder.buildHeaderLine(attribs);
+		return newMetaLine;
+	}
+
+	/** Get the column header names from a list of column indexes (NOTE: col indexes are 1-based, so need to subtract 1) */
+	private List<String> getColNames(List<Integer> colIdxs, boolean isOneBased) {
+		List<ColumnMetaData> columns = History.getMetaData().getColumns();
+		List<String> colNames = new ArrayList<String>();
+		int subtractFrom = isOneBased ? 1 : 0;
+		for(Integer i : colIdxs) 
+			colNames.add(columns.get(i-subtractFrom).columnName);
+		return colNames;
+	}
+	
+    //========================================================================================
+	// Compress (END)
+	//========================================================================================
+
+	
 }

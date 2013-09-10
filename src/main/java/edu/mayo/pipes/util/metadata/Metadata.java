@@ -100,11 +100,12 @@ public class Metadata {
      *                         then the compressed value will be "1|2\|3|4" because the delimiter character already occurred within the value. 
      * @param colsToCompress  0-based indexes that point to the columns that are to be compressed
      */
-    public Metadata(String delimiter, String escapedDelimiter, FieldSpecification fieldSpecs) {
+    public Metadata(String operationOrCmdName, String delimiter, String escapedDelimiter, FieldSpecification fieldSpecs) {
     	mDelimiter = delimiter;
     	mEscDelimiter = escapedDelimiter;
     	mCompressFieldSpecs = fieldSpecs;
-    	this.mCmdType = CmdType.Compress;
+    	mCmdType = CmdType.Compress;
+    	mOperator = operationOrCmdName;
     }
     
 	public CmdType getCmdType() {

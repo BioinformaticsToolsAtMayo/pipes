@@ -45,6 +45,9 @@ public class CompressPipe extends AbstractPipe<History, History>
 	// flag indicated whether values will be compressed based on "SET" logic
 	private boolean mSetCompression;
 	
+	/** Operation or command name  (ex: bior_compress) */
+	private String mOperationOrCmdName = null;
+	
 	/**
 	 * Constructor
 	 *
@@ -55,9 +58,9 @@ public class CompressPipe extends AbstractPipe<History, History>
 	 * 		If the field contains the specified <b>delimiter</b>, it will be escaped by
 	 * 		prefixing a blackslash "\" character.
 	 */
-	public CompressPipe(FieldSpecification fieldSpec, String delimiter)
+	public CompressPipe(String operationOrCmdName, FieldSpecification fieldSpec, String delimiter)
 	{
-		this(fieldSpec, delimiter, "\\" + delimiter, false);
+		this(operationOrCmdName, fieldSpec, delimiter, "\\" + delimiter, false);
 	}
 
 	/**
@@ -74,12 +77,13 @@ public class CompressPipe extends AbstractPipe<History, History>
 	 * 		"SET" compression will keep only the <b>unique</b> row values rather than all
 	 * 		values.  The order of the row values is preserved.
 	 */
-	public CompressPipe(FieldSpecification fieldSpec, String delimiter, String escapeDelimiter, boolean useSetCompression)
+	public CompressPipe(String operationOrCmdName, FieldSpecification fieldSpec, String delimiter, String escapeDelimiter, boolean useSetCompression)
 	{
 		mFieldSpec = fieldSpec;
 		mDelimiter = delimiter;
 		mEscDelimiter = escapeDelimiter;
 		mSetCompression = useSetCompression;
+		mOperationOrCmdName = operationOrCmdName;
 	}	
 	
 	@Override
@@ -378,6 +382,6 @@ public class CompressPipe extends AbstractPipe<History, History>
 	 * @return
 	 */
 	public Metadata getMetadata() {
-		return new Metadata(mDelimiter, mEscDelimiter, mFieldSpec);
+		return new Metadata(mOperationOrCmdName, mDelimiter, mEscDelimiter, mFieldSpec);
 	}
 }
