@@ -13,14 +13,18 @@ import java.util.NoSuchElementException;
  */
 public class ReversePipe extends AbstractPipe<String, String>{
 
-    @Override
-    protected String processNextStart() throws NoSuchElementException {
-        String s = this.starts.next();
+    public String reverse(String s){
         StringBuilder sb = new StringBuilder();
         for(int i=s.length()-1; i>=0; i--){
             sb.append(s.charAt(i));
         }
         return sb.toString();
+    }
+
+    @Override
+    protected String processNextStart() throws NoSuchElementException {
+        String s = this.starts.next();
+        return reverse(s);
     }
     
 }

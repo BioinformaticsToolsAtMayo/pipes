@@ -14,6 +14,10 @@ import java.util.concurrent.BlockingQueue;
  * Date: 9/2/13
  * Time: 9:44 PM
  * To change this template use File | Settings | File Templates.
+ *
+ * ref: http://tutorials.jenkov.com/java-util-concurrent/blockingqueue.html
+ *
+ *
  */
 public class ThreadedPipeline<S,E> {
 
