@@ -13,7 +13,11 @@ import edu.mayo.pipes.PrintPipe;
 import edu.mayo.pipes.UNIX.CatGZPipe;
 import edu.mayo.pipes.UNIX.GrepEPipe;
 import edu.mayo.pipes.WritePipe;
+import edu.mayo.pipes.util.GenomicObjectUtils;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * This is a one off utility, that can be used to take a genome/chr in fasta
@@ -34,30 +38,92 @@ import java.util.Arrays;
  * @author m102417
  */
 public class Fasta2Tabix {
-    
-    public static void main(String[] args){
-        String landmark = "Y";
-        //String fasta = "src/test/resources/testData/hs_ref_GRCh37.p10_chr"+landmark+".fa.gz";
-        String fasta = "/data/NCBIgene/genomes/H_sapiens/Assembled_chromosomes/seq/hs_ref_GRCh37.p10_chr"+landmark+".fa.gz";
-        //String out = "/tmp/chr22.fa.tsv";
-        String out = "/tmp/hs_ref_GRCh37.p10.fa.tsv";
-        System.out.println("Opening File: " + fasta);
+
+    List<String> landmarks = Arrays.asList(
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "22",
+            "X",
+            "Y",
+            "MT"
+            );
+
+    /**
+     *
+     * @param dir  - the directory where all the source data is
+     * @return list of paths for the data we need to process
+     */
+    public List<String> createRefFileList(String dir){
+        List<String> paths = new ArrayList<String>();
+        for(String l : landmarks){
+            paths.add(dir + "hs_ref_GRCh37.p10_chr" + l +".fa.gz");
+        }
+        return paths;
+    }
+
+
+    public void processDir(String dir, String output){
+        List<String> paths = createRefFileList(dir);
+        int i = 0;
+        for(String path : paths){
+            process(path,output,landmarks.get(i));
+            i++;
+        }
+
+    }
+
+    /**
+     * process will append the raw data from the genome file onto the output file
+     * @param inputFile
+     * @param outputFile
+     */
+    public void process(String inputFile, String outputFile, String landmark){
+        String chr = GenomicObjectUtils.computechr(landmark);
+        System.out.println("Opening File: " + inputFile);
         System.out.println("Using Landmark: " + landmark);
-        System.out.println("Writing File: " + out);
-        Pipe<String,String> t = new TransformFunctionPipe<String,String>( new Fasta2SequenceTabix(landmark) );
-                Pipe p = new Pipeline(new CatGZPipe("gzip"), 
-                            new HeaderPipe(1), //don't want to grep out header >, that would take too long!
-                              t,
-                              new WritePipe(out, true)
-                              //new PrintPipe()
-                        );
-        p.setStarts(Arrays.asList(fasta));
+        System.out.println("Writing File: " + outputFile);
+        Pipe<String,String> t = new TransformFunctionPipe<String,String>( new Fasta2SequenceTabix(chr) );
+        Pipe p = new Pipeline(new CatGZPipe("gzip"),
+                new HeaderPipe(1), //don't want to grep out header >, that would take too long!
+                t,
+                new WritePipe(outputFile, true)
+                //new PrintPipe()
+        );
+        p.setStarts(Arrays.asList(inputFile));
         for(int i=0; p.hasNext(); i++){
             p.next();
 //            if(i>1000)
 //                break;
-            
+
         }
+        return;
+
+    }
+    
+    public static void main(String[] args){
+        Fasta2Tabix f2t = new Fasta2Tabix();
+        String dir = "/data/NCBIgene/genomes/H_sapiens/Assembled_chromosomes/seq/";
+        String out = "/tmp/hs_ref_GRCh37.p10.fa.tsv";
+        f2t.processDir(dir, out);
         return;
         
     }
