@@ -11,6 +11,7 @@ import com.tinkerpop.pipes.util.Pipeline;
 import edu.mayo.pipes.HeaderPipe;
 import edu.mayo.pipes.PrintPipe;
 import edu.mayo.pipes.UNIX.CatGZPipe;
+import edu.mayo.pipes.UNIX.CatPipe;
 import edu.mayo.pipes.UNIX.GrepEPipe;
 import edu.mayo.pipes.WritePipe;
 import edu.mayo.pipes.util.GenomicObjectUtils;
@@ -102,10 +103,11 @@ public class Fasta2Tabix {
         System.out.println("Using Landmark: " + landmark);
         System.out.println("Writing File: " + outputFile);
         Pipe<String,String> t = new TransformFunctionPipe<String,String>( new Fasta2SequenceTabix(chr) );
-        Pipe p = new Pipeline(new CatGZPipe("gzip"),
+        WritePipe write =   new WritePipe(outputFile, true);
+        Pipe p = new Pipeline(new CatPipe(),
                 new HeaderPipe(1), //don't want to grep out header >, that would take too long!
                 t,
-                new WritePipe(outputFile, true)
+                write
                 //new PrintPipe()
         );
         p.setStarts(Arrays.asList(inputFile));
