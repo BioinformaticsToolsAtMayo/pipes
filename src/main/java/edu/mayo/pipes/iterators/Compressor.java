@@ -214,7 +214,7 @@ public class Compressor
 	 * @param file	File to process
 	 * @return	The file's suffix, or an empty string if no suffix
 	 */
-	private static final String getSuffix (File file)
+	public static final String getSuffix (File file)
 	{
 		String	name = file.getName ();
 		return getSuffix (name);
@@ -227,7 +227,7 @@ public class Compressor
 	 * @param name	Name to process
 	 * @return	The name's suffix, or an empty string if no suffix
 	 */
-	private static final String getSuffix (String name)
+	public static final String getSuffix (String name)
 	{
 		int		index = name.lastIndexOf ('.');
 		String	end;
@@ -248,7 +248,7 @@ public class Compressor
 	 * @return	True if one of our allowed Zip suffixes, else false.  Currently, ".zip" is the
 	 * only allowed suffix
 	 */
-	private static final boolean isZipSuffix (String suffix)
+	public static final boolean isZipSuffix (String suffix)
 	{
 		return (suffix.equals (gZipSuffix));
 	}
@@ -261,7 +261,7 @@ public class Compressor
 	 * @return	True if one of our allowed GZip suffixes, else false.  Currently, ".gz", ".bgz", 
 	 * ".tgz", ".taz", ".cpgz", ".z", and ".gzip" are the only allowed suffixes
 	 */
-	private static final boolean isGZipSuffix (String suffix)
+	public static final boolean isGZipSuffix (String suffix)
 	{
 //		return GzipUtils.isCompressedFilename ("foo" + suffix);
 		int	i, numSuffix = gGZipSuffixes.length;
@@ -282,7 +282,7 @@ public class Compressor
 	 * @return	True if one of our allowed BZip suffixes, else false.  Currently, ".bz", ".bz2",
 	 * ".tbz" and ".tbz2" are the only allowed suffixes
 	 */
-	private static final boolean isBZipSuffix (String suffix)
+	public static final boolean isBZipSuffix (String suffix)
 	{
 //		return BZip2Utils.isCompressedFilename ("foo" + suffix);
 		int	i, numSuffix = gBZipSuffixes.length;
@@ -302,7 +302,7 @@ public class Compressor
 	 * @param append	If true, append to the end of the write file instead of re-writing it
 	 * @throws IOException
 	 */
-	private void buildAccessors (boolean append) throws IOException
+	public void buildAccessors (boolean append) throws IOException
 	{
 		String	suffix;
 
@@ -362,10 +362,11 @@ public class Compressor
 	 *
 	 * @throws IOException
 	 */
-	private void makeNormalReader () throws IOException
+	public BufferedReader makeNormalReader () throws IOException
 	{
 		FileReader rFile = new FileReader (inFile);
 		reader = new BufferedReader (rFile);
+        return reader;
 	}
 
 
@@ -375,10 +376,11 @@ public class Compressor
 	 * @param append	If true, append to the end of the write file instead of re-writing it
 	 * @throws IOException
 	 */
-	private void makeNormalWriter (boolean append) throws IOException
+	public BufferedWriter makeNormalWriter (boolean append) throws IOException
 	{
 		FileWriter wFile = new FileWriter (outFile, append);
 		writer = new BufferedWriter (wFile);
+        return writer;
 	}
 
 
@@ -388,7 +390,7 @@ public class Compressor
 	 *
 	 * @throws IOException
 	 */
-	private void makeZipReader () throws IOException
+	public void makeZipReader () throws IOException
 	{
 		if (inFile == null)
 			return;
@@ -405,7 +407,7 @@ public class Compressor
 	 * @param inStream		Stream to read from
 	 * @throws IOException
 	 */
-	private void makeZipReader (InputStream inStream) throws IOException
+	public BufferedReader makeZipReader (InputStream inStream) throws IOException
 	{
 		ZipInputStream	zipRead = new ZipInputStream (inStream);
 //		ZipEntry		zE = zipRead.getNextEntry ();
@@ -415,6 +417,7 @@ public class Compressor
 		InputStreamReader rStream = new InputStreamReader (zipRead);
 		reader = new BufferedReader (rStream);
 		comp = kZipCompression;
+        return reader;
 	}
 
 
@@ -423,10 +426,10 @@ public class Compressor
 	 *
 	 * @throws IOException
 	 */
-	private void makeZipWriter () throws IOException
+	public BufferedWriter makeZipWriter () throws IOException
 	{
 		if (outFile == null)
-			return;
+			return null;
 
 		FileOutputStream	outFileStream = new FileOutputStream (outFile);
 		ZipOutputStream		zipWrite = new ZipOutputStream (outFileStream);
@@ -441,6 +444,7 @@ public class Compressor
 		OutputStreamWriter wStream = new OutputStreamWriter (zipWrite);
 		writer = new BufferedWriter (wStream);
 		comp = kZipCompression;
+        return writer;
 	}
 
 
@@ -449,7 +453,7 @@ public class Compressor
 	 *
 	 * @throws IOException
 	 */
-	protected void makeGZipReader () throws IOException
+	public void makeGZipReader () throws IOException
 	{
 		if (inFile == null)
 			return;
@@ -464,13 +468,14 @@ public class Compressor
 	 * @param inStream		Stream to read from
 	 * @throws IOException
 	 */
-	protected void makeGZipReader (InputStream inStream) throws IOException
+	public BufferedReader makeGZipReader (InputStream inStream) throws IOException
 	{
 		GzipCompressorInputStream zipRead = new GzipCompressorInputStream (inStream, true);
 		// Now ready to read file, so create readers to do that
 		InputStreamReader rStream = new InputStreamReader (zipRead);
 		reader = new BufferedReader (rStream);
 		comp = kGZipCompression;
+        return reader;
 	}
 
 
@@ -479,10 +484,10 @@ public class Compressor
 	 *
 	 * @throws IOException
 	 */
-	protected void makeGZipWriter () throws IOException
+	public BufferedWriter makeGZipWriter () throws IOException
 	{
 		if (outFile == null)
-			return;
+			return null;
 
 		FileOutputStream			outFileStream = new FileOutputStream (outFile);
 		GzipCompressorOutputStream	zipWrite = new GzipCompressorOutputStream (outFileStream);
@@ -490,6 +495,7 @@ public class Compressor
 		OutputStreamWriter wStream = new OutputStreamWriter (zipWrite);
 		writer = new BufferedWriter (wStream);
 		comp = kGZipCompression;
+        return writer;
 	}
 
 
@@ -498,7 +504,7 @@ public class Compressor
 	 *
 	 * @throws IOException
 	 */
-	protected void makeBZipReader () throws IOException
+	public void makeBZipReader () throws IOException
 	{
 		if (inFile == null)
 			return;
@@ -513,13 +519,14 @@ public class Compressor
 	 * @param inStream		Stream to read from
 	 * @throws IOException
 	 */
-	protected void makeBZipReader (InputStream inStream) throws IOException
+	public BufferedReader makeBZipReader (InputStream inStream) throws IOException
 	{
 		BZip2CompressorInputStream	zipRead = new BZip2CompressorInputStream (inStream);
 		// Now ready to read file, so create readers to do that
 		InputStreamReader	rStream = new InputStreamReader (zipRead);
 		reader = new BufferedReader (rStream);
 		comp = kBZipCompression;
+        return reader;
 	}
 
 
@@ -528,10 +535,10 @@ public class Compressor
 	 *
 	 * @throws IOException
 	 */
-	protected void makeBZipWriter () throws IOException
+	public BufferedWriter makeBZipWriter () throws IOException
 	{
 		if (outFile == null)
-			return;
+			return null;
 
 		FileOutputStream			outFileStream = new FileOutputStream (outFile);
 		BZip2CompressorOutputStream	zipWrite = new BZip2CompressorOutputStream (outFileStream);
@@ -539,6 +546,71 @@ public class Compressor
 		OutputStreamWriter wStream = new OutputStreamWriter (zipWrite);
 		writer = new BufferedWriter (wStream);
 		comp = kBZipCompression;
+        return writer;
 	}
 
+
+    public File getInFile() {
+        return inFile;
+    }
+
+    public void setInFile(File inFile) {
+        this.inFile = inFile;
+    }
+
+    public File getOutFile() {
+        return outFile;
+    }
+
+    public void setOutFile(File outFile) {
+        this.outFile = outFile;
+    }
+
+    public void setReader(BufferedReader reader) {
+        this.reader = reader;
+    }
+
+    public void setWriter(BufferedWriter writer) {
+        this.writer = writer;
+    }
+
+    public int getComp() {
+        return comp;
+    }
+
+    public void setComp(int comp) {
+        this.comp = comp;
+    }
+
+    public static int getkNotAssigned() {
+        return kNotAssigned;
+    }
+
+    public static int getkNoCompression() {
+        return kNoCompression;
+    }
+
+    public static int getkZipCompression() {
+        return kZipCompression;
+    }
+
+    public static int getkGZipCompression() {
+        return kGZipCompression;
+    }
+
+    public static int getkBZipCompression() {
+        return kBZipCompression;
+    }
+
+    public static String getgZipSuffix() {
+        return gZipSuffix;
+    }
+
+    public static String[] getgGZipSuffixes() {
+        return gGZipSuffixes;
+    }
+
+    public static String[] getgBZipSuffixes() {
+        return gBZipSuffixes;
+    }
 }
