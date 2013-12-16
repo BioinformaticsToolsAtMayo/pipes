@@ -71,19 +71,20 @@ public class Fasta2Tabix {
     /**
      *
      * @param dir  - the directory where all the source data is
+     * @param build - e.g. GRCh37.p10 or GRCh37.p13, ...
      * @return list of paths for the data we need to process
      */
-    public List<String> createRefFileList(String dir){
+    public List<String> createRefFileList(String dir, String build){
         List<String> paths = new ArrayList<String>();
         for(String l : landmarks){
-            paths.add(dir + "hs_ref_GRCh37.p10_chr" + l +".fa.gz");
+            paths.add(dir + "hs_ref_+build+_chr" + l +".fa.gz");
         }
         return paths;
     }
 
 
-    public void processDir(String dir, String output){
-        List<String> paths = createRefFileList(dir);
+    public void processDir(String dir, String build, String output){
+        List<String> paths = createRefFileList(dir, build);
         int i = 0;
         for(String path : paths){
             process(path,output,landmarks.get(i));
@@ -125,7 +126,7 @@ public class Fasta2Tabix {
         Fasta2Tabix f2t = new Fasta2Tabix();
         String dir = "/data/NCBIgene/genomes/H_sapiens/Assembled_chromosomes/seq/";
         String out = "/tmp/hs_ref_GRCh37.p10.fa.tsv";
-        f2t.processDir(dir, out);
+        f2t.processDir(dir, "GRCh37.p10", out);
         return;
         
     }
