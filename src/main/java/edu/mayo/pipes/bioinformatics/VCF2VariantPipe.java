@@ -348,6 +348,16 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     }
 
     /**
+     * Takes a line of VCF and creates a FORMAT JSON that has attributes based on
+     *
+     * @param dataLine
+     * @return
+     */
+    private JsonObject buildFormatJSON(List<String> dataLine){
+        return null;
+    }
+
+    /**
      * Adds core attributes relevant to a variant to the given JSON object.
      *
      * @param root JSON object to add to.
