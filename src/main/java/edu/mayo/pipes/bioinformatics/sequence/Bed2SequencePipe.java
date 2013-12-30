@@ -37,7 +37,7 @@ import edu.mayo.pipes.bioinformatics.vocab.CoreAttributes;
 public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<String>> {
 
     TabixSearchPipe mTabixSearch;
-    private int mMaxBpCol = 0;
+    private int mMaxBpCol = -1;
     private boolean mIsUseJsonCol = false;
     
     private JsonPath mChromJsonPath;
@@ -139,15 +139,17 @@ public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<S
     private String getTabixQueryString(ArrayList<String> history) {
     	String query = "";
     	if( mIsUseJsonCol ) {
-    		String lastCol = history.get(history.size()-1);
+    		String lastCol = history.get(history.size()+this.mMaxBpCol);
     		String chr = mChromJsonPath.read(lastCol);
-    		int min = (Integer)(mMinBpJsonPath.read(lastCol));
-    		int max = (Integer)(mMaxBpJsonPath.read(lastCol));
+    		//int min = (Integer)(mMinBpJsonPath.read(lastCol));
+            int min = Integer.parseInt((String) mMinBpJsonPath.read(lastCol));
+    		//int max = (Integer)(mMaxBpJsonPath.read(lastCol));
+            int max = Integer.parseInt((String) mMaxBpJsonPath.read(lastCol)); //failure to parse will result in a runtime exception!
     		query = chr + ":" + min + "-" + max;
     	} else {
-    		String chr = history.get(history.size()-3+this.mMaxBpCol);
-    		String min = history.get(history.size()-2+this.mMaxBpCol);
-    		String max = history.get(history.size()-1+this.mMaxBpCol);
+    		String chr = history.get(history.size()-2+this.mMaxBpCol); //-3
+    		String min = history.get(history.size()-1+this.mMaxBpCol); //-2
+    		String max = history.get(history.size()+this.mMaxBpCol);   //-1
     		query = chr + ":" + min + "-" + max;
     	}
     	return query;
