@@ -65,6 +65,15 @@ public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<S
         mTabixSearch = new TabixSearchPipe(tabixDataFile);
         this.mMaxBpCol = column;
     }
+
+    public Bed2SequencePipe(String tabixDataFile, int column, boolean isUseJson) throws IOException {
+        mTabixSearch = new TabixSearchPipe(tabixDataFile);
+        this.mMaxBpCol = column;
+        mIsUseJsonCol = isUseJson;
+        mChromJsonPath = JsonPath.compile(CoreAttributes._landmark.toString());
+        mMinBpJsonPath = JsonPath.compile(CoreAttributes._minBP.toString());
+        mMaxBpJsonPath = JsonPath.compile(CoreAttributes._maxBP.toString());
+    }
     
     /**
      * Use the JSON column, which should be the last one
