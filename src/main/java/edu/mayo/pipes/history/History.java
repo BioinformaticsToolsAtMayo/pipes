@@ -68,12 +68,12 @@ public class History extends ArrayList<String> implements List<String>,	Cloneabl
 
 	private static boolean sMetaDataInitialized = false;
 	
-	protected void setMetaData(HistoryMetaData hMetaData) {
+	public void setMetaData(HistoryMetaData hMetaData) {
 		sMetaData = hMetaData;
 		sMetaDataInitialized = true;
 	}
 	
-	protected boolean isMetaDataInitialized() {
+	public boolean isMetaDataInitialized() {
 		return sMetaDataInitialized;
 	}
 	
