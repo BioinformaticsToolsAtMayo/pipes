@@ -3,15 +3,12 @@
  * and open the template in the editor.
  */
 package edu.mayo.pipes.bioinformatics;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.gson.JsonObject;
 import edu.mayo.pipes.UNIX.GrepEPipe;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -36,6 +33,8 @@ import edu.mayo.pipes.history.History;
 import edu.mayo.pipes.history.HistoryInPipe;
 import edu.mayo.pipes.history.HistoryOutPipe;
 import java.util.Map;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -347,9 +346,16 @@ public class VCF2VariantPipeTest {
         	);
         pipeline.setStarts(Arrays.asList("src/test/resources/testData/VCF/BATCH4_first2000.vcf"));
 
+
+        String json = "{\"CHROM\":\"chr1\",\"POS\":\"28218100\",\"ID\":\".\",\"REF\":\"T\",\"ALT\":\"C\",\"QUAL\":\"161.75\",\"FILTER\":\".\",\"INFO\":{\"AC\":[39],\"AF\":[0.342],\"AN\":114,\"BaseQRankSum\":-2.185,\"DP\":22,\"Dels\":0.0,\"FS\":4.193,\"HaplotypeScore\":0.0,\"MLEAC\":[37],\"MLEAF\":[0.325],\"MQ\":70.0,\"MQ0\":0,\"MQRankSum\":-0.282,\"QD\":20.22,\"ReadPosRankSum\":-1.128},\"_id\":\".\",\"_type\":\"variant\",\"_landmark\":\"1\",\"_refAllele\":\"T\",\"_altAlleles\":[\"C\"],\"_minBP\":28218100,\"_maxBP\":28218100,\"samples\":[{\"GT\":\"0/0/0/0/0/0\",\"AD\":[1.0,0.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,1.0,2.0,3.0,5.0,8.0,33.0],\"sampleID\":\"s_Mayo_TN_CC_319\"},{\"GT\":\"0/0/0/0/0/0\",\"AD\":[1.0,0.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,1.0,2.0,3.0,5.0,8.0,39.0],\"sampleID\":\"s_Mayo_TN_CC_322\"},{\"GT\":\"1/1/1/1/1/1\",\"AD\":[0.0,1.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":6.0,\"MLPSAF\":1.0,\"PL\":[34.0,8.0,5.0,3.0,2.0,1.0,0.0],\"GenotypePositive\":1,\"sampleID\":\"s_Mayo_TN_CC_327\"},{\"GT\":\"0/0/0/1/1/1\",\"AD\":[1.0,1.0],\"DP\":2.0,\"GQ\":1.0,\"MLPSAC\":3.0,\"MLPSAF\":0.5,\"PL\":[30.0,3.0,1.0,0.0,1.0,3.0,30.0],\"GenotypePositive\":1,\"sampleID\":\"s_Mayo_TN_CC_335\"},{\"GT\":\"0/0/0/0/0/0\",\"AD\":[1.0,0.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,1.0,2.0,3.0,5.0,8.0,37.0],\"sampleID\":\"s_Mayo_TN_CC_337\"},{\"GT\":\"0/0/0/0/0/0\",\"AD\":[1.0,0.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,1.0,2.0,3.0,5.0,8.0,37.0],\"sampleID\":\"s_Mayo_TN_CC_339\"},{\"GT\":\"1/1/1/1/1/1\",\"AD\":[0.0,1.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":6.0,\"MLPSAF\":1.0,\"PL\":[37.0,8.0,5.0,3.0,2.0,1.0,0.0],\"GenotypePositive\":1,\"sampleID\":\"s_Mayo_TN_CC_348\"},{\"GT\":\"0/0/0/0/0/0\",\"AD\":[1.0,0.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,1.0,2.0,3.0,5.0,8.0,38.0],\"sampleID\":\"s_Mayo_TN_CC_350\"},{\"GT\":\"1/1/1/1/1/1\",\"AD\":[0.0,1.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":6.0,\"MLPSAF\":1.0,\"PL\":[32.0,8.0,5.0,3.0,2.0,1.0,0.0],\"GenotypePositive\":1,\"sampleID\":\"s_Mayo_TN_CC_361\"},{\"GT\":\"1/1/1/1/1/1\",\"AD\":[0.0,1.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":6.0,\"MLPSAF\":1.0,\"PL\":[26.0,8.0,5.0,3.0,2.0,1.0,0.0],\"GenotypePositive\":1,\"sampleID\":\"s_Mayo_TN_CC_364\"},{\"GT\":\"0/0/0/0/0/0\",\"AD\":[1.0,0.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,1.0,2.0,3.0,5.0,8.0,36.0],\"sampleID\":\"s_Mayo_TN_CC_367\"},{\"GT\":\"1/1/1/1/1/1\",\"AD\":[0.0,1.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":6.0,\"MLPSAF\":1.0,\"PL\":[30.0,8.0,5.0,3.0,2.0,1.0,0.0],\"GenotypePositive\":1,\"sampleID\":\"s_Mayo_TN_CC_374\"},{\"GT\":\"0/0/0/0/0/0\",\"AD\":[1.0,0.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,1.0,2.0,3.0,5.0,8.0,37.0],\"sampleID\":\"s_Mayo_TN_CC_377\"},{\"GT\":\"0/0/0/0/0/0\",\"AD\":[1.0,0.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,1.0,2.0,3.0,5.0,8.0,38.0],\"sampleID\":\"s_Mayo_TN_CC_380\"},{\"GT\":\"1/1/1/1/1/1\",\"AD\":[0.0,1.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":6.0,\"MLPSAF\":1.0,\"PL\":[37.0,8.0,5.0,3.0,2.0,1.0,0.0],\"GenotypePositive\":1,\"sampleID\":\"s_Mayo_TN_CC_382\"},{\"GT\":\"0/0/0/0/0/0\",\"AD\":[1.0,0.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,1.0,2.0,3.0,5.0,8.0,36.0],\"sampleID\":\"s_Mayo_TN_CC_384\"},{\"GT\":\"0/0/0/0/0/0\",\"AD\":[1.0,0.0],\"DP\":1.0,\"GQ\":1.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,1.0,2.0,3.0,5.0,8.0,36.0],\"sampleID\":\"s_Mayo_TN_CC_389\"},{\"GT\":\"0/0/0/0/0/0\",\"AD\":[2.0,0.0],\"DP\":2.0,\"GQ\":2.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,2.0,4.0,6.0,10.0,16.0,77.0],\"sampleID\":\"s_Mayo_TN_CC_394\"},{\"GT\":\"0/0/0/0/0/0\",\"AD\":[2.0,0.0],\"DP\":2.0,\"GQ\":2.0,\"MLPSAC\":0.0,\"MLPSAF\":0.0,\"PL\":[0.0,2.0,4.0,6.0,10.0,16.0,64.0],\"sampleID\":\"s_Mayo_TN_CC_398\"}],\"FORMAT\":{\"max\":{\"PL\":77.0,\"AD\":2.0,\"GQ\":2.0,\"DP\":2.0,\"MLPSAF\":1.0,\"MLPSAC\":6.0},\"min\":{\"PL\":0.0,\"AD\":0.0,\"GQ\":1.0,\"DP\":1.0,\"MLPSAF\":0.0,\"MLPSAC\":0.0},\"GenotypePostitiveCount\":7,\"GenotypePositiveList\":[\"s_Mayo_TN_CC_327\",\"s_Mayo_TN_CC_335\",\"s_Mayo_TN_CC_348\",\"s_Mayo_TN_CC_361\",\"s_Mayo_TN_CC_364\",\"s_Mayo_TN_CC_374\",\"s_Mayo_TN_CC_382\"]}}";
         for(int i=0; pipeline.hasNext(); i++){
             String next = pipeline.next();
             System.out.println(next);
+
+            if(i==0){
+                assertEquals(json, next);
+            }
+
             //
             if(i==1){            
                 Object o = jsonPath1.read(next);
@@ -367,10 +373,21 @@ public class VCF2VariantPipeTest {
         TODO: this should output something, still need to test it:
         {"INFO":{"HaplotypeScore":{"number":1,"type":"Float"},"InbreedingCoeff":{"number":1,"type":"Float"},"MLEAC":{"number":null,"type":"Integer"},"MLEAF":{"number":null,"type":"Float"},"FS":{"number":1,"type":"Float"},"ReadPosRankSum":{"number":1,"type":"Float"},"DP":{"number":1,"type":"Integer"},"DS":{"number":0,"type":"Flag"},"STR":{"number":0,"type":"Flag"},"BaseQRankSum":{"number":1,"type":"Float"},"QD":{"number":1,"type":"Float"},"MQ":{"number":1,"type":"Float"},"AC":{"number":null,"type":"Integer"},"PL":{"number":null,"type":"Integer"},"AD":{"number":null,"type":"Integer"},"GT":{"number":1,"type":"String"},"MQRankSum":{"number":1,"type":"Float"},"RU":{"number":1,"type":"String"},"Dels":{"number":1,"type":"Float"},"GQ":{"number":1,"type":"Integer"},"RPA":{"number":null,"type":"Integer"},"AF":{"number":null,"type":"Float"},"MLPSAF":{"number":null,"type":"Float"},"MQ0":{"number":1,"type":"Integer"},"MLPSAC":{"number":null,"type":"Integer"},"AN":{"number":1,"type":"Integer"}},"FORMAT":{"PL":1,"AD":1,"GT":1,"GQ":1,"DP":1,"MLPSAF":1,"MLPSAC":1},"SAMPLES":{"s_Mayo_TN_CC_394":91,"s_Mayo_TN_CC_393":90,"s_Mayo_TN_CC_392":89,"s_Mayo_TN_CC_391":88,"s_Mayo_TN_CC_398":95,"s_Mayo_TN_CC_397":94,"s_Mayo_TN_CC_396":93,"s_Mayo_TN_CC_395":92,"s_Mayo_TN_CC_350":47,"s_Mayo_TN_CC_390":87,"s_Mayo_TN_CC_353":50,"s_Mayo_TN_CC_354":51,"s_Mayo_TN_CC_351":48,"s_Mayo_TN_CC_352":49,"s_Mayo_TN_CC_358":55,"s_Mayo_TN_CC_357":54,"s_Mayo_TN_CC_356":53,"s_Mayo_TN_CC_355":52,"s_Mayo_TN_CC_359":56,"s_Mayo_TN_CC_399":96,"s_Mayo_TN_CC_381":78,"s_Mayo_TN_CC_380":77,"s_Mayo_TN_CC_383":80,"s_Mayo_TN_CC_382":79,"s_Mayo_TN_CC_385":82,"s_Mayo_TN_CC_319":16,"s_Mayo_TN_CC_384":81,"s_Mayo_TN_CC_387":84,"s_Mayo_TN_CC_386":83,"s_Mayo_TN_CC_315":12,"s_Mayo_TN_CC_316":13,"s_Mayo_TN_CC_317":14,"s_Mayo_TN_CC_318":15,"s_Mayo_TN_CC_340":37,"s_Mayo_TN_CC_341":38,"s_Mayo_TN_CC_313":10,"s_Mayo_TN_CC_342":39,"s_Mayo_TN_CC_314":11,"s_Mayo_TN_CC_343":40,"s_Mayo_TN_CC_345":42,"s_Mayo_TN_CC_344":41,"s_Mayo_TN_CC_347":44,"s_Mayo_TN_CC_346":43,"s_Mayo_TN_CC_349":46,"s_Mayo_TN_CC_348":45,"s_Mayo_TN_CC_388":85,"s_Mayo_TN_CC_389":86,"s_Mayo_TN_CC_375":72,"s_Mayo_TN_CC_324":21,"s_Mayo_TN_CC_376":73,"s_Mayo_TN_CC_325":22,"s_Mayo_TN_CC_373":70,"s_Mayo_TN_CC_322":19,"s_Mayo_TN_CC_374":71,"s_Mayo_TN_CC_323":20,"s_Mayo_TN_CC_371":68,"s_Mayo_TN_CC_328":25,"s_Mayo_TN_CC_372":69,"s_Mayo_TN_CC_329":26,"s_Mayo_TN_CC_326":23,"s_Mayo_TN_CC_370":67,"s_Mayo_TN_CC_327":24,"s_Mayo_TN_CC_321":18,"s_Mayo_TN_CC_379":76,"s_Mayo_TN_CC_320":17,"s_Mayo_TN_CC_378":75,"s_Mayo_TN_CC_377":74,"s_Mayo_TN_CC_362":59,"s_Mayo_TN_CC_333":30,"s_Mayo_TN_CC_363":60,"s_Mayo_TN_CC_334":31,"s_Mayo_TN_CC_364":61,"s_Mayo_TN_CC_335":32,"s_Mayo_TN_CC_365":62,"s_Mayo_TN_CC_336":33,"s_Mayo_TN_CC_337":34,"s_Mayo_TN_CC_338":35,"s_Mayo_TN_CC_339":36,"s_Mayo_TN_CC_360":57,"s_Mayo_TN_CC_361":58,"s_Mayo_TN_CC_407":104,"s_Mayo_TN_CC_367":64,"s_Mayo_TN_CC_330":27,"s_Mayo_TN_CC_408":105,"s_Mayo_TN_CC_366":63,"s_Mayo_TN_CC_369":66,"s_Mayo_TN_CC_332":29,"s_Mayo_TN_CC_368":65,"s_Mayo_TN_CC_331":28,"s_Mayo_TN_CC_403":100,"s_Mayo_TN_CC_404":101,"s_Mayo_TN_CC_405":102,"s_Mayo_TN_CC_406":103,"s_Mayo_TN_CC_400":97,"s_Mayo_TN_CC_401":98,"s_Mayo_TN_CC_402":99}}
         */ 
-        //System.out.println(vcf.getJSONMetadata());
+        System.out.println(vcf.getJSONMetadata());
 
-    }  
-    
+    }
+
+    @Test
+    public void testBuildFormatJSON(){
+        String vcfLine = "chr1\t756258\tBND_qdnezqbk\tT\t]chr1:756327]T\t2.38\tPASS\tSVTYPE=BND;EVENT=NOV_INS;ISIZE=69;MATE_ID=BND_whmomhxb\tGT:CTX:DEL:INS:INV:NOV_INS:TDUP:lSC:nSC:uRP:distl_levD\t0/1:0:0:1:0:15:2:52:9:15:0.42\t0/0:.:.:.:.:.:.:.:.:.:.\t0/0:.:.:.:.:.:.:.:.:.:.\n";
+        List<String> line = Arrays.asList(vcfLine.split("\t"));
+        VCF2VariantPipe vcf = new VCF2VariantPipe(true);
+        JsonObject ob = vcf.buildFormatJSON(line);
+        assertNotNull(ob);
+        String formatjson = "{\"max\":{\"lSC\":52.0,\"INS\":1.0,\"nSC\":9.0,\"NOV_INS\":15.0,\"CTX\":0.0,\"uRP\":15.0,\"TDUP\":2.0,\"INV\":0.0,\"DEL\":0.0,\"distl_levD\":0.42},\"min\":{\"lSC\":52.0,\"INS\":1.0,\"nSC\":9.0,\"NOV_INS\":15.0,\"CTX\":0.0,\"uRP\":15.0,\"TDUP\":2.0,\"INV\":0.0,\"DEL\":0.0,\"distl_levD\":0.42}}";
+        assertEquals(formatjson, ob.toString());
+        //System.out.println(ob.toString());
+    }
     
     @Test
     public void sampleHasVariant(){

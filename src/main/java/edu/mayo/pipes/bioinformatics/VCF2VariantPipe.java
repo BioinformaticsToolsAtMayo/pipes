@@ -99,10 +99,23 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
 
     private boolean allSamples = false;
     private boolean processSamples = false;
+
+    /**
+     *
+     * @param includeSamples include samples will add a samples : [s1:{"some":"data"},s2:{"some":"data"}]
+     *                       sample array to the JSON.  VERY useful for filtering in MongoDB.
+     */
     public VCF2VariantPipe(boolean includeSamples){
         processSamples = true;
     }
 
+    /**
+     *
+     * @param includeSamples  - do we want sample data to be created in the JSON?
+     * @param AllSamples      - do we want the verbose mode for samples? verbose mode will include samples that have no data.  Note,
+     *                          AllSamples == true is generally considered wasteful because the sample information is in the metadata,
+     *                        This mode is mostly there for legacy reasons
+     */
     public VCF2VariantPipe(boolean includeSamples, boolean AllSamples){
         processSamples = true;
         this.allSamples = AllSamples;
@@ -348,16 +361,6 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     }
 
     /**
-     * Takes a line of VCF and creates a FORMAT JSON that has attributes based on
-     *
-     * @param dataLine
-     * @return
-     */
-    private JsonObject buildFormatJSON(List<String> dataLine){
-        return null;
-    }
-
-    /**
      * Adds core attributes relevant to a variant to the given JSON object.
      *
      * @param root JSON object to add to.
@@ -523,20 +526,23 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
                 this.sampleKeys.put(col, i+1);
             }
             root.add("samples", samples);
-            root.addProperty("GenotypePostitiveCount", this.GenotypePostitiveCount);
-            root.add("GenotypePositiveList", this.GenotypePositiveSamples);
+            //add format calculations from the sample columns
+            JsonObject format = buildFormatJSON(history);
+            format.addProperty("GenotypePostitiveCount", this.GenotypePostitiveCount);
+            format.add("GenotypePositiveList", this.GenotypePositiveSamples);
+            root.add("FORMAT", format);
             //PLIntervalMin = 0;
-            root.addProperty("PLIntervalMin", min(this.ALLPL));
-            //PLIntervalMax = Double.MAX_VALUE;
-            root.addProperty("PLIntervalMax", max(this.ALLPL));
-            //PLAverage = Double.MAX_VALUE;
-            root.addProperty("PLAverage", average(this.ALLPL));
-            //ADIntervalMin = 0;
-            root.addProperty("ADIntervalMin", min(this.ALLAD));
-            //ADIntervalMax = Double.MAX_VALUE;
-            root.addProperty("ADIntervalMax", max(this.ALLAD));
-            //ADAverage = Double.MAX_VALUE;
-            root.addProperty("ADAverage", average(this.ALLAD));
+//            root.addProperty("PLIntervalMin", min(this.ALLPL));
+//            //PLIntervalMax = Double.MAX_VALUE;
+//            root.addProperty("PLIntervalMax", max(this.ALLPL));
+//            //PLAverage = Double.MAX_VALUE;
+//            root.addProperty("PLAverage", average(this.ALLPL));
+//            //ADIntervalMin = 0;
+//            root.addProperty("ADIntervalMin", min(this.ALLAD));
+//            //ADIntervalMax = Double.MAX_VALUE;
+//            root.addProperty("ADIntervalMax", max(this.ALLAD));
+//            //ADAverage = Double.MAX_VALUE;
+//            root.addProperty("ADAverage", average(this.ALLAD));
 
         }
     }
@@ -634,15 +640,15 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
                 }
                 genotype.add(tokens[i], jarr);
                 //calculate the maxPL and add
-                if(tokens[i].equals("PL")){
-                    genotype = addMaxMinPL(genotype,values);
-                }
+//                if(tokens[i].equals("PL")){
+//                    genotype = addMaxMinPL(genotype,values);
+//                }
                 //calculate the minAD/maxAD and add to the json
                 //for the first, AD that is ref and all of the others are alternates
                 //pick the min and max from the alternates.
-                if(tokens[i].equals("AD")){
-                    genotype = addMinMaxAD(genotype,values);
-                }
+//                if(tokens[i].equals("AD")){
+//                    genotype = addMinMaxAD(genotype,values);
+//                }
             }else if(isNumeric(split[i])){ //it is not
                 genotype.addProperty(tokens[i], Double.parseDouble(split[i]));
             }else { //it is a string, so just add it as a string.
@@ -681,49 +687,165 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     }
 
     /**
-     * PL : the phred-scaled genotype likelihoods rounded to the closest integer (and otherwise defined precisely as the GL field) (Integers)
-     * we need to select the max and of the values from this array and insert as a seperate value for use in filtering
+     * Takes a line of VCF and creates a FORMAT JSON that has attributes based on
+     * the information found in the sample.
+     *
+     * @param dataLine
+     * @return
      */
-    public JsonObject addMaxMinPL(JsonObject genotype, ArrayList<Double> values){
-        //System.out.println(values);
-        double minPL = Double.MAX_VALUE;
-        double maxPL = -Double.MAX_VALUE;
-        for(int i=0;i<values.size();i++){
-            Double d = values.get(i);
-            this.ALLPL.add(d);
-            if(d > maxPL){
-                maxPL = d;
-            }
-            if(d < minPL){
-                minPL = d;
-            }
+    public JsonObject buildFormatJSON(List<String> dataLine){
+        JsonObject format = new JsonObject();
+
+        String formatStr = dataLine.get(COL_FORMAT);
+        String[] formatTokens = formatStr.split(":");
+        if(formatTokens.length < 1){
+            return format; //return an empty object, nothing to format
         }
-        //System.out.println(maxPL);
-        genotype.addProperty("maxPL", maxPL);
-        genotype.addProperty("minPL", minPL);
-        //System.out.println(genotype.toString());
-        return genotype;
+        //System.out.println(formatStr);
+
+        HashMap<String,List<Double>> allVals = getSampleVals4Row(dataLine, formatTokens);
+        //then create summary statistics, for each token in the FORMAT field.
+        JsonObject max = new JsonObject();
+        JsonObject min = new JsonObject();
+        for(String key : allVals.keySet()){
+            max.addProperty(key, max(allVals.get(key)));
+            min.addProperty(key, min(allVals.get(key)));
+        }
+        format.add("max", max);
+        format.add("min", min);
+
+
+        return format;
     }
 
-    public JsonObject addMinMaxAD(JsonObject genotype, ArrayList<Double> values){
-        double maxAD = -Double.MAX_VALUE;
-        double minAD = Double.MAX_VALUE;
-        for(int i=1;i<values.size();i++){
-            Double d = values.get(i);
-            this.ALLAD.add(d);
-            if(d > maxAD){
-                maxAD = d;
+    /**
+     *
+     * @param dataLine     - the original VCF line tokenized into strings
+     * @param formatTokens - the keys from the "format" field for this line
+     * @return a count for each key in all samples
+     */
+    public HashMap<String,List<Double>> getSampleVals4Row(List<String> dataLine, String[] formatTokens){
+        HashMap<String,List<Double>> allVals = new HashMap<String, List<Double>>(); //all values for all keys in the list
+        //first, go through all of the samples and populate the allVals hashmap.
+        for(int i=COL_FORMAT+1;i<dataLine.size();i++){
+            //System.out.println(dataLine.get(i));
+            String[] values = dataLine.get(i).split(":");
+            if(values.length != formatTokens.length){
+                //malformed input or empty sample, don't process this sample
+                ;
+            }else {
+                for(int j=0;j<formatTokens.length;j++){
+                    //System.out.println(formatTokens[j] + "=" + values[j]);
+                    if(formatTokens[j].equals("GT")){ //it is a genotype format field, special formatting logic needs to be applied
+                        ; //ignore -- another section of the code handles this complex case
+                        //else, it is a 'dot' for the field, don't add anything!
+                    }else if( values[j].equalsIgnoreCase(".") ){
+                        ;
+                        //else, if it is a number, add to the list
+                    }else if( isNumeric(values[j]) ){
+                        Double d = new Double(values[j]);
+                        List<Double> all = allVals.get(formatTokens[j]);
+                        if(all == null){
+                            all = new ArrayList<Double>();
+                        }
+                        all.add(d);
+                        allVals.put(formatTokens[j], all);
+                        //else if, it is a list of numbers
+                    }else if (isNumericList(values[j],",")){
+                        List<Double> l = parseNumericList(values[j],",");
+                        List<Double> all = allVals.get(formatTokens[j]);
+                        if(all == null){
+                            all = new ArrayList<Double>();
+                        }
+                        for(Double d : l){
+                            all.add(d);
+                        }
+                        allVals.put(formatTokens[j], all);
+                    }
+
+                }
             }
-            if(d < minAD){
-                minAD = d;
+
+        }
+        return allVals;
+    }
+
+
+    /**
+     * most common use case delim=, (comma) it will check to see if everything in the list seperated by commas is a number
+     * @param s
+     * @param delim
+     * @return
+     */
+    public boolean isNumericList(String s, String delim){
+        String[] nums = s.split(delim);
+        if(nums.length < 2) return false;
+        for(int i= 0; i < nums.length ; i++){
+            if(!isNumeric(nums[i])){
+                return false;
             }
         }
-        //System.out.println(maxPL);
-        genotype.addProperty("maxAD", maxAD);
-        genotype.addProperty("minAD", minAD);
-        //System.out.println(genotype.toString());
-        return genotype;
+        return true;
     }
+
+    public List<Double> parseNumericList(String s, String delim){
+        List<Double> v = new ArrayList<Double>();
+        String[] nums = s.split(delim);
+        if(nums.length < 2) return new ArrayList<Double>();
+        for(int i= 0; i < nums.length ; i++){
+            if(!isNumeric(nums[i].trim())){
+                return new ArrayList<Double>();
+            }else {
+                v.add(new Double(nums[i].trim()));
+            }
+        }
+        return v;
+    }
+
+//    /**
+//     * PL : the phred-scaled genotype likelihoods rounded to the closest integer (and otherwise defined precisely as the GL field) (Integers)
+//     * we need to select the max and of the values from this array and insert as a seperate value for use in filtering
+//     */
+//    public JsonObject addMaxMinPL(JsonObject genotype, ArrayList<Double> values){
+//        //System.out.println(values);
+//        double minPL = Double.MAX_VALUE;
+//        double maxPL = -Double.MAX_VALUE;
+//        for(int i=0;i<values.size();i++){
+//            Double d = values.get(i);
+//            this.ALLPL.add(d);
+//            if(d > maxPL){
+//                maxPL = d;
+//            }
+//            if(d < minPL){
+//                minPL = d;
+//            }
+//        }
+//        //System.out.println(maxPL);
+//        genotype.addProperty("maxPL", maxPL);
+//        genotype.addProperty("minPL", minPL);
+//        //System.out.println(genotype.toString());
+//        return genotype;
+//    }
+
+//    public JsonObject addMinMaxAD(JsonObject genotype, ArrayList<Double> values){
+//        double maxAD = -Double.MAX_VALUE;
+//        double minAD = Double.MAX_VALUE;
+//        for(int i=1;i<values.size();i++){
+//            Double d = values.get(i);
+//            this.ALLAD.add(d);
+//            if(d > maxAD){
+//                maxAD = d;
+//            }
+//            if(d < minAD){
+//                minAD = d;
+//            }
+//        }
+//        //System.out.println(maxPL);
+//        genotype.addProperty("maxAD", maxAD);
+//        genotype.addProperty("minAD", minAD);
+//        //System.out.println(genotype.toString());
+//        return genotype;
+//    }
 
     public Map<java.lang.String, InfoFieldMeta> getmFieldMap() {
         return mFieldMap;
@@ -766,7 +888,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         return json;
     }
 
-    public static double min(ArrayList<Double> m){
+    public static double min(List<Double> m){
         double min = Double.MAX_VALUE;
         for(double d : m){
             if(d<min) min = d;
@@ -774,7 +896,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         return min;
     }
 
-    public static double max(ArrayList<Double> m){
+    public static double max(List<Double> m){
         double max = Double.NEGATIVE_INFINITY;
         for(double d : m){
             if(d>max) max = d;
@@ -782,7 +904,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         return max;
     }
 
-    public static double average(ArrayList<Double> m) {
+    public static double average(List<Double> m) {
         double sum = 0;
         for (double d : m) {
             sum += d;
