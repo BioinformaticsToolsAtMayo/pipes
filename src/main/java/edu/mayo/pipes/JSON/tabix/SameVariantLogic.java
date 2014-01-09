@@ -54,7 +54,7 @@ import net.minidev.json.JSONArray;
             //landmarks must be the same...
             String chrIn  = chrJsonPath.read(jsonIn);
             String chrOut = chrJsonPath.read(jsonCatalog);
-            if(chrIn == null || chrIn.length()==0 || ! chrIn.equalsIgnoreCase(chrOut)){
+            if( ! isGiven(chrIn) || ! chrIn.equalsIgnoreCase(chrOut)){
                 return false;        
             }
             
@@ -62,7 +62,7 @@ import net.minidev.json.JSONArray;
             Integer minBpIn  = minBpJsonPath.read(jsonIn);
             Integer minBpOut = minBpJsonPath.read(jsonCatalog);
             //System.out.println(minbpIN + ":" + minbpOUT);
-            if(minBpIn == null || minBpIn.compareTo(minBpOut) != 0) {
+            if( minBpIn == null || minBpIn.compareTo(minBpOut) != 0) {
                 return false;
             }
             
@@ -72,9 +72,9 @@ import net.minidev.json.JSONArray;
             String refOut  = refJsonPath.read(jsonCatalog);
             ArrayList<String> altsIn   = toList((JSONArray)altJsonPath.read(jsonIn));
             ArrayList<String> altsOut  = toList((JSONArray)altJsonPath.read(jsonCatalog));
-            boolean isRsIdMatch = rsIdIn != null && rsIdIn.length() > 0 && rsIdIn.equalsIgnoreCase(rsIdOut);
-            boolean isRefAlleleMatch = refIn  != null && refIn.length() > 0 && refIn.equalsIgnoreCase(refOut);
-            boolean isAltAlleleMatch = altsIn != null && altsIn.size() > 0 && isSubset(altsIn, altsOut);
+            boolean isRsIdMatch = isGiven(rsIdIn) && rsIdIn.equalsIgnoreCase(rsIdOut);
+            boolean isRefAlleleMatch = isGiven(refIn) && refIn.equalsIgnoreCase(refOut);
+            boolean isAltAlleleMatch = isGiven(altsIn) && isSubset(altsIn, altsOut);
             
             if( isRsidCheckOnly ) 
             	return isRsIdMatch;
@@ -83,6 +83,23 @@ import net.minidev.json.JSONArray;
             else {
             	return isRsIdMatch || (isRefAlleleMatch && isAltAlleleMatch);
             }
+        }
+        
+        /** Not null, not blank (len=0 after a trim), and not equal to "." */
+        private boolean isGiven(String s) {
+        	return s != null && s.trim().length() > 0 && ! ".".equals(s.trim());
+        }
+        
+        /** All Strings in the list must be: 
+         *  Not null, not blank (len=0 after a trim), and not equal to "." */
+        private boolean isGiven(ArrayList<String> list) {
+        	if( list == null ) 
+        		return false;
+        	for(String s : list) {
+        		if( ! isGiven(s) )
+        			return false;
+        	}
+        	return true;
         }
         
         /** Make sure all items in altsIn are contained within altsOut */

@@ -502,6 +502,35 @@ public class SameVariantPipeTest {
         assertEquals(2, resultCount);        	
     }    
 
+    /** Test case from BUG:
+     *  Case where input variant is:
+     *    #CHROM	POS			ID	REF	ALT	QUAL	FILTER	INFO
+		  1			43917637	.	G	A	2726.81	.		.
+		And catalog contains:
+		  1	43917637	43917637	{"CHROM":"1","POS":"43917637","ID":"rs2251802","REF":"G","ALT":"A",....
+		  1	43917637	43917638	{"CHROM":"1","POS":"43917637","ID":".","REF":"GT","ALT":"G",....
+		SameVariant was returning BOTH of these variants, even though the 2nd should NOT match because the REF is different!
+		This was because the RsIds were both ".", which it equated as equal (it should skip the RsId check in this case),
+		and didn't bother checking the ref and alts 
+     * @throws IOException 
+     */
+    @Test
+    public void testRsIdEqualWhenBothDots() throws IOException {
+    	String catalogFile = "src/test/resources/testData/sameVariant/esp.tsv.bgz";
+    	Pipeline p = new Pipeline(
+    		new HistoryInPipe(),
+    		new VCF2VariantPipe(),
+    		new SameVariantPipe(catalogFile)
+    		);
+    	p.setStarts(Arrays.asList("1	43917637	.	G	A	2726.81	.	."));
+    	List<String> actual = PipeTestUtils.getResults(p);
+    	assertEquals(1, actual.size());
+    	String[] cols = actual.get(0).split("\t");
+    	String lastCol = cols[cols.length-1];
+    	assertTrue(lastCol.startsWith("{\"CHROM\":\"1\",\"POS\":\"43917637\",\"ID\":\"rs2251802\",\"REF\":\"G\",\"ALT\":\"A\","));
+    	assertTrue(lastCol.contains("\"MAF\":[\"41.3953\",\"23.3318\",\"35.276\"]"));
+    }
+    
     /**
      * 
      * Test case based on error found by Greg.  1st data row has no match, 2nd row has a match.

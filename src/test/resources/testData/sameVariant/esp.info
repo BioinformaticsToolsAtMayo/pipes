@@ -1,0 +1,5 @@
+This is to test that even though there are two variants in the catalog at the following position,
+bior_same_variant should only return the one that matches the ref and alt allele (the SNP), not the 
+indel.  There was a bug previously that said since the RsId on both the incoming variant and the catalog variant
+were ".", they were equal, and so there was no need to check the Ref and Alt, even though the Refs and Alts were different.
+1	43917637	.	G	A	.	.	.
