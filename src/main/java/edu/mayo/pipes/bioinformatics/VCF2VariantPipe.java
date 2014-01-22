@@ -83,8 +83,13 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     private static final int REGEX_DESCRIPTION = 4;
     private Pattern mRegexPattern = Pattern.compile(mRegexStr);
 
-    // maps a given INFO field ID to an InfoFieldMeta object
-    private Map<String, InfoFieldMeta> mFieldMap = new HashMap<String, InfoFieldMeta>();
+    // maps a given INFO/FORMAT field ID to an InfoFieldMeta object
+    //format for this is something like
+    // INFO -> SNPEFF_EFFECT -> InfoFieldMeta
+    // FORMAT -> PL -> InfoFieldMeta
+    // INFO -> DP -> InfoFieldMeta
+    // FORMAT -> DP -> InfoFieldMeta
+    private HashMap<String, HashMap<String, InfoFieldMeta>> fieldMap = new HashMap<String, HashMap<String, InfoFieldMeta>>();
     //Private variables to hold the rest of the "schema" specific to this VCF file.
     private HashMap<String,Integer> sampleKeys = new HashMap();
     private HashMap<String,Boolean> formatKeys = new HashMap();
@@ -141,9 +146,39 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
                     meta.number = null;
                 }
                 meta.desc = getDescripiton(row);//m.group(REGEX_DESCRIPTION).replaceAll("\"", "");
-                mFieldMap.put(meta.id, meta);
+                fieldMapPut(meta);
             }
         }
+    }
+
+    private void fieldMapPut(InfoFieldMeta meta){
+        HashMap<String, InfoFieldMeta> keyVal = fieldMap.get(meta.entryType); //e.g. INFO, FILTER, FORMAT...
+        if(keyVal == null){
+            keyVal = new HashMap<String,InfoFieldMeta>();
+        }
+        keyVal.put(meta.id, meta);
+        fieldMap.put(meta.entryType,keyVal);
+    }
+
+    /**
+     * checks all of the hashmaps in fieldMap to see if the field is in the header, if it is there, it returns it, else null
+     * @param field
+     * @return
+     */
+    private InfoFieldMeta fieldMapGet(String field){
+        //first, try to get it from INFO, and prefer that value if it is there
+        HashMap<String,InfoFieldMeta> keyVal = fieldMap.get("INFO");
+        if(keyVal.containsKey(field)){
+            return keyVal.get(field);
+        }
+        //else, check everything else to see if it could be there...
+        for(String entryType: fieldMap.keySet()){
+            keyVal = fieldMap.get(entryType); //e.g. INFO
+            if(keyVal.containsKey(field)){
+                return keyVal.get(field);
+            }
+        }
+        return null;
     }
 
     /**
@@ -281,8 +316,8 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
                 String value = field.substring(firstEq + 1);
 
                 InfoFieldMeta meta = defaultMeta;
-                if (mFieldMap.containsKey(id)) {
-                    meta = mFieldMap.get(id);
+                if (this.fieldMapGet(id) != null) {
+                    meta = fieldMapGet(id);
                 }
 
                 if ((meta.number == null) || (meta.number > 1)) {
@@ -531,19 +566,6 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             format.addProperty("GenotypePostitiveCount", this.GenotypePostitiveCount);
             format.add("GenotypePositiveList", this.GenotypePositiveSamples);
             root.add("FORMAT", format);
-            //PLIntervalMin = 0;
-//            root.addProperty("PLIntervalMin", min(this.ALLPL));
-//            //PLIntervalMax = Double.MAX_VALUE;
-//            root.addProperty("PLIntervalMax", max(this.ALLPL));
-//            //PLAverage = Double.MAX_VALUE;
-//            root.addProperty("PLAverage", average(this.ALLPL));
-//            //ADIntervalMin = 0;
-//            root.addProperty("ADIntervalMin", min(this.ALLAD));
-//            //ADIntervalMax = Double.MAX_VALUE;
-//            root.addProperty("ADIntervalMax", max(this.ALLAD));
-//            //ADAverage = Double.MAX_VALUE;
-//            root.addProperty("ADAverage", average(this.ALLAD));
-
         }
     }
 
@@ -639,16 +661,6 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
                     }
                 }
                 genotype.add(tokens[i], jarr);
-                //calculate the maxPL and add
-//                if(tokens[i].equals("PL")){
-//                    genotype = addMaxMinPL(genotype,values);
-//                }
-                //calculate the minAD/maxAD and add to the json
-                //for the first, AD that is ref and all of the others are alternates
-                //pick the min and max from the alternates.
-//                if(tokens[i].equals("AD")){
-//                    genotype = addMinMaxAD(genotype,values);
-//                }
             }else if(isNumeric(split[i])){ //it is not
                 genotype.addProperty(tokens[i], Double.parseDouble(split[i]));
             }else { //it is a string, so just add it as a string.
@@ -802,53 +814,8 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         return v;
     }
 
-//    /**
-//     * PL : the phred-scaled genotype likelihoods rounded to the closest integer (and otherwise defined precisely as the GL field) (Integers)
-//     * we need to select the max and of the values from this array and insert as a seperate value for use in filtering
-//     */
-//    public JsonObject addMaxMinPL(JsonObject genotype, ArrayList<Double> values){
-//        //System.out.println(values);
-//        double minPL = Double.MAX_VALUE;
-//        double maxPL = -Double.MAX_VALUE;
-//        for(int i=0;i<values.size();i++){
-//            Double d = values.get(i);
-//            this.ALLPL.add(d);
-//            if(d > maxPL){
-//                maxPL = d;
-//            }
-//            if(d < minPL){
-//                minPL = d;
-//            }
-//        }
-//        //System.out.println(maxPL);
-//        genotype.addProperty("maxPL", maxPL);
-//        genotype.addProperty("minPL", minPL);
-//        //System.out.println(genotype.toString());
-//        return genotype;
-//    }
-
-//    public JsonObject addMinMaxAD(JsonObject genotype, ArrayList<Double> values){
-//        double maxAD = -Double.MAX_VALUE;
-//        double minAD = Double.MAX_VALUE;
-//        for(int i=1;i<values.size();i++){
-//            Double d = values.get(i);
-//            this.ALLAD.add(d);
-//            if(d > maxAD){
-//                maxAD = d;
-//            }
-//            if(d < minAD){
-//                minAD = d;
-//            }
-//        }
-//        //System.out.println(maxPL);
-//        genotype.addProperty("maxAD", maxAD);
-//        genotype.addProperty("minAD", minAD);
-//        //System.out.println(genotype.toString());
-//        return genotype;
-//    }
-
-    public Map<java.lang.String, InfoFieldMeta> getmFieldMap() {
-        return mFieldMap;
+    public HashMap<String,HashMap<String, InfoFieldMeta>> getmFieldMap() {
+        return fieldMap;
     }
 
     public HashMap<java.lang.String, Integer> getSampleKeys() {
@@ -859,21 +826,36 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
         return formatKeys;
     }
 
+    private static final String HEADER = "HEADER";
+    //reserved field types in the header
+    private static final String INFO = "INFO";
+
     public JsonObject getJSONMetadata(){
         JsonObject json = new JsonObject();
-        JsonObject info = new JsonObject();
+        JsonObject header = new JsonObject();
+        JsonObject typeJSON = null;
         JsonObject format = new JsonObject();
         JsonObject samples = new JsonObject();
-        for(String key : this.mFieldMap.keySet()){
-            //System.out.println(key);
-            InfoFieldMeta value = mFieldMap.get(key);
-            JsonObject meta = new JsonObject();
-            //meta.addProperty("id", value.id);
-            meta.addProperty("number", value.number);
-            meta.addProperty("type", value.type.toString());
-            meta.addProperty("Description", value.desc);
-            meta.addProperty("EntryType", value.entryType);
-            info.add(key, meta);
+        for(String entryType : fieldMap.keySet()){
+            System.out.println(entryType);
+            HashMap<String,InfoFieldMeta> fieldByType = fieldMap.get(entryType);
+            typeJSON = new JsonObject();   //this is for putting together the type sub-document
+                                           // e.g. {... "header": "INFO" : { key : {"number":1,"type":"String","Description":"","EntryType":"INFO"},...} }
+            for(String key: fieldByType.keySet()){
+                //System.out.println(key);
+                InfoFieldMeta value = fieldByType.get(key);
+                JsonObject meta = new JsonObject();
+                if(value.number == null){
+                    meta.addProperty("number", ".");
+                } else {
+                    meta.addProperty("number", value.number);
+                }
+                meta.addProperty("type", value.type.toString());
+                meta.addProperty("Description", value.desc);
+                meta.addProperty("EntryType", value.entryType);
+                typeJSON.add(key, meta);
+            }
+            header.add(entryType.toUpperCase(),typeJSON);
         }
         for(String key : this.formatKeys.keySet()){
             format.addProperty(key, 1);
@@ -882,7 +864,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
             samples.addProperty(key, sampleKeys.get(key));
         }
         //System.out.println(info.toString());
-        json.add("INFO", info);
+        json.add("HEADER", header);
         json.add("FORMAT", format);
         json.add("SAMPLES", samples);
         return json;
