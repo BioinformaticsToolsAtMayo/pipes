@@ -77,7 +77,7 @@ public class Fasta2Tabix {
     public List<String> createRefFileList(String dir, String build){
         List<String> paths = new ArrayList<String>();
         for(String l : landmarks){
-            paths.add(dir + "hs_ref_+build+_chr" + l +".fa.gz");
+            paths.add(dir + "hs_ref_"+build+"_chr" + l +".fa.gz");
         }
         return paths;
     }
