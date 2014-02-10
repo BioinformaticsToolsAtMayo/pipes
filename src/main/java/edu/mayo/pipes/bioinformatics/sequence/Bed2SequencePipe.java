@@ -86,7 +86,6 @@ public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<S
      */
     public Bed2SequencePipe(String tabixDataFile, boolean isUseJson) throws IOException {
         mTabixSearch = new TabixSearchPipe(tabixDataFile);
-        mMaxBpCol = 0;
         mIsUseJsonCol = isUseJson;
         mChromJsonPath = JsonPath.compile(CoreAttributes._landmark.toString());
         mMinBpJsonPath = JsonPath.compile(CoreAttributes._minBP.toString());
@@ -148,12 +147,17 @@ public class Bed2SequencePipe extends AbstractPipe<ArrayList<String>,ArrayList<S
     private String getTabixQueryString(ArrayList<String> history) {
     	String query = "";
     	if( mIsUseJsonCol ) {
-    		String lastCol = history.get(history.size()+this.mMaxBpCol);
-    		String chr = mChromJsonPath.read(lastCol);
+    		String lastColStr = history.get(history.size()+this.mMaxBpCol);
+    		String chr = mChromJsonPath.read(lastColStr);
+    		
     		//int min = (Integer)(mMinBpJsonPath.read(lastCol));
-            int min = Integer.parseInt((String) mMinBpJsonPath.read(lastCol));
+    		Object minBpObj = mMinBpJsonPath.read(lastColStr);
+    		int min = (minBpObj instanceof String) ? Integer.parseInt((String)minBpObj) : (Integer)(minBpObj);
+    		
     		//int max = (Integer)(mMaxBpJsonPath.read(lastCol));
-            int max = Integer.parseInt((String) mMaxBpJsonPath.read(lastCol)); //failure to parse will result in a runtime exception!
+            Object maxBpObj = mMaxBpJsonPath.read(lastColStr);
+    		int max = (maxBpObj instanceof String) ? Integer.parseInt((String)maxBpObj) : (Integer)(maxBpObj); //failure to parse will result in a runtime exception!
+
     		query = chr + ":" + min + "-" + max;
     	} else {
     		String chr = history.get(history.size()-2+this.mMaxBpCol); //-3
