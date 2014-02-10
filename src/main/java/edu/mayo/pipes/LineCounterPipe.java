@@ -1,20 +1,20 @@
 package edu.mayo.pipes;
 
-import com.tinkerpop.pipes.AbstractPipe;
-import edu.mayo.pipes.history.History;
 import java.util.NoSuchElementException;
+
+import com.tinkerpop.pipes.AbstractPipe;
 
 /**
  * Count the number of lines coming into this pipe
  * @author Mike Meiners
  */
-public class LineCounterPipe<S> extends AbstractPipe<History, History> {
+public class LineCounterPipe<S> extends AbstractPipe<S, S> {
 	private long mNumLines = 0;
 	
-    protected History processNextStart() throws NoSuchElementException {
-        History h = this.starts.next();
+    protected S processNextStart() throws NoSuchElementException {
+        S line = this.starts.next();
         mNumLines++;
-        return h;
+        return line;
     }
 
     public long getLineCount() {

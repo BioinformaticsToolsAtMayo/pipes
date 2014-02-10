@@ -44,7 +44,7 @@ public class IndexDatabaseCreator {
 			// Save indexes to text file
 		    System.out.println("Saving indexes to temp text file...");
 			//addZipIndexesToDb(bgzipFile, 3, false, "\t", dbConn);
-		    tempTxtOut = new File(h2DbFile.getParentFile().getCanonicalPath() + "/tempIndex.txt");
+		    tempTxtOut = new File(h2DbFile.getCanonicalFile().getParentFile(), "/tempIndex.txt");
 		    IndexUtils indexUtils = new IndexUtils();
 		    Properties props = indexUtils.zipIndexesToTextFile(new File(bgzipPath), "\t", keyCol, jsonPath, tempTxtOut);
 	

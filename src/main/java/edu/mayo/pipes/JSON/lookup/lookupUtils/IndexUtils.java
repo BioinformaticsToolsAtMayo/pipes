@@ -21,10 +21,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.log4j.Logger;
-
 import net.sf.samtools.util.BlockCompressedInputStream;
 import net.sf.samtools.util.BlockCompressedOutputStream;
+
+import org.apache.log4j.Logger;
 
 import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
@@ -500,18 +500,35 @@ public class IndexUtils {
 		return filePrefix;
 	}
 	
+	/** Get the parent directory as a String path
+	    When getting the parent, make sure to use File.getCanonicalFile() FIRST, 
+		otherwise the parent will come back null if you are working with a file
+		in the same directory where the command is run.
+	 * @param path
+	 * @return
+	 * @throws IOException
+	 */
 	private static String getDir(String path) throws IOException {
-		// When getting the parent, make sure to use File.getCanonicalFile() FIRST, 
-		// otherwise the parent will come back null if you are working with a file
-		// in the same directory where the command is run.
-		return new File(path).getCanonicalFile().getParentFile().getCanonicalPath();
+		return getDirAsFile(path).getCanonicalPath();
+	}
+	
+	/** Get the parent directory as a file 
+        When getting the parent, make sure to use File.getCanonicalFile() FIRST, 
+	    otherwise the parent will come back null if you are working with a file
+	    in the same directory where the command is run.
+	 * @param path
+	 * @return
+	 * @throws IOException
+	*/
+	private static File getDirAsFile(String path) throws IOException {
+		return new File(path).getCanonicalFile().getParentFile();
 	}
 
 	
-	public static void createParentDirectories(String path) {
-		File indexOutFile = new File(path);
-		if( ! indexOutFile.getParentFile().exists())
-			indexOutFile.getParentFile().mkdirs();
+	public static void createParentDirectories(String path) throws IOException {
+		File parentDir = getDirAsFile(path);
+		if( ! parentDir.exists())
+			parentDir.mkdirs();
 	}
 	
 	public static void writeToFile(String txt, String filePath) throws IOException {
