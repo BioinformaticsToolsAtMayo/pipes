@@ -145,7 +145,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
                 } catch (NumberFormatException nfe) {
                     meta.number = null;
                 }
-                meta.desc = getDescripiton(row);//m.group(REGEX_DESCRIPTION).replaceAll("\"", "");
+                meta.desc = getDescription(row);//m.group(REGEX_DESCRIPTION).replaceAll("\"", "");
                 fieldMapPut(meta);
             }
         }
@@ -168,7 +168,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
     private InfoFieldMeta fieldMapGet(String field){
         //first, try to get it from INFO, and prefer that value if it is there
         HashMap<String,InfoFieldMeta> keyVal = fieldMap.get("INFO");
-        if(keyVal.containsKey(field)){
+        if(keyVal != null && keyVal.containsKey(field)){
             return keyVal.get(field);
         }
         //else, check everything else to see if it could be there...
@@ -186,7 +186,7 @@ public class VCF2VariantPipe extends AbstractPipe<History,History> {
      * @param line
      * @return
      */
-    public String getDescripiton(String line){
+    public String getDescription(String line){
         String desc = "Description=\"";
         int p = line.indexOf(desc);
         return line.substring(p+desc.length(),line.length()-2);
