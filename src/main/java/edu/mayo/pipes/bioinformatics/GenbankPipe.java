@@ -5,8 +5,11 @@
 package edu.mayo.pipes.bioinformatics;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.NoSuchElementException;
+import java.util.zip.GZIPInputStream;
 
 import org.biojava.bio.BioException;
 import org.biojavax.SimpleNamespace;
@@ -26,6 +29,10 @@ import com.tinkerpop.pipes.AbstractPipe;
  */
 public class GenbankPipe extends AbstractPipe<String, RichSequence>{
 
+    private RichSequenceIterator mRichSeqIter = null;
+    private boolean mIsFileGzip = false;
+
+    
 	/* 
 	 * ReadGES_BJ1_6.java - A pretty simple demo program to read a sequence file
 	 * with a known format using Biojavax extension found in BJ1.6. 
@@ -53,22 +60,30 @@ public class GenbankPipe extends AbstractPipe<String, RichSequence>{
 //			System.exit(-1);
 //		}
 //	}
-        
-    private BufferedReader openFile(String filename) throws Exception{
-        br = br = new BufferedReader(new FileReader(filename));
-        ns = new SimpleNamespace("biojava");
-        // You can use any of the convenience methods found in the BioJava 1.6 API
-        rsi = RichSequence.IOTools.readGenbankDNA(br, ns);
-        return br;
+    
+    public GenbankPipe() {
+    	
+    }
+    
+    public GenbankPipe(boolean isGzipFile) {
+    	mIsFileGzip = isGzipFile;
     }
         
-    private BufferedReader br = null;
-    private SimpleNamespace ns = null;
-    private RichSequenceIterator rsi = null;
+    private BufferedReader openFile(String filename) throws Exception{
+        BufferedReader reader = mIsFileGzip
+        		?  new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(filename)))) 
+        		:  new BufferedReader(new FileReader(filename));
+        		
+        SimpleNamespace namespace = new SimpleNamespace("biojava");
+        // You can use any of the convenience methods found in the BioJava 1.6 API
+        mRichSeqIter = RichSequence.IOTools.readGenbankDNA(reader, namespace);
+        return reader;
+    }
+
 
     @Override
     protected RichSequence processNextStart() throws NoSuchElementException {
-        if(rsi == null){
+        if(mRichSeqIter == null){
             try {
                 //System.out.println("***********" + this.starts.next());
                 openFile(this.starts.next());
@@ -78,9 +93,9 @@ public class GenbankPipe extends AbstractPipe<String, RichSequence>{
             }
         }
         
-    	if(rsi.hasNext()) {
+    	if(mRichSeqIter.hasNext()) {
             try {
-                return rsi.nextRichSequence();
+                return mRichSeqIter.nextRichSequence();
             } catch (BioException ex) {
                 throw new NoSuchElementException(ex.getMessage());
                 //Logger.getLogger(GenbankPipe.class.getName()).log(Level.SEVERE, null, ex);
@@ -90,8 +105,8 @@ public class GenbankPipe extends AbstractPipe<String, RichSequence>{
             try {
             	openFile(this.starts.next());
                 
-            	if(rsi.hasNext()){
-            		return rsi.nextRichSequence();
+            	if(mRichSeqIter.hasNext()){
+            		return mRichSeqIter.nextRichSequence();
                 }
             } catch (Exception e) {
             	throw new NoSuchElementException(e.getMessage());
