@@ -138,6 +138,39 @@ public class DrillPipeTest {
     }
    
     
+    @Test
+    /** Test multiple JSON paths drilled, positive column # for the JSON */
+    public void testMultiPath_PosCol() {
+        System.out.println("DrillPipeTest.testMultiPath_PosCol(): Test multiple JSON paths drilled, specifying a positive column number");
+        //note s1 does not have minBP, this will cause a drill to fail in the test, drill failure will result in return of a period '.'
+        String s1 = "17\t41231278\t41184058\t{\"type\":\"gene\",\"chr\":\"17\",\"strand\":\"+\",\"minBP\":41231278,\"maxBP\":41184058,\"gene\":\"RND2\"}\tSomeOtherTextOnTheEnd";
+        String[] drillPaths = { "gene", "chr", "minBP", "maxBP" };
+        Pipe<String, String> p = new Pipeline(new HistoryInPipe(), new DrillPipe(false, drillPaths, 4), new MergePipe("\t"));
+        p.setStarts(Arrays.asList(s1));
+        List<String> actual = PipeTestUtils.getResults(p);
+        List<String> expected = Arrays.asList(
+                "17\t41231278\t41184058\tSomeOtherTextOnTheEnd\tRND2\t17\t41231278\t41184058"
+        		);
+        PipeTestUtils.assertListsEqual(expected, actual);
+    }
+
+    @Test
+    /** Test multiple JSON paths drilled, negative column # for the JSON */
+    public void testMultiPath_NegCol() {
+        System.out.println("DrillPipeTest.testMultiPath_NegCol(): Test multiple JSON paths drilled, specifying a negative column number");
+        //note s1 does not have minBP, this will cause a drill to fail in the test, drill failure will result in return of a period '.'
+        String s1 = "17\t41231278\t41184058\t{\"type\":\"gene\",\"chr\":\"17\",\"strand\":\"+\",\"minBP\":41231278,\"maxBP\":41184058,\"gene\":\"RND2\"}\tSomeOtherTextOnTheEnd";
+        String[] drillPaths = { "gene", "chr", "minBP", "maxBP" };
+        Pipe<String, String> p = new Pipeline(new HistoryInPipe(), new DrillPipe(false, drillPaths, -2), new MergePipe("\t"));
+        p.setStarts(Arrays.asList(s1));
+        List<String> actual = PipeTestUtils.getResults(p);
+        List<String> expected = Arrays.asList(
+                "17\t41231278\t41184058\tSomeOtherTextOnTheEnd\tRND2\t17\t41231278\t41184058"
+        		);
+        PipeTestUtils.assertListsEqual(expected, actual);
+    }
+
+    
   //  @Test
     public void testRemoveDrillColumnMetadata() {
     	System.out.println("Test RemoveDrillColumnMetadata..");

@@ -385,7 +385,8 @@ public class AddMetadataLines {
         int col = -1;
         //ensure that we are dealing with a negative column
         if(columnNumber > 0){
-            col = columnNumber - h.getMetaData().getColumns().size() -1;
+        	List<ColumnMetaData> colMeta = h.getMetaData().getColumns();
+            col = columnNumber - colMeta.size() -1;
         } else if (columnNumber == 0){
             throw	new RuntimeException("You can't specify column number 0, use negative or positive numbers only!");
         }else {
@@ -423,7 +424,9 @@ public class AddMetadataLines {
             }
         }
        
-        return cmeta.substring(5); //make sure to remove the bior. for consistency across the functions
+        if( cmeta.startsWith("bior.") )
+        	cmeta = cmeta.substring(5); //make sure to remove the bior. for consistency across the functions
+        return cmeta;
     }
 
     /**
